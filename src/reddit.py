@@ -6,28 +6,24 @@ import traceback
 import globals
 
 log = logging.getLogger("bot")
-reddit = None
 
 
-def init(user):
-	global reddit
+class Reddit:
+	def __init__(self, user):
+		try:
+			self.reddit = praw.Reddit(
+				user,
+				user_agent=globals.USER_AGENT)
+		except configparser.NoSectionError:
+			log.error("User "+user+" not in praw.ini, aborting")
+			self.reddit = None
 
-	try:
-		reddit = praw.Reddit(
-			user,
-			user_agent=globals.USER_AGENT)
-	except configparser.NoSectionError:
-		log.error("User "+user+" not in praw.ini, aborting")
-		return False
+		globals.ACCOUNT_NAME = self.reddit.user.me().name.lower()
 
-	globals.ACCOUNT_NAME = str(reddit.user.me()).lower()
+		log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
 
-	log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
-	return True
-
-
-def getMessages():
-	return reddit.inbox.unread(limit=500)
+	def get_messages(self):
+		return self.reddit.inbox.unread(limit=500)
 
 
 

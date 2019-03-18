@@ -1,8 +1,11 @@
 import sqlite3
+import logging
 from datetime import datetime
 
-from reminder import Reminder
+from classes import Reminder
 import globals
+
+log = logging.getLogger("bot")
 
 dbConn = None
 
@@ -41,10 +44,10 @@ def close():
 	dbConn.close()
 
 
-def saveReminder(reminder):
+def save_reminder(reminder):
 	if not isinstance(reminder, Reminder):
 		return False
-	if reminder.id is not None:
+	if reminder.db_id is not None:
 		return False
 
 	c = dbConn.cursor()
@@ -53,9 +56,9 @@ def saveReminder(reminder):
 			INSERT INTO reminders
 			(SourceID, RequestedDate, TargetDate, Message, User)
 			VALUES (?, ?, ?, ?, ?)
-		''', (reminder.sourceId,
-		      reminder.requestedDate.strftime("%Y-%m-%d %H:%M:%S"),
-		      reminder.targetDate.strftime("%Y-%m-%d %H:%M:%S"),
+		''', (reminder.source_id,
+		      reminder.requested_date.strftime("%Y-%m-%d %H:%M:%S"),
+		      reminder.target_date.strftime("%Y-%m-%d %H:%M:%S"),
 		      reminder.message,
 		      reminder.user))
 	except sqlite3.IntegrityError:
@@ -66,7 +69,7 @@ def saveReminder(reminder):
 	return True
 
 
-def getReminders():
+def get_reminders():
 	c = dbConn.cursor()
 	results = []
 	for row in c.execute('''
@@ -74,27 +77,28 @@ def getReminders():
 		FROM reminders
 		WHERE TargetDate < CURRENT_TIMESTAMP
 		'''):
-		reminder = Reminder()
-		reminder.id = row[0]
-		reminder.sourceId = row[1]
-		reminder.requestedDate = datetime.strptime(row[2], "%Y-%m-%d %H:%M:%S")
-		reminder.targetDate = datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S")
-		reminder.message = row[4]
-		reminder.user = row[5]
+		reminder = Reminder(
+			source_id=row[1],
+			target_date=datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S"),
+			message=row[4],
+			user=row[5],
+			db_id=row[0],
+			requested_date=datetime.strptime(row[2], "%Y-%m-%d %H:%M:%S")
+		)
 		results.append(reminder)
 
 	return results
 
 
-def deleteReminder(reminder):
-	if reminder.id is None:
+def delete_reminder(reminder):
+	if reminder.db_id is None:
 		return False
 
 	c = dbConn.cursor()
 	c.execute('''
 		DELETE FROM reminders
 		WHERE ID = ?
-	''', (reminder.id,))
+	''', (reminder.db_id,))
 	dbConn.commit()
 
 	if c.rowcount == 1:

@@ -12,14 +12,17 @@ import traceback
 import database
 import globals
 import reddit
+import messages
 
-### Logging setup ###
 LOG_LEVEL = logging.DEBUG
-if not os.path.exists(globals.LOG_FOLDER_NAME):
-	os.makedirs(globals.LOG_FOLDER_NAME)
-LOG_FILENAME = globals.LOG_FOLDER_NAME+"/"+"bot.log"
+
+
+LOG_FOLDER_NAME = "logs"
+if not os.path.exists(LOG_FOLDER_NAME):
+	os.makedirs(LOG_FOLDER_NAME)
+LOG_FILENAME = LOG_FOLDER_NAME+"/"+"bot.log"
 LOG_FILE_BACKUPCOUNT = 5
-LOG_FILE_MAXSIZE = 1024 * 256 * 16
+LOG_FILE_MAXSIZE = 1024 * 1024 * 16
 
 log = logging.getLogger("bot")
 log.setLevel(LOG_LEVEL)
@@ -28,9 +31,11 @@ log_stderrHandler = logging.StreamHandler()
 log_stderrHandler.setFormatter(log_formatter)
 log.addHandler(log_stderrHandler)
 if LOG_FILENAME is not None:
-	log_fileHandler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes=LOG_FILE_MAXSIZE, backupCount=LOG_FILE_BACKUPCOUNT)
-	log_formatter_file = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-	log_fileHandler.setFormatter(log_formatter_file)
+	log_fileHandler = logging.handlers.RotatingFileHandler(
+		LOG_FILENAME,
+	    maxBytes=LOG_FILE_MAXSIZE,
+	     backupCount=LOG_FILE_BACKUPCOUNT)
+	log_fileHandler.setFormatter(log_formatter)
 	log.addHandler(log_fileHandler)
 
 
@@ -59,12 +64,17 @@ else:
 	sys.exit(0)
 
 
-reddit.init(user)
+reddit = reddit.Reddit(user)
+if reddit.reddit is None:
+	sys.exit(0)
+
 database.init()
 
 while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
+
+	messages.process_messages(reddit)
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:

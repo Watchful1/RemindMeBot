@@ -1,0 +1,8 @@
+process messages:
+  add reminder
+  delete reminder
+  get reminders
+  delete comment
+  remove all reminders
+search for trigger
+send reminders
