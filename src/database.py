@@ -2,8 +2,9 @@ import sqlite3
 import logging
 from datetime import datetime
 
-from classes import Reminder
+from classes.reminder import Reminder
 import globals
+import utils
 
 log = logging.getLogger("bot")
 
@@ -21,7 +22,7 @@ def init():
 			SourceID VARCHAR(12) NOT NULL,
 			RequestedDate TIMESTAMP NOT NULL,
 			TargetDate TIMESTAMP NOT NULL,
-			Message VARCHAR(800) NOT NULL,
+			Message VARCHAR(11000) NOT NULL,
 			User VARCHAR(80) NOT NULL
 		)
 	''')
@@ -57,11 +58,12 @@ def save_reminder(reminder):
 			(SourceID, RequestedDate, TargetDate, Message, User)
 			VALUES (?, ?, ?, ?, ?)
 		''', (reminder.source_id,
-		      reminder.requested_date.strftime("%Y-%m-%d %H:%M:%S"),
-		      reminder.target_date.strftime("%Y-%m-%d %H:%M:%S"),
+		      utils.datetime_as_utc(reminder.requested_date).strftime("%Y-%m-%d %H:%M:%S"),
+		      utils.datetime_as_utc(reminder.target_date).strftime("%Y-%m-%d %H:%M:%S"),
 		      reminder.message,
 		      reminder.user))
-	except sqlite3.IntegrityError:
+	except sqlite3.IntegrityError as err:
+		log.warning(f"Failed to save reminder: {err}")
 		return False
 
 	dbConn.commit()
@@ -79,11 +81,11 @@ def get_reminders():
 		'''):
 		reminder = Reminder(
 			source_id=row[1],
-			target_date=datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S"),
+			target_date=utils.datetime_force_utc(datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S")),
 			message=row[4],
 			user=row[5],
 			db_id=row[0],
-			requested_date=datetime.strptime(row[2], "%Y-%m-%d %H:%M:%S")
+			requested_date=utils.datetime_force_utc(datetime.strptime(row[2], "%Y-%m-%d %H:%M:%S"))
 		)
 		results.append(reminder)
 
