@@ -45,7 +45,7 @@ class TempMessage:
 
 
 def test_add_reminder(database):
-	created = utils.datetime_now()  #datetime.strptime("2019-01-05 10:30:25", "%Y-%m-%d %H:%M:%S")
+	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
 	source_id = random_id()

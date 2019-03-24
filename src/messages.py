@@ -34,6 +34,18 @@ def process_remind_me(message, database):
 	return reminder.render_confirmation()
 
 
+def process_delete_reminder(message, database):
+	return ""
+
+
+def process_delete_all_reminders(message, database):
+	return ""
+
+
+def process_get_reminders(message, database):
+	return ""
+
+
 def process_messages(reddit, database):
 	for message in reddit.get_messages():
 		log.info(f"Message /u/{message.author.name} : {message.id}")
@@ -45,4 +57,4 @@ def process_messages(reddit, database):
 		message.mark_read()
 
 		if result_message is not None:
-			message.reply(result_message)
+			message.reply(result_message+utils.get_footer())

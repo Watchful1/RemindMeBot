@@ -18,7 +18,7 @@ class Reddit:
 			log.error("User "+user+" not in praw.ini, aborting")
 			raise ValueError
 
-		globals.ACCOUNT_NAME = self.reddit.user.me().name.lower()
+		globals.ACCOUNT_NAME = self.reddit.user.me().name
 
 		log.info("Logged into reddit as /u/" + globals.ACCOUNT_NAME)
 
