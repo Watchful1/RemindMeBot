@@ -33,8 +33,8 @@ def find_time(body):
 		return None
 
 
-def parse_time(time_string):
-	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": datetime.utcnow()})
+def parse_time(time_string, base_time=datetime.utcnow()):
+	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time})
 	if date_time.tzinfo is None:
 		date_time = datetime_force_utc(date_time)
 	return date_time
@@ -64,4 +64,4 @@ def datetime_force_utc(date_time):
 
 
 def datetime_now():
-	return datetime_force_utc(datetime.utcnow())
+	return datetime_force_utc(datetime.utcnow().replace(microsecond=0))

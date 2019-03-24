@@ -28,7 +28,7 @@ class Reminder:
 		if target_date is not None:
 			self.target_date = target_date
 		elif time_string is not None:
-			self.target_date = utils.parse_time(time_string)
+			self.target_date = utils.parse_time(time_string, requested_date)
 			if self.target_date < utils.datetime_now():
 				self.result_message = f"This time has already passed: {time_string}"
 				log.warning(self.result_message)
