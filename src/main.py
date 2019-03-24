@@ -9,9 +9,9 @@ import signal
 import time
 import traceback
 
-import database
+import database_class
 import globals
-import reddit
+import reddit_class
 import messages
 
 LOG_LEVEL = logging.DEBUG
@@ -47,36 +47,42 @@ def signal_handler(signal, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 
-log.debug("Connecting to reddit")
+class RemindMeBot:
+	def __init__(self):
+		log.debug("Connecting to reddit")
 
-once = False
-debug = False
-user = None
-if len(sys.argv) >= 2:
-	user = sys.argv[1]
-	for arg in sys.argv:
-		if arg == 'once':
-			once = True
-		elif arg == 'debug':
-			debug = True
-else:
-	log.error("No user specified, aborting")
-	sys.exit(0)
+		self.once = False
+		self.debug = False
+		self.user = None
+		if len(sys.argv) >= 2:
+			self.user = sys.argv[1]
+			for arg in sys.argv:
+				if arg == 'once':
+					self.once = True
+				elif arg == 'debug':
+					self.debug = True
+		else:
+			log.error("No user specified, aborting")
+			raise ValueError
+
+		self.reddit = reddit_class.Reddit(self.user)
+
+		self.database = database_class.Database()
+
+	def process_once(self):
+		startTime = time.perf_counter()
+		log.debug("Starting run")
+
+		messages.process_messages(self.reddit, self.database)
+
+		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 
 
-reddit = reddit.Reddit(user)
-if reddit.reddit is None:
-	sys.exit(0)
+if __name__ == "__main__":
+	remind_me_bot = RemindMeBot()
 
-database.init()
-
-while True:
-	startTime = time.perf_counter()
-	log.debug("Starting run")
-
-	messages.process_messages(reddit)
-
-	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
-	if once:
-		break
-	time.sleep(globals.LOOP_TIME)
+	while True:
+		remind_me_bot.process_once()
+		if remind_me_bot.once:
+			break
+		time.sleep(globals.LOOP_TIME)

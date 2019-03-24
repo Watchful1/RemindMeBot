@@ -16,7 +16,7 @@ class Reddit:
 				user_agent=globals.USER_AGENT)
 		except configparser.NoSectionError:
 			log.error("User "+user+" not in praw.ini, aborting")
-			self.reddit = None
+			raise ValueError
 
 		globals.ACCOUNT_NAME = self.reddit.user.me().name.lower()
 

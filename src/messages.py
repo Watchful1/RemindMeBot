@@ -2,13 +2,12 @@ import logging
 from datetime import datetime
 
 import utils
-import database
 from classes.reminder import Reminder
 
 log = logging.getLogger("bot")
 
 
-def process_remind_me(message):
+def process_remind_me(message, database):
 	log.info("Processing RemindMe message")
 	time = utils.find_time(message.body)
 	if time is None:
@@ -35,13 +34,13 @@ def process_remind_me(message):
 	return reminder.render_confirmation()
 
 
-def process_messages(reddit):
+def process_messages(reddit, database):
 	for message in reddit.get_messages():
 		log.info(f"Message /u/{message.author.name} : {message.id}")
 		body = message.body.lower()
 		result_message = None
 		if "remindme" in body:
-			result_message = process_remind_me(message)
+			result_message = process_remind_me(message, database)
 
 		message.mark_read()
 
