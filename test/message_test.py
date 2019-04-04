@@ -5,6 +5,7 @@ from datetime import datetime
 
 import messages
 import utils
+from classes.reminder import Reminder
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -29,34 +30,43 @@ class TempMessage:
 		body,
 		author,
 		created=None,
-		source_id=None
+		id=None
 	):
 		self.body = body
 		self.author = TempAuthor(author)
-		if source_id is None:
+		if id is None:
 			self.id = random_id()
 		else:
-			self.id = source_id
+			self.id = id
 		self.fullname = "t4_"+self.id
 		if created is None:
 			self.created_utc = utils.datetime_now().timestamp()
 		else:
 			self.created_utc = created.timestamp()
 
+		self.reply_body = None
+
+	def mark_read(self):
+		return
+
+	def reply(self, body):
+		self.reply_body = body
+
 
 def test_add_reminder(database):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
-	source_id = random_id()
+	id = random_id()
 	message = TempMessage(
 		body=f"[{keyword}]\nRemindMe! 1 day",
 		author=username,
 		created=created,
-		source_id=source_id
+		id=id
 	)
 
-	result = messages.process_remind_me(message, database)
+	messages.process_message(message, database)
+	result = message.reply_body
 
 	assert "reminderstring" in result
 
@@ -66,8 +76,53 @@ def test_add_reminder(database):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user == username.lower()
 	assert reminders[0].message == keyword
-	assert reminders[0].source_id == "t4_"+source_id
+	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].db_id is not None
+
+
+def test_get_reminders(database):
+	message = TempMessage(
+		body="MyReminders!",
+		author="Watchful1"
+	)
+
+	messages.process_message(message, database)
+	result = message.reply_body
+	assert "You don't have any reminders." in result
+
+	reminder1 = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	reminder2 = Reminder(
+		source="https://www.reddit.com/message/messages/YYYYY",
+		message="FFFFF",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	database.save_reminder(reminder1)
+	database.save_reminder(reminder2)
+
+	messages.process_message(message, database)
+	result = message.reply_body
+
+	assert "Click here to delete all your reminders" in result
+
+	assert reminder1.source in result
+	assert reminder1.message in result
+	assert "01-04 05" in result
+
+	assert reminder2.source in result
+	assert reminder2.message in result
+	assert "02-05 07" in result
+
+
+

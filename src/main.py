@@ -10,7 +10,7 @@ import time
 import traceback
 
 import database_class
-import globals
+import static
 import reddit_class
 import messages
 
@@ -85,4 +85,4 @@ if __name__ == "__main__":
 		remind_me_bot.process_once()
 		if remind_me_bot.once:
 			break
-		time.sleep(globals.LOOP_TIME)
+		time.sleep(static.LOOP_TIME)

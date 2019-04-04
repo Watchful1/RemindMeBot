@@ -9,7 +9,7 @@ log = logging.getLogger("bot")
 class Reminder:
 	def __init__(
 		self,
-		source_id,
+		source,
 		message,
 		user,
 		requested_date,
@@ -17,7 +17,7 @@ class Reminder:
 		db_id=None,
 		time_string=None
 	):
-		self.source_id = source_id
+		self.source = source
 		self.message = message
 		self.user = user
 		self.requested_date = requested_date
@@ -56,4 +56,4 @@ class Reminder:
 		bldr.append(" to remind you about: ")
 		bldr.append(self.message)
 
-		return ''.join(bldr)
+		return bldr

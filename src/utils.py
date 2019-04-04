@@ -4,7 +4,7 @@ import dateparser
 import pytz
 from datetime import datetime
 
-import globals
+import static
 
 
 log = logging.getLogger("bot")
@@ -82,10 +82,13 @@ def html_encode(message):
 def build_message_link(recipient, subject, content=None):
 	base = "https://np.reddit.com/message/compose/?"
 	bldr = []
-	bldr.append(f"to={recipient}")
-	bldr.append(f"subject={html_encode(subject)}")
+	bldr.append("to=")
+	bldr.append(recipient)
+	bldr.append("subject=")
+	bldr.append(html_encode(subject))
 	if content is not None:
-		bldr.append(f"message={html_encode(content)}")
+		bldr.append(f"message=")
+		bldr.append(html_encode(content))
 
 	return base + '&'.join(bldr)
 
@@ -99,24 +102,35 @@ def get_footer():
 	bldr.append("|[^(Info)](http://np.reddit.com/r/RemindMeBot/comments/24duzp/remindmebot_info/)")
 	bldr.append("|[^(Custom)]()")
 	bldr.append(build_message_link(
-		globals.ACCOUNT_NAME,
+		static.ACCOUNT_NAME,
 		"Reminder",
 		"[Link or message inside square brackets]\n\nRemindMe! Time period here"
 	))
 	bldr.append(")")
 	bldr.append("|[^(Your Reminders)]()")
 	bldr.append(build_message_link(
-		globals.ACCOUNT_NAME,
+		static.ACCOUNT_NAME,
 		"List Of Reminders",
 		"MyReminders!"
 	))
 	bldr.append(")")
 	bldr.append("|[^(Feedback)]()")
 	bldr.append(build_message_link(
-		globals.OWNER,
+		static.OWNER,
 		"Feedback"
 	))
 	bldr.append(")")
 	bldr.append("|\n|-|-|-|-|")
 
-	return ''.join(bldr)
+	return bldr
+
+
+def str_bldr():
+	return []
+
+
+def bldr_length(bldr):
+	length = 0
+	for item in bldr:
+		length += len(item)
+	return length
