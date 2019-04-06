@@ -1,6 +1,8 @@
 import sqlite3
 import logging
+import os
 from datetime import datetime
+from shutil import copyfile
 
 from classes.reminder import Reminder
 import static
@@ -10,20 +12,26 @@ log = logging.getLogger("bot")
 
 
 class Database:
-	def __init__(self, debug):
+	def __init__(self, debug, clone=False):
 		if debug:
+			if clone:
+				if os.path.exists(static.DATABASE_DEBUG_NAME):
+					os.remove(static.DATABASE_DEBUG_NAME)
+				copyfile(static.DATABASE_NAME, static.DATABASE_DEBUG_NAME)
+
 			self.dbConn = sqlite3.connect(static.DATABASE_DEBUG_NAME)
 		else:
 			self.dbConn = sqlite3.connect(static.DATABASE_NAME)
 
 		c = self.dbConn.cursor()
-		if debug:
+		if debug and not clone:
 			c.execute('''
 				DROP TABLE IF EXISTS reminders
 			''')
 			c.execute('''
 				DROP TABLE IF EXISTS comments
 			''')
+
 		c.execute('''
 			CREATE TABLE IF NOT EXISTS reminders (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,

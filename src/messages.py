@@ -85,7 +85,7 @@ def process_get_reminders(message, database):
 	return bldr
 
 
-def process_message(message, database):
+def process_message(message, reddit, database):
 	log.info(f"Message /u/{message.author.name} : {message.id}")
 	body = message.body.lower()
 
@@ -99,10 +99,10 @@ def process_message(message, database):
 
 	if bldr is not None:
 		bldr.extend(utils.get_footer())
-		message.reply(''.join(bldr))
+		reddit.reply_message(message, ''.join(bldr))
 
 
 def process_messages(reddit, database):
 	for message in reddit.get_messages():
 		#  only process messages here
-		process_message(message, database)
+		process_message(message, reddit, database)

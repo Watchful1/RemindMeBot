@@ -1,8 +1,10 @@
 process messages:
-  add reminder
+  -add reminder
   delete reminder
-  get reminders
+  -get reminders
   delete comment
   remove all reminders
 search for trigger
 send reminders
+update comments
+database backups

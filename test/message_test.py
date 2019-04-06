@@ -53,7 +53,7 @@ class TempMessage:
 		self.reply_body = body
 
 
-def test_add_reminder(database):
+def test_add_reminder(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
@@ -65,7 +65,7 @@ def test_add_reminder(database):
 		id=id
 	)
 
-	messages.process_message(message, database)
+	messages.process_message(message, reddit, database)
 	result = message.reply_body
 
 	assert "reminderstring" in result
@@ -84,13 +84,13 @@ def test_add_reminder(database):
 	assert reminders[0].db_id is not None
 
 
-def test_get_reminders(database):
+def test_get_reminders(database, reddit):
 	message = TempMessage(
 		body="MyReminders!",
 		author="Watchful1"
 	)
 
-	messages.process_message(message, database)
+	messages.process_message(message, reddit, database)
 	result = message.reply_body
 	assert "You don't have any reminders." in result
 
@@ -111,7 +111,7 @@ def test_get_reminders(database):
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
 
-	messages.process_message(message, database)
+	messages.process_message(message, reddit, database)
 	result = message.reply_body
 
 	assert "Click here to delete all your reminders" in result

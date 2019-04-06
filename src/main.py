@@ -52,22 +52,28 @@ class RemindMeBot:
 		log.debug("Connecting to reddit")
 
 		self.once = False
-		self.debug = False
+		self.debug_db = False
+		self.clone_db = False
+		self.no_post = False
 		self.user = None
 		if len(sys.argv) >= 2:
 			self.user = sys.argv[1]
 			for arg in sys.argv:
 				if arg == 'once':
 					self.once = True
-				elif arg == 'debug':
-					self.debug = True
+				elif arg == 'debug_db':
+					self.debug_db = True
+				elif arg == 'clone_db':
+					self.clone_db = True
+				elif arg == 'no_post':
+					self.no_post = True
 		else:
 			log.error("No user specified, aborting")
 			raise ValueError
 
-		self.reddit = reddit_class.Reddit(self.user)
+		self.reddit = reddit_class.Reddit(self.user, self.no_post)
 
-		self.database = database_class.Database()
+		self.database = database_class.Database(self.debug_db, self.clone_db)
 
 	def process_once(self):
 		startTime = time.perf_counter()
