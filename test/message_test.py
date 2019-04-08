@@ -1,10 +1,10 @@
 import pytest
-import random
 from datetime import timedelta
 from datetime import datetime
 
 import messages
 import utils
+import reddit_test
 from classes.reminder import Reminder
 
 
@@ -12,53 +12,12 @@ def assert_date_with_tolerance(source, target, tolerance_minutes):
 	assert target - timedelta(minutes=tolerance_minutes) < source < target + timedelta(minutes=tolerance_minutes)
 
 
-def random_id():
-	values = list(map(chr, range(97, 123)))
-	for num in range(1, 10):
-		values.append(str(num))
-	return ''.join(random.choices(values, k=6))
-
-
-class TempAuthor:
-	def __init__(self, name):
-		self.name = name
-
-
-class TempMessage:
-	def __init__(
-		self,
-		body,
-		author,
-		created=None,
-		id=None
-	):
-		self.body = body
-		self.author = TempAuthor(author)
-		if id is None:
-			self.id = random_id()
-		else:
-			self.id = id
-		self.fullname = "t4_"+self.id
-		if created is None:
-			self.created_utc = utils.datetime_now().timestamp()
-		else:
-			self.created_utc = created.timestamp()
-
-		self.reply_body = None
-
-	def mark_read(self):
-		return
-
-	def reply(self, body):
-		self.reply_body = body
-
-
 def test_add_reminder(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
-	id = random_id()
-	message = TempMessage(
+	id = utils.random_id()
+	message = reddit_test.RedditObject(
 		body=f"[{keyword}]\nRemindMe! 1 day",
 		author=username,
 		created=created,
@@ -66,7 +25,7 @@ def test_add_reminder(database, reddit):
 	)
 
 	messages.process_message(message, reddit, database)
-	result = message.reply_body
+	result = message.get_first_child().body
 
 	assert "reminderstring" in result
 
@@ -85,13 +44,12 @@ def test_add_reminder(database, reddit):
 
 
 def test_get_reminders(database, reddit):
-	message = TempMessage(
+	message = reddit_test.RedditObject(
 		body="MyReminders!",
 		author="Watchful1"
 	)
-
 	messages.process_message(message, reddit, database)
-	result = message.reply_body
+	result = message.get_first_child().body
 	assert "You don't have any reminders." in result
 
 	reminder1 = Reminder(
@@ -111,8 +69,12 @@ def test_get_reminders(database, reddit):
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
 
+	message = reddit_test.RedditObject(
+		body="MyReminders!",
+		author="Watchful1"
+	)
 	messages.process_message(message, reddit, database)
-	result = message.reply_body
+	result = message.get_first_child().body
 
 	assert "Click here to delete all your reminders" in result
 
@@ -151,32 +113,39 @@ def test_delete_reminder(database, reddit):
 	database.save_reminder(reminder2)
 	database.save_reminder(reminder3)
 
-	message = TempMessage(
+	message = reddit_test.RedditObject(
 		body=f"Remove! test",
 		author="Watchful2"
 	)
 	messages.process_message(message, reddit, database)
-	assert "I couldn't find a reminder id to remove." in message.reply_body
+	assert "I couldn't find a reminder id to remove." in message.get_first_child().body
 
-	message = TempMessage(
+	message = reddit_test.RedditObject(
 		body=f"Remove! {reminder1.db_id}",
 		author="Watchful2"
 	)
 	messages.process_message(message, reddit, database)
-	assert "It looks like you don't own this reminder or it doesn't exist." in message.reply_body
+	assert "It looks like you don't own this reminder or it doesn't exist." in message.get_first_child().body
 
-	message = TempMessage(
+	message = reddit_test.RedditObject(
 		body=f"Remove! {reminder1.db_id}",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)
-	assert "Reminder deleted." in message.reply_body
+	assert "Reminder deleted." in message.get_first_child().body
 
 	assert len(database.get_user_reminders("Watchful1")) == 1
 	assert len(database.get_user_reminders("Watchful2")) == 1
 
 
 def test_delete_all_reminders(database, reddit):
+	message = reddit_test.RedditObject(
+		body=f"RemoveAll!",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "Deleted" not in message.get_first_child().body
+
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
@@ -202,12 +171,12 @@ def test_delete_all_reminders(database, reddit):
 	database.save_reminder(reminder2)
 	database.save_reminder(reminder3)
 
-	message = TempMessage(
+	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)
-	assert "Deleted **2** reminders." in message.reply_body
+	assert "Deleted **2** reminders." in message.get_first_child().body
 
 	assert len(database.get_user_reminders("Watchful1")) == 0
 	assert len(database.get_user_reminders("Watchful2")) == 1

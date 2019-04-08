@@ -48,7 +48,7 @@ class Database:
 				ThreadID VARCHAR(12) NOT NULL,
 				CommentID VARCHAR(12) NOT NULL,
 				CurrentCount INTEGER DEFAULT 1,
-				SourceID VARCHAR(12) NOT NULL,
+				User VARCHAR(80) NOT NULL,
 				TargetDate TIMESTAMP NOT NULL,
 				UNIQUE (ThreadID)
 			)

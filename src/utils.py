@@ -5,9 +5,17 @@ import pytz
 from datetime import datetime
 
 import static
+import random
 
 
 log = logging.getLogger("bot")
+
+
+def random_id():
+	values = list(map(chr, range(97, 123)))
+	for num in range(1, 10):
+		values.append(str(num))
+	return ''.join(random.choices(values, k=6))
 
 
 def fullname_type(fullname):

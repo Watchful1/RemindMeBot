@@ -5,7 +5,7 @@ sys.path.append("src")
 
 import main
 import database_class
-import reddit_class
+import reddit_test
 
 
 @pytest.fixture
@@ -20,4 +20,4 @@ def database():
 
 @pytest.fixture
 def reddit():
-	return reddit_class.Reddit("Watchful1BotTest", False, True)
+	return reddit_test.Reddit("Watchful1BotTest")
