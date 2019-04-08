@@ -5,7 +5,9 @@ from datetime import datetime
 import messages
 import utils
 import reddit_test
+import static
 from classes.reminder import Reminder
+from classes.comment import DbComment
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -87,7 +89,7 @@ def test_get_reminders(database, reddit):
 	assert "02-05 07" in result
 
 
-def test_delete_reminder(database, reddit):
+def test_remove_reminder(database, reddit):
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
@@ -138,7 +140,7 @@ def test_delete_reminder(database, reddit):
 	assert len(database.get_user_reminders("Watchful2")) == 1
 
 
-def test_delete_all_reminders(database, reddit):
+def test_remove_all_reminders(database, reddit):
 	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
 		author="Watchful1"
@@ -180,3 +182,41 @@ def test_delete_all_reminders(database, reddit):
 
 	assert len(database.get_user_reminders("Watchful1")) == 0
 	assert len(database.get_user_reminders("Watchful2")) == 1
+
+
+def test_delete_comment(database, reddit):
+	db_comment = DbComment(
+		thread_id="XXXXX",
+		comment_id="YYYYY",
+		user="Watchful1",
+		target_date=utils.datetime_now(),
+		current_count=1
+	)
+	database.save_comment(db_comment)
+	comment = reddit_test.RedditObject(
+		body="Click here for a reminder!",
+		author=static.ACCOUNT_NAME,
+		id="YYYYY"
+	)
+	reddit.add_comment(comment, True)
+
+	message = reddit_test.RedditObject(
+		body=f"Delete! ZZZZZ",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "This comment doesn't exist or was already deleted." in message.get_first_child().body
+
+	message = reddit_test.RedditObject(
+		body=f"Delete! YYYYY",
+		author="Watchful2"
+	)
+	messages.process_message(message, reddit, database)
+	assert "It looks like the bot wasn't replying to you." in message.get_first_child().body
+
+	message = reddit_test.RedditObject(
+		body=f"Delete! YYYYY",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "Comment deleted." in message.get_first_child().body

@@ -60,13 +60,17 @@ class Reddit:
 		self.self_comments = []
 		self.all_comments = {}
 
+	def add_comment(self, comment, self_comment=False):
+		self.all_comments[comment.id] = comment
+		if self_comment:
+			self.self_comments.append(comment)
+
 	def reply_message(self, message, body):
 		self.sent_messages.append(message.reply(body))
 
 	def reply_comment(self, comment, body):
 		new_comment = comment.reply(body)
-		self.self_comments.append(new_comment)
-		self.all_comments[new_comment.id] = new_comment
+		self.add_comment(comment, True)
 		return new_comment
 
 	def get_comment(self, comment_id):
@@ -74,12 +78,6 @@ class Reddit:
 			return self.all_comments[comment_id]
 		else:
 			return RedditObject(id=comment_id)
-
-	def comment_exists(self, comment):
-		return comment.id is not None and comment.id in self.all_comments
-
-	def get_comment_parent(self, comment):
-		return comment.parent
 
 	def delete_comment(self, comment):
 		if comment.id in self.all_comments:
@@ -97,3 +95,5 @@ class Reddit:
 
 		for child in comment.children:
 			child.parent = None
+
+		return True

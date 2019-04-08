@@ -5,6 +5,7 @@ from datetime import datetime
 from shutil import copyfile
 
 from classes.reminder import Reminder
+from classes.comment import DbComment
 import static
 import utils
 
@@ -175,3 +176,70 @@ class Database:
 		self.dbConn.commit()
 
 		return c.rowcount
+
+	def save_comment(self, db_comment):
+		if not isinstance(db_comment, DbComment):
+			return False
+		if db_comment.db_id is not None:
+			return False
+
+		c = self.dbConn.cursor()
+		try:
+			c.execute('''
+				INSERT INTO comments
+				(ThreadID, CommentID, CurrentCount, User, TargetDate)
+				VALUES (?, ?, ?, ?, ?)
+			''', (db_comment.thread_id,
+				db_comment.comment_id,
+				db_comment.current_count,
+				db_comment.user,
+				utils.datetime_as_utc(db_comment.target_date).strftime("%Y-%m-%d %H:%M:%S")))
+		except sqlite3.IntegrityError as err:
+			log.warning(f"Failed to save comment: {err}")
+			return False
+
+		if c.lastrowid is not None:
+			db_comment.db_id = c.lastrowid
+
+		self.dbConn.commit()
+
+		return True
+
+	def get_comment(self, comment_id):
+		c = self.dbConn.cursor()
+		c.execute('''
+			SELECT ID, ThreadID, CommentID, CurrentCount, User, TargetDate
+			FROM comments
+			WHERE CommentID = ?
+			''', (comment_id,))
+
+		result = c.fetchone()
+		if result is None or len(result) == 0:
+			return None
+
+		db_comment = DbComment(
+			thread_id=result[1],
+			comment_id=result[2],
+			user=result[4],
+			target_date=utils.datetime_force_utc(datetime.strptime(result[5], "%Y-%m-%d %H:%M:%S")),
+			current_count=result[3],
+			db_id=result[0]
+		)
+
+		return db_comment
+
+	def delete_comment(self, db_comment):
+		if db_comment.db_id is None:
+			return False
+
+		c = self.dbConn.cursor()
+		c.execute('''
+			DELETE FROM comments
+			WHERE ID = ?
+		''', (db_comment.db_id,))
+		self.dbConn.commit()
+
+		if c.rowcount == 1:
+			return True
+		else:
+			return False

@@ -40,16 +40,12 @@ class Reddit:
 	def get_comment(self, comment_id):
 		return self.reddit.comment(comment_id)
 
-	def comment_exists(self, comment):
-		try:
-			comment._fetch()
-		except praw.exceptions.PRAWException:
-			return False
-		return True
-
-	def get_comment_parent(self, comment):
-		return comment.parent()
-
 	def delete_comment(self, comment):
 		if not self.no_post:
-			comment.delete()
+			try:
+				comment.delete()
+			except Exception:
+				log.warning(f"Error deleting comment: {comment.comment_id}")
+				log.warning(traceback.format_exc())
+				return False
+		return True

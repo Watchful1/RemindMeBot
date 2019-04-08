@@ -136,17 +136,16 @@ def process_delete_comment(message, reddit, database):
 	if len(ids) == 0:
 		bldr.append("I couldn't find a comment id to delete.")
 	else:
-		comment = reddit.get_comment(ids[0])
-		if reddit.comment_exists(comment):
-			if comment.author.name == static.ACCOUNT_NAME:
-				parent = reddit.get_comment_parent(comment)
-				if parent.author.name == message.author.name:
-					reddit.delete_comment(comment)
-					bldr.append("Comment deleted.")
+		db_comment = database.get_comment(ids[0])
+		if db_comment is not None:
+			if db_comment.user == message.author.name:
+				comment = reddit.get_comment(ids[0])
+				if not reddit.delete_comment(comment) or not database.delete_comment(db_comment):
+					bldr.append("Something went wrong deleting the comment")
 				else:
-					bldr.append("It looks like the bot wasn't replying to you.")
+					bldr.append("Comment deleted.")
 			else:
-				bldr.append("This isn't a comment from the bot.")
+				bldr.append("It looks like the bot wasn't replying to you.")
 		else:
 			bldr.append("This comment doesn't exist or was already deleted.")
 
