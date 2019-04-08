@@ -76,7 +76,7 @@ def test_add_reminder(database, reddit):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username.lower()
+	assert reminders[0].user == username
 	assert reminders[0].message == keyword
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
@@ -125,4 +125,89 @@ def test_get_reminders(database, reddit):
 	assert "02-05 07" in result
 
 
+def test_delete_reminder(database, reddit):
+	reminder1 = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	reminder2 = Reminder(
+		source="https://www.reddit.com/message/messages/YYYYY",
+		message="FFFFF",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	reminder3 = Reminder(
+		source="https://www.reddit.com/message/messages/ZZZZZ",
+		message="JJJJJ",
+		user="Watchful2",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-03-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-03-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	database.save_reminder(reminder1)
+	database.save_reminder(reminder2)
+	database.save_reminder(reminder3)
 
+	message = TempMessage(
+		body=f"Remove! test",
+		author="Watchful2"
+	)
+	messages.process_message(message, reddit, database)
+	assert "I couldn't find a reminder id to remove." in message.reply_body
+
+	message = TempMessage(
+		body=f"Remove! {reminder1.db_id}",
+		author="Watchful2"
+	)
+	messages.process_message(message, reddit, database)
+	assert "It looks like you don't own this reminder or it doesn't exist." in message.reply_body
+
+	message = TempMessage(
+		body=f"Remove! {reminder1.db_id}",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "Reminder deleted." in message.reply_body
+
+	assert len(database.get_user_reminders("Watchful1")) == 1
+	assert len(database.get_user_reminders("Watchful2")) == 1
+
+
+def test_delete_all_reminders(database, reddit):
+	reminder1 = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	reminder2 = Reminder(
+		source="https://www.reddit.com/message/messages/YYYYY",
+		message="FFFFF",
+		user="Watchful1",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	reminder3 = Reminder(
+		source="https://www.reddit.com/message/messages/ZZZZZ",
+		message="JJJJJ",
+		user="Watchful2",
+		requested_date=utils.datetime_force_utc(datetime.strptime("2019-03-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
+		target_date=utils.datetime_force_utc(datetime.strptime("2019-03-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+	)
+	database.save_reminder(reminder1)
+	database.save_reminder(reminder2)
+	database.save_reminder(reminder3)
+
+	message = TempMessage(
+		body=f"RemoveAll!",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "Deleted **2** reminders." in message.reply_body
+
+	assert len(database.get_user_reminders("Watchful1")) == 0
+	assert len(database.get_user_reminders("Watchful2")) == 1

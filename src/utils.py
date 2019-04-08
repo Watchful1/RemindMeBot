@@ -19,7 +19,7 @@ def fullname_type(fullname):
 		return None
 
 
-def find_message(body):
+def find_reminder_message(body):
 	messages = re.findall(r'(?:\[)(.*?)(?:\])', body, flags=re.IGNORECASE)
 	if len(messages) > 0:
 		return messages[0]
@@ -27,7 +27,7 @@ def find_message(body):
 		return None
 
 
-def find_time(body):
+def find_reminder_time(body):
 	times = re.findall(r'(?:remindme.? )(.*)(?:\[|\n|$)', body, flags=re.IGNORECASE)
 	if len(times) > 0:
 		return times[0]
@@ -43,7 +43,7 @@ def parse_time(time_string, base_time=datetime.utcnow()):
 
 
 def render_time(date_time):
-	bldr = []
+	bldr = str_bldr()
 	bldr.append("[**")
 	bldr.append(date_time.strftime('%Y-%m-%d %I:%M:%S %p %Z'))
 	bldr.append("**](http://www.wolframalpha.com/input/?i=")
@@ -81,7 +81,7 @@ def html_encode(message):
 
 def build_message_link(recipient, subject, content=None):
 	base = "https://np.reddit.com/message/compose/?"
-	bldr = []
+	bldr = str_bldr()
 	bldr.append("to=")
 	bldr.append(recipient)
 	bldr.append("subject=")
@@ -94,7 +94,7 @@ def build_message_link(recipient, subject, content=None):
 
 
 def get_footer():
-	bldr = []
+	bldr = str_bldr()
 	bldr.append("\n\n")
 	bldr.append("*****")
 	bldr.append("\n\n")

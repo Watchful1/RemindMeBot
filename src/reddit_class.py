@@ -32,3 +32,5 @@ class Reddit:
 			log.info(body)
 		else:
 			message.reply(body)
+
+	def get_comment(self, comment_id):

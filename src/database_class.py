@@ -38,7 +38,7 @@ class Database:
 				Source VARCHAR(400) NOT NULL,
 				RequestedDate TIMESTAMP NOT NULL,
 				TargetDate TIMESTAMP NOT NULL,
-				Message VARCHAR(11000) NOT NULL,
+				Message VARCHAR(500) NOT NULL,
 				User VARCHAR(80) NOT NULL
 			)
 		''')
@@ -72,19 +72,22 @@ class Database:
 				(Source, RequestedDate, TargetDate, Message, User)
 				VALUES (?, ?, ?, ?, ?)
 			''', (reminder.source,
-				  utils.datetime_as_utc(reminder.requested_date).strftime("%Y-%m-%d %H:%M:%S"),
-				  utils.datetime_as_utc(reminder.target_date).strftime("%Y-%m-%d %H:%M:%S"),
-				  reminder.message,
-				  reminder.user.lower()))
+				utils.datetime_as_utc(reminder.requested_date).strftime("%Y-%m-%d %H:%M:%S"),
+				utils.datetime_as_utc(reminder.target_date).strftime("%Y-%m-%d %H:%M:%S"),
+				reminder.message,
+				reminder.user))
 		except sqlite3.IntegrityError as err:
 			log.warning(f"Failed to save reminder: {err}")
 			return False
+
+		if c.lastrowid is not None:
+			reminder.db_id = c.lastrowid
 
 		self.dbConn.commit()
 
 		return True
 
-	def get_reminders(self):
+	def get_pending_reminders(self):
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
@@ -111,7 +114,7 @@ class Database:
 			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
 			WHERE User = ?
-			''', (username.lower(),)):
+			''', (username,)):
 			reminder = Reminder(
 				source=row[1],
 				target_date=utils.datetime_force_utc(datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S")),
@@ -123,6 +126,29 @@ class Database:
 			results.append(reminder)
 
 		return results
+
+	def get_reminder(self, reminder_id):
+		c = self.dbConn.cursor()
+		c.execute('''
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			FROM reminders
+			WHERE ID = ?
+			''', (reminder_id,))
+
+		result = c.fetchone()
+		if result is None or len(result) == 0:
+			return None
+
+		reminder = Reminder(
+			source=result[1],
+			target_date=utils.datetime_force_utc(datetime.strptime(result[3], "%Y-%m-%d %H:%M:%S")),
+			message=result[4],
+			user=result[5],
+			db_id=result[0],
+			requested_date=utils.datetime_force_utc(datetime.strptime(result[2], "%Y-%m-%d %H:%M:%S"))
+		)
+
+		return reminder
 
 	def delete_reminder(self, reminder):
 		if reminder.db_id is None:
@@ -139,3 +165,13 @@ class Database:
 			return True
 		else:
 			return False
+
+	def delete_user_reminders(self, user):
+		c = self.dbConn.cursor()
+		c.execute('''
+			DELETE FROM reminders
+			WHERE User = ?
+		''', (user,))
+		self.dbConn.commit()
+
+		return c.rowcount

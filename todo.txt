@@ -1,9 +1,9 @@
 process messages:
   -add reminder
-  delete reminder
+  -remove reminder
   -get reminders
   delete comment
-  remove all reminders
+  -remove all reminders
 search for trigger
 send reminders
 update comments
