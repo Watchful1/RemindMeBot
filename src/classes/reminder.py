@@ -28,8 +28,8 @@ class Reminder:
 			self.target_date = target_date
 		elif time_string is not None:
 			self.target_date = utils.parse_time(time_string, requested_date)
-			if self.target_date < utils.datetime_now():
-				self.result_message = f"This time has already passed: {time_string}"
+			if self.target_date < self.requested_date:
+				self.result_message = f"This time is in the past: {time_string}"
 				log.warning(self.result_message)
 				self.valid = False
 		else:
@@ -46,13 +46,24 @@ class Reminder:
 		self.db_id = db_id
 
 	def render_confirmation(self):
-		bldr = []
+		bldr = utils.str_bldr()
 		if self.result_message is not None:
 			bldr.append(self.result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date))
 		bldr.append(" to remind you about: ")
-		bldr.append(self.message)
+		if self.message is None:
+			bldr.append(self.source)
+		else:
+			bldr.append(self.message)
 
 		return bldr
+
+	def render_comment_confirmation(self):
+		bldr = utils.str_bldr()
+		bldr.append("I will be messaging you on ")
+		bldr.append(utils.render_time(self.target_date))
+		bldr.append(" to remind you of ")
+
+

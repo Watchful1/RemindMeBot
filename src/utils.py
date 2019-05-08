@@ -61,8 +61,16 @@ def render_time(date_time):
 	return ''.join(bldr)
 
 
-def message_link(message_id):
-	return f"https://www.reddit.com/message/messages/{message_id}"
+def message_link(message_id, np=False):
+	return f"https://{('np' if np else 'www')}.reddit.com/message/messages/{message_id}"
+
+
+def reddit_link(slug, np=False):
+	return f"https://{('np' if np else 'www')}.reddit.com{slug}"
+
+
+def id_from_fullname(fullname):
+	return re.sub(r't\d_', "", fullname)
 
 
 def datetime_as_utc(date_time):
@@ -75,6 +83,23 @@ def datetime_force_utc(date_time):
 
 def datetime_now():
 	return datetime_force_utc(datetime.utcnow().replace(microsecond=0))
+
+
+def datetime_from_timestamp(timestamp):
+	return datetime_force_utc(datetime.utcfromtimestamp(timestamp))
+
+
+def get_datetime_string(date_time, convert_utc=True):
+	if convert_utc:
+		date_time = datetime_as_utc(date_time)
+	return date_time.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def parse_datetime_string(date_time_string, force_utc=True):
+	date_time = datetime.strptime(date_time_string, "%Y-%m-%d %H:%M:%S")
+	if force_utc:
+		date_time = datetime_force_utc(date_time)
+	return date_time
 
 
 def html_encode(message):

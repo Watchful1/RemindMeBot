@@ -1,10 +1,12 @@
-process messages:
+-process messages:
   -add reminder
   -remove reminder
   -get reminders
-  delete comment
+  -delete comment
   -remove all reminders
 search for trigger
 send reminders
 update comments
 database backups
+cakeday
+delete downvoted comments

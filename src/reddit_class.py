@@ -2,8 +2,12 @@ import logging.handlers
 import praw
 import configparser
 import traceback
+import requests
+import time
 
 import static
+import utils
+from classes.queue import Queue
 
 log = logging.getLogger("bot")
 
@@ -20,6 +24,7 @@ class Reddit:
 			raise ValueError
 		static.ACCOUNT_NAME = self.reddit.user.me().name
 		log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
+		self.processed_comments = Queue(100)
 
 	def get_messages(self):
 		return self.reddit.inbox.unread(limit=500)
@@ -49,3 +54,35 @@ class Reddit:
 				log.warning(traceback.format_exc())
 				return False
 		return True
+
+	def get_keyword_comments(self, keyword, last_seen):
+		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
+		try:
+			requestTime = time.perf_counter()
+			json = requests.get(url, headers={'User-Agent': static.USER_AGENT})
+			requestSeconds = int(time.perf_counter() - requestTime)
+			if requestSeconds > 5:
+				log.warning(f"Long request time for search term: {keyword} : seconds: {str(requestSeconds)}")
+			if json.status_code != 200:
+				log.warning(f"Could not parse data for search term: {keyword} status: {str(json.status_code)}")
+				return []
+			comments = json.json()['data']
+		except Exception as err:
+			log.warning(f"Could not parse data for search term: {keyword}")
+			log.warning(traceback.format_exc())
+			return []
+
+		if not len(comments):
+			log.warning(f"No comments found for search term: {keyword}")
+			return []
+
+		result_comments = []
+		for comment in comments:
+			date_time = utils.datetime_from_timestamp(comment['created_utc'])
+			if last_seen > date_time:
+				break
+
+			if not self.processed_comments.contains(comment['id']):
+				result_comments.append(comment)
+
+		return result_comments

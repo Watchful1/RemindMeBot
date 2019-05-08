@@ -45,6 +45,34 @@ def test_add_reminder(database, reddit):
 	assert reminders[0].db_id is not None
 
 
+def test_add_reminder_no_message(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	id = utils.random_id()
+	message = reddit_test.RedditObject(
+		body="RemindMe! 1 day",
+		author=username,
+		created=created,
+		id=id
+	)
+
+	messages.process_message(message, reddit, database)
+	result = message.get_first_child().body
+
+	assert "This time has already passed" not in result
+	assert "Could not find a time in message" not in result
+	assert "Could not parse date" not in result
+
+	reminders = database.get_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.message_link(id)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].db_id is not None
+
+
 def test_get_reminders(database, reddit):
 	message = reddit_test.RedditObject(
 		body="MyReminders!",

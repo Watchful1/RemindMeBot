@@ -55,19 +55,14 @@ def get_reminders_string(user, database, previous=False):
 def process_remind_me(message, database):
 	log.info("Processing RemindMe message")
 	time = utils.find_reminder_time(message.body)
-	if time is None:
-		log.debug("Couldn't find time")
 
 	message_text = utils.find_reminder_message(message.body)
-	if message_text is None:
-		log.debug("Couldn't find message, defaulting to message link")
-		message_text = utils.message_link(message.id)
 
 	reminder = Reminder(
 		source=utils.message_link(message.id),
 		message=message_text,
 		user=message.author.name,
-		requested_date=utils.datetime_force_utc(datetime.utcfromtimestamp(message.created_utc)),
+		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		time_string=time
 	)
 	if not reminder.valid:
@@ -181,7 +176,7 @@ def process_messages(reddit, database):
 	for message in reddit.get_messages():
 		try:
 			process_message(message, reddit, database)
-		except Exception as err:
+		except Exception:
 			log.warning(f"Error processing message: {message.id} : {message.author.name}")
 			log.warning(traceback.format_exc())
 
