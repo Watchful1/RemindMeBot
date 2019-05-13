@@ -67,6 +67,8 @@ class RemindMeBot:
 					self.clone_db = True
 				elif arg == 'no_post':
 					self.no_post = True
+				elif arg == 'debug':
+					log.setLevel(logging.DEBUG)
 		else:
 			log.error("No user specified, aborting")
 			raise ValueError

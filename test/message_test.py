@@ -214,6 +214,7 @@ def test_remove_all_reminders(database, reddit):
 def test_delete_comment(database, reddit):
 	db_comment = DbComment(
 		thread_id="XXXXX",
+		comment_id="ZZZZZ",
 		reminder_id="YYYYY",
 		user="Watchful1",
 		source="www.reddit.com/r/test/comments/XXXXX",
@@ -228,21 +229,21 @@ def test_delete_comment(database, reddit):
 	reddit.add_comment(comment, True)
 
 	message = reddit_test.RedditObject(
-		body=f"Delete! ZZZZZ",
+		body=f"Delete! SSSSSS",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)
 	assert "This comment doesn't exist or was already deleted." in message.get_first_child().body
 
 	message = reddit_test.RedditObject(
-		body=f"Delete! YYYYY",
+		body=f"Delete! XXXXX",
 		author="Watchful2"
 	)
 	messages.process_message(message, reddit, database)
 	assert "It looks like the bot wasn't replying to you." in message.get_first_child().body
 
 	message = reddit_test.RedditObject(
-		body=f"Delete! YYYYY",
+		body=f"Delete! XXXXX",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)
