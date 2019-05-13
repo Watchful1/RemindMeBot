@@ -26,10 +26,10 @@ class Reddit:
 		log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
 		self.processed_comments = Queue(100)
 
-	def get_messages(self):
+	def get_messages(self, count=500):
 		log.debug("Fetching unread messages")
 		message_list = []
-		for message in self.reddit.inbox.unread(limit=500):
+		for message in self.reddit.inbox.unread(limit=count):
 			message_list.append(message)
 		return message_list
 

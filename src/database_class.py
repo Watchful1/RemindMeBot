@@ -31,6 +31,7 @@ class Database:
 				ThreadID VARCHAR(12) NOT NULL,
 				ReminderId INTEGER NOT NULL,
 				CurrentCount INTEGER DEFAULT 1,
+				User VARCHAR(80) NOT NULL,
 				Source VARCHAR(400) NOT NULL,
 				UNIQUE (ThreadID)
 			)
@@ -251,12 +252,14 @@ class Database:
 					SET ThreadID = ?,
 						ReminderId = ?,
 						CurrentCount = ?,
+						User=?,
 						Source = ?
 					WHERE ID = ?
 				''', (
 					db_comment.thread_id,
 					db_comment.reminder_id,
 					db_comment.current_count,
+					db_comment.user,
 					db_comment.source,
 					db_comment.db_id))
 			except sqlite3.IntegrityError as err:
@@ -267,12 +270,13 @@ class Database:
 			try:
 				c.execute('''
 					INSERT INTO comments
-					(ThreadID, ReminderId, CurrentCount, Source)
-					VALUES (?, ?, ?, ?)
+					(ThreadID, ReminderId, CurrentCount, User, Source)
+					VALUES (?, ?, ?, ?, ?)
 				''', (
 					db_comment.thread_id,
 					db_comment.reminder_id,
 					db_comment.current_count,
+					db_comment.user,
 					db_comment.source))
 			except sqlite3.IntegrityError as err:
 				log.warning(f"Failed to save comment: {err}")
@@ -290,7 +294,7 @@ class Database:
 		log.debug(f"Fetching comment for thread: {thread_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, ThreadID, ReminderId, CurrentCount, Source
+			SELECT ID, ThreadID, ReminderId, CurrentCount, User, Source
 			FROM comments
 			WHERE ThreadID = ?
 			''', (thread_id,))
@@ -303,7 +307,8 @@ class Database:
 		db_comment = DbComment(
 			thread_id=result[1],
 			reminder_id=result[2],
-			source=result[4],
+			user=result[4],
+			source=result[5],
 			current_count=result[3],
 			db_id=result[0]
 		)

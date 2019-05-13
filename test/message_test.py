@@ -1,4 +1,3 @@
-import pytest
 from datetime import timedelta
 from datetime import datetime
 
@@ -215,9 +214,9 @@ def test_remove_all_reminders(database, reddit):
 def test_delete_comment(database, reddit):
 	db_comment = DbComment(
 		thread_id="XXXXX",
-		comment_id="YYYYY",
+		reminder_id="YYYYY",
 		user="Watchful1",
-		target_date=utils.datetime_now(),
+		source="www.reddit.com/r/test/comments/XXXXX",
 		current_count=1
 	)
 	database.save_comment(db_comment)
