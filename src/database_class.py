@@ -21,17 +21,17 @@ class Database:
 				RequestedDate TIMESTAMP NOT NULL,
 				TargetDate TIMESTAMP NOT NULL,
 				Message VARCHAR(500) NULL,
-				User VARCHAR(80) NOT NULL
+				User VARCHAR(80) NOT NULL,
+				CommentID VARCHAR(12) NULL
 			)
 		''',
 		'comments': '''
 			CREATE TABLE IF NOT EXISTS comments (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				ThreadID VARCHAR(12) NOT NULL,
-				CommentID VARCHAR(12) NOT NULL,
+				ReminderId INTEGER NOT NULL,
 				CurrentCount INTEGER DEFAULT 1,
-				User VARCHAR(80) NOT NULL,
-				TargetDate TIMESTAMP NOT NULL,
+				Source VARCHAR(400) NOT NULL,
 				UNIQUE (ThreadID)
 			)
 		''',
@@ -52,7 +52,7 @@ class Database:
 		# '''
 	}
 
-	def __init__(self, debug, clone=False):
+	def __init__(self, debug=False, publish=False, clone=False):
 		if debug:
 			if clone:
 				if os.path.exists(static.DATABASE_DEBUG_NAME):
@@ -64,7 +64,7 @@ class Database:
 			self.dbConn = sqlite3.connect(static.DATABASE_NAME)
 
 		c = self.dbConn.cursor()
-		if debug and not clone:
+		if publish or (debug and not clone):
 			for table in Database.tables:
 				c.execute(f"DROP TABLE IF EXISTS {table}")
 
@@ -83,26 +83,52 @@ class Database:
 	def save_reminder(self, reminder):
 		if not isinstance(reminder, Reminder):
 			return False
-		if reminder.db_id is not None:
-			return False
 
 		c = self.dbConn.cursor()
-		try:
-			c.execute('''
-				INSERT INTO reminders
-				(Source, RequestedDate, TargetDate, Message, User)
-				VALUES (?, ?, ?, ?, ?)
-			''', (reminder.source,
-				utils.get_datetime_string(reminder.requested_date),
-				utils.get_datetime_string(reminder.target_date),
-				reminder.message,
-				reminder.user))
-		except sqlite3.IntegrityError as err:
-			log.warning(f"Failed to save reminder: {err}")
-			return False
+		if reminder.db_id is not None:
+			log.debug(f"Updating reminder: {reminder.db_id}")
+			try:
+				c.execute('''
+					UPDATE reminders
+					SET Source = ?,
+						RequestedDate = ?,
+						TargetDate = ?,
+						Message = ?,
+						User = ?,
+						CommentId = ?
+					WHERE ID = ?
+				''', (
+					reminder.source,
+					utils.get_datetime_string(reminder.requested_date),
+					utils.get_datetime_string(reminder.target_date),
+					reminder.message,
+					reminder.user,
+					reminder.comment_id,
+					reminder.db_id))
+			except sqlite3.IntegrityError as err:
+				log.warning(f"Failed to update reminder: {err}")
+				return False
+		else:
+			log.debug("Saving new reminder")
+			try:
+				c.execute('''
+					INSERT INTO reminders
+					(Source, RequestedDate, TargetDate, Message, User, CommentId)
+					VALUES (?, ?, ?, ?, ?, ?)
+				''', (
+					reminder.source,
+					utils.get_datetime_string(reminder.requested_date),
+					utils.get_datetime_string(reminder.target_date),
+					reminder.message,
+					reminder.user,
+					reminder.comment_id))
+			except sqlite3.IntegrityError as err:
+				log.warning(f"Failed to save reminder: {err}")
+				return False
 
-		if c.lastrowid is not None:
-			reminder.db_id = c.lastrowid
+			if c.lastrowid is not None:
+				reminder.db_id = c.lastrowid
+				log.debug(f"Saved to: {reminder.db_id}")
 
 		self.dbConn.commit()
 
@@ -112,7 +138,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
 			FROM reminders
 			WHERE TargetDate < CURRENT_TIMESTAMP
 			'''):
@@ -122,7 +148,8 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2])
+				requested_date=utils.parse_datetime_string(row[2]),
+				comment_id=row[6]
 			)
 			results.append(reminder)
 
@@ -132,7 +159,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
 			FROM reminders
 			WHERE User = ?
 			''', (username,)):
@@ -142,7 +169,8 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2])
+				requested_date=utils.parse_datetime_string(row[2]),
+				comment_id=row[6]
 			)
 			results.append(reminder)
 
@@ -151,7 +179,7 @@ class Database:
 	def get_reminder(self, reminder_id):
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
 			FROM reminders
 			WHERE ID = ?
 			''', (reminder_id,))
@@ -166,7 +194,8 @@ class Database:
 			message=result[4],
 			user=result[5],
 			db_id=result[0],
-			requested_date=utils.parse_datetime_string(result[2])
+			requested_date=utils.parse_datetime_string(result[2]),
+			comment_id=result[6]
 		)
 
 		return reminder
@@ -200,58 +229,55 @@ class Database:
 	def save_comment(self, db_comment):
 		if not isinstance(db_comment, DbComment):
 			return False
-		if db_comment.db_id is not None:
-			return False
 
 		c = self.dbConn.cursor()
-		try:
-			c.execute('''
-				INSERT INTO comments
-				(ThreadID, CommentID, CurrentCount, User, TargetDate)
-				VALUES (?, ?, ?, ?, ?)
-			''', (db_comment.thread_id,
-				db_comment.comment_id,
-				db_comment.current_count,
-				db_comment.user,
-				utils.get_datetime_string(db_comment.target_date)))
-		except sqlite3.IntegrityError as err:
-			log.warning(f"Failed to save comment: {err}")
-			return False
+		if db_comment.db_id is not None:
+			log.debug(f"Updating comment: {db_comment.db_id}")
+			try:
+				c.execute('''
+					UPDATE comments
+					SET ThreadID = ?,
+						ReminderId = ?,
+						CurrentCount = ?,
+						Source = ?
+					WHERE ID = ?
+				''', (
+					db_comment.thread_id,
+					db_comment.reminder_id,
+					db_comment.current_count,
+					db_comment.source,
+					db_comment.db_id))
+			except sqlite3.IntegrityError as err:
+				log.warning(f"Failed to update reminder: {err}")
+				return False
+		else:
+			log.debug("Saving new comment")
+			try:
+				c.execute('''
+					INSERT INTO comments
+					(ThreadID, ReminderId, CurrentCount, Source)
+					VALUES (?, ?, ?, ?)
+				''', (
+					db_comment.thread_id,
+					db_comment.reminder_id,
+					db_comment.current_count,
+					db_comment.source))
+			except sqlite3.IntegrityError as err:
+				log.warning(f"Failed to save comment: {err}")
+				return False
 
-		if c.lastrowid is not None:
-			db_comment.db_id = c.lastrowid
+			if c.lastrowid is not None:
+				db_comment.db_id = c.lastrowid
+				log.debug(f"Saved to: {db_comment.db_id}")
 
 		self.dbConn.commit()
 
 		return True
 
-	def get_comment(self, comment_id):
-		c = self.dbConn.cursor()
-		c.execute('''
-			SELECT ID, ThreadID, CommentID, CurrentCount, User, TargetDate
-			FROM comments
-			WHERE CommentID = ?
-			''', (comment_id,))
-
-		result = c.fetchone()
-		if result is None or len(result) == 0:
-			return None
-
-		db_comment = DbComment(
-			thread_id=result[1],
-			comment_id=result[2],
-			user=result[4],
-			target_date=utils.parse_datetime_string(result[5]),
-			current_count=result[3],
-			db_id=result[0]
-		)
-
-		return db_comment
-
 	def get_comment_in_thread(self, thread_id):
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, ThreadID, CommentID, CurrentCount, User, TargetDate
+			SELECT ID, ThreadID, ReminderId, CurrentCount, Source
 			FROM comments
 			WHERE ThreadID = ?
 			''', (thread_id,))
@@ -262,9 +288,8 @@ class Database:
 
 		db_comment = DbComment(
 			thread_id=result[1],
-			comment_id=result[2],
-			user=result[4],
-			target_date=utils.parse_datetime_string(result[5]),
+			reminder_id=result[2],
+			source=result[4],
 			current_count=result[3],
 			db_id=result[0]
 		)
@@ -337,7 +362,7 @@ class Database:
 		c = self.dbConn.cursor()
 		c.execute('''
 			DELETE FROM keystore
-			WHERE ID = ?
+			WHERE Key = ?
 		''', (key,))
 		self.dbConn.commit()
 

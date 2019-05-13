@@ -1,6 +1,8 @@
 import utils
 import logging
 
+import static
+
 
 log = logging.getLogger("bot")
 
@@ -14,12 +16,16 @@ class Reminder:
 		requested_date,
 		target_date=None,
 		db_id=None,
-		time_string=None
+		time_string=None,
+		count_duplicates=1,
+		comment_id=None
 	):
 		self.source = source
 		self.message = message
 		self.user = user
 		self.requested_date = requested_date
+		self.count_duplicates = count_duplicates
+		self.comment_id = comment_id
 
 		self.result_message = None
 		self.valid = True
@@ -45,17 +51,20 @@ class Reminder:
 
 		self.db_id = db_id
 
-	def render_confirmation(self):
+	def render_message_confirmation(self):
 		bldr = utils.str_bldr()
 		if self.result_message is not None:
 			bldr.append(self.result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date))
-		bldr.append(" to remind you about: ")
+		bldr.append(" to remind you")
 		if self.message is None:
+			bldr.append(" of [**this link**](")
 			bldr.append(self.source)
+			bldr.append(")")
 		else:
+			bldr.append(": ")
 			bldr.append(self.message)
 
 		return bldr
@@ -64,6 +73,32 @@ class Reminder:
 		bldr = utils.str_bldr()
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date))
-		bldr.append(" to remind you of ")
+		bldr.append(" to remind you of [**this link**](")
+		bldr.append(utils.replace_np(self.source))
+		bldr.append(")")
 
+		bldr.append("\n\n")
 
+		bldr.append("[**")
+		if self.count_duplicates <= 1:
+			bldr.append(str(self.count_duplicates))
+			bldr.append(" OTHERS CLICKED")
+		else:
+			bldr.append("CLICK")
+		bldr.append(" THIS LINK**](")
+		bldr.append(utils.build_message_link(
+			static.ACCOUNT_NAME,
+			"Reminder",
+			f"[{self.source}]\n\nRemindMe! {utils.get_datetime_string(self.target_date)}"
+		))
+		bldr.append(") to send a PM to also be reminded and to reduce spam.")
+
+		if self.comment_id is not None:
+			bldr.append("\n\n")
+			bldr.append("^(Parent commenter can ) [^(delete this message to hide from others.)](")
+			bldr.append(utils.build_message_link(
+				static.ACCOUNT_NAME,
+				"Delete Comment",
+				f"Delete! {self.comment_id}"
+			))
+			bldr.append(")")

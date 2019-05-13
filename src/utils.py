@@ -115,19 +115,21 @@ def html_encode(message):
 def build_message_link(recipient, subject, content=None):
 	base = "https://np.reddit.com/message/compose/?"
 	bldr = str_bldr()
-	bldr.append("to=")
-	bldr.append(recipient)
-	bldr.append("subject=")
-	bldr.append(html_encode(subject))
+	bldr.append(f"to={recipient}")
+	bldr.append(f"subject={html_encode(subject)}")
 	if content is not None:
-		bldr.append(f"message=")
-		bldr.append(html_encode(content))
+		bldr.append(f"message={html_encode(content)}")
 
 	return base + '&'.join(bldr)
 
 
-def get_footer():
-	bldr = str_bldr()
+def replace_np(link):
+	return re.sub(r"(www|old|new)\.reddit\.com", "np.reddit.com", link)
+
+
+def get_footer(bldr=None):
+	if bldr is None:
+		bldr = str_bldr()
 	bldr.append("\n\n")
 	bldr.append("*****")
 	bldr.append("\n\n")

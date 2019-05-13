@@ -4,6 +4,7 @@ import prawcore
 import utils
 import static
 from classes.reminder import Reminder
+from classes.comment import DbComment
 
 log = logging.getLogger("bot")
 
@@ -63,16 +64,29 @@ def process_comment(comment, reddit, database):
 	if database.get_comment_in_thread(utils.id_from_fullname(comment['link_id'])) is None:
 		reddit_comment = reddit.get_comment(comment['id'])
 		try:
-			reddit.reply_comment(reddit_comment, reminder.render_comment_confirmation())
+			bldr = utils.get_footer(reminder.render_comment_confirmation())
+			result_id = reddit.reply_comment(reddit_comment, ''.join(bldr))
+
+			reminder.comment_id = result_id
+			database.save_reminder(reminder)
+
+			bldr = utils.get_footer(reminder.render_comment_confirmation())
+			reddit.edit_comment(''.join(bldr), comment_id=reminder.comment_id)
+
+			db_comment = DbComment(
+				thread_id=utils.id_from_fullname(comment['link_id']),
+				reminder_id=reminder.db_id,
+				source=reminder.source
+			)
+			database.save_comment(db_comment)
 			commented = True
 		except prawcore.exceptions.Forbidden:
 			pass
 
+	if not commented:
+		bldr = utils.get_footer(reminder.render_message_confirmation())
+		reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 
-
-	# check if replied to thread
-	# reply to comment or PM
-	#
 	return
 
 

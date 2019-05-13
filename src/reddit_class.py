@@ -40,10 +40,28 @@ class Reddit:
 			log.info(body)
 			return "xxxxxx"
 		else:
-			return comment.reply(body)
+			return comment.reply(body).id
+
+	def send_message(self, username, subject, body):
+		if self.no_post:
+			log.info(body)
+		else:
+			self.reddit.redditor(username).message(subject, body)
 
 	def get_comment(self, comment_id):
-		return self.reddit.comment(comment_id)
+		if comment_id == "xxxxxx":
+			return None
+		else:
+			return self.reddit.comment(comment_id)
+
+	def edit_comment(self, body, comment=None, comment_id=None):
+		if comment is None:
+			comment = self.get_comment(comment_id)
+
+		if self.no_post:
+			log.info(body)
+		else:
+			comment.edit(body)
 
 	def delete_comment(self, comment):
 		if not self.no_post:

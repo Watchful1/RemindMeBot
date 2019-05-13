@@ -73,7 +73,7 @@ def process_remind_me(message, database):
 		log.info("Something went wrong saving the reminder")
 		return ["Something went wrong saving the reminder"]
 
-	return reminder.render_confirmation()
+	return reminder.render_message_confirmation()
 
 
 def process_remove_reminder(message, database):
