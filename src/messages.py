@@ -173,7 +173,8 @@ def process_message(message, reddit, database):
 
 
 def process_messages(reddit, database):
-	for message in reddit.get_messages():
+	messages = reddit.get_messages()
+	for message in messages:
 		try:
 			process_message(message, reddit, database)
 		except Exception:

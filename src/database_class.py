@@ -53,6 +53,7 @@ class Database:
 	}
 
 	def __init__(self, debug=False, publish=False, clone=False):
+		log.debug(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
 		if debug:
 			if clone:
 				if os.path.exists(static.DATABASE_DEBUG_NAME):
@@ -77,6 +78,7 @@ class Database:
 		self.dbConn.commit()
 
 	def close(self):
+		log.debug("Closing database")
 		self.dbConn.commit()
 		self.dbConn.close()
 
@@ -135,6 +137,7 @@ class Database:
 		return True
 
 	def get_pending_reminders(self):
+		log.debug("Fetching pending reminders")
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
@@ -153,9 +156,11 @@ class Database:
 			)
 			results.append(reminder)
 
+		log.debug(f"Found reminders: {len(results)}")
 		return results
 
 	def get_user_reminders(self, username):
+		log.debug(f"Fetching reminders for u/{username}")
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
@@ -174,9 +179,11 @@ class Database:
 			)
 			results.append(reminder)
 
+		log.debug(f"Found reminders: {len(results)}")
 		return results
 
 	def get_reminder(self, reminder_id):
+		log.debug(f"Fetching reminder by id: {reminder_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
 			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
@@ -186,6 +193,7 @@ class Database:
 
 		result = c.fetchone()
 		if result is None or len(result) == 0:
+			log.debug("Reminder not found")
 			return None
 
 		reminder = Reminder(
@@ -201,6 +209,7 @@ class Database:
 		return reminder
 
 	def delete_reminder(self, reminder):
+		log.debug(f"Deleting reminder by id: {reminder.db_id}")
 		if reminder.db_id is None:
 			return False
 
@@ -212,11 +221,14 @@ class Database:
 		self.dbConn.commit()
 
 		if c.rowcount == 1:
+			log.debug("Reminder deleted")
 			return True
 		else:
+			log.debug("Reminder not deleted")
 			return False
 
 	def delete_user_reminders(self, user):
+		log.debug(f"Deleting all reminders for u/{user}")
 		c = self.dbConn.cursor()
 		c.execute('''
 			DELETE FROM reminders
@@ -275,6 +287,7 @@ class Database:
 		return True
 
 	def get_comment_in_thread(self, thread_id):
+		log.debug(f"Fetching comment for thread: {thread_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
 			SELECT ID, ThreadID, ReminderId, CurrentCount, Source
@@ -284,6 +297,7 @@ class Database:
 
 		result = c.fetchone()
 		if result is None or len(result) == 0:
+			log.debug("No comment found")
 			return None
 
 		db_comment = DbComment(
@@ -297,6 +311,7 @@ class Database:
 		return db_comment
 
 	def delete_comment(self, db_comment):
+		log.debug(f"Deleting comment by id: {db_comment.db_id}")
 		if db_comment.db_id is None:
 			return False
 
@@ -308,11 +323,14 @@ class Database:
 		self.dbConn.commit()
 
 		if c.rowcount == 1:
+			log.debug("Comment deleted")
 			return True
 		else:
+			log.debug("Comment not deleted")
 			return False
 
 	def save_keystore(self, key, value):
+		log.debug(f"Saving keystore: {key} : {value}")
 		c = self.dbConn.cursor()
 		try:
 			c.execute('''
@@ -329,6 +347,7 @@ class Database:
 		return True
 
 	def update_keystore(self, key, value):
+		log.debug(f"Updating keystore: {key} : {value}")
 		c = self.dbConn.cursor()
 		try:
 			c.execute('''
@@ -345,6 +364,7 @@ class Database:
 		return True
 
 	def get_keystore(self, key):
+		log.debug(f"Fetching keystore: {key}")
 		c = self.dbConn.cursor()
 		c.execute('''
 			SELECT Value
@@ -354,11 +374,14 @@ class Database:
 
 		result = c.fetchone()
 		if result is None or len(result) == 0:
+			log.debug("Key not found")
 			return None
 
+		log.debug(f"Value: {result[0]}")
 		return result[0]
 
 	def delete_keystore(self, key):
+		log.debug(f"Deleting key: {key}")
 		c = self.dbConn.cursor()
 		c.execute('''
 			DELETE FROM keystore
@@ -367,8 +390,10 @@ class Database:
 		self.dbConn.commit()
 
 		if c.rowcount == 1:
+			log.debug("Key deleted")
 			return True
 		else:
+			log.debug("Key not deleted")
 			return False
 
 	# def ban_subreddit(self, subreddit):

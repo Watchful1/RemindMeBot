@@ -27,15 +27,18 @@ class Reddit:
 		self.processed_comments = Queue(100)
 
 	def get_messages(self):
+		log.debug("Fetching unread messages")
 		return self.reddit.inbox.unread(limit=500)
 
 	def reply_message(self, message, body):
+		log.debug(f"Replying to message: {message.id}")
 		if self.no_post:
 			log.info(body)
 		else:
 			message.reply(body)
 
 	def reply_comment(self, comment, body):
+		log.debug(f"Replying to message: {comment.id}")
 		if self.no_post:
 			log.info(body)
 			return "xxxxxx"
@@ -43,12 +46,14 @@ class Reddit:
 			return comment.reply(body).id
 
 	def send_message(self, username, subject, body):
+		log.debug(f"Sending message to u/{username}")
 		if self.no_post:
 			log.info(body)
 		else:
 			self.reddit.redditor(username).message(subject, body)
 
 	def get_comment(self, comment_id):
+		log.debug(f"Fetching comment by id: {comment_id}")
 		if comment_id == "xxxxxx":
 			return None
 		else:
@@ -57,6 +62,7 @@ class Reddit:
 	def edit_comment(self, body, comment=None, comment_id=None):
 		if comment is None:
 			comment = self.get_comment(comment_id)
+		log.debug(f"Editing comment: {comment.id}")
 
 		if self.no_post:
 			log.info(body)
@@ -64,6 +70,7 @@ class Reddit:
 			comment.edit(body)
 
 	def delete_comment(self, comment):
+		log.debug(f"Deleting comment: {comment.id}")
 		if not self.no_post:
 			try:
 				comment.delete()
@@ -74,6 +81,7 @@ class Reddit:
 		return True
 
 	def get_keyword_comments(self, keyword, last_seen):
+		log.debug(f"Fetching comments for keyword: {keyword} : {utils.get_datetime_string(last_seen)}")
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
 			requestTime = time.perf_counter()
@@ -103,4 +111,5 @@ class Reddit:
 			if not self.processed_comments.contains(comment['id']):
 				result_comments.append(comment)
 
+		log.debug(f"Found comments: {len(result_comments)}")
 		return result_comments
