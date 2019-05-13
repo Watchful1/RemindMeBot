@@ -106,6 +106,7 @@ def process_remove_all_reminders(message, database):
 	current_reminders = get_reminders_string(message.author.name, database, True)
 
 	reminders_deleted = database.delete_user_reminders(message.author.name)
+	log.debug(f"Deleted {reminders_deleted} reminders")
 
 	bldr = utils.str_bldr()
 	if reminders_deleted != 0:
@@ -129,6 +130,7 @@ def process_delete_comment(message, reddit, database):
 
 	ids = re.findall(r'delete!\s(\w+)', message.body, flags=re.IGNORECASE)
 	if len(ids) == 0:
+		log.debug("Couldn't find a thread id to delete")
 		bldr.append("I couldn't find a thread id to delete.")
 	else:
 		db_comment = database.get_comment_by_thread(ids[0])
@@ -136,12 +138,16 @@ def process_delete_comment(message, reddit, database):
 			if db_comment.user == message.author.name:
 				comment = reddit.get_comment(ids[0])
 				if not reddit.delete_comment(comment) or not database.delete_comment(db_comment):
+					log.debug(f"Unable to delete comment: {ids[0]}")
 					bldr.append("Something went wrong deleting the comment")
 				else:
+					log.debug(f"Deleted comment: {ids[0]}")
 					bldr.append("Comment deleted.")
 			else:
+				log.debug(f"Bot wasn't replying to owner: {db_comment.user} : {message.author.name}")
 				bldr.append("It looks like the bot wasn't replying to you.")
 		else:
+			log.debug(f"Comment doesn't exist: {ids[0]}")
 			bldr.append("This comment doesn't exist or was already deleted.")
 
 	return bldr
