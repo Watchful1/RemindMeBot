@@ -61,21 +61,21 @@ def process_comment(comment, reddit, database):
 		return
 
 	commented = False
-	if database.get_comment_in_thread(utils.id_from_fullname(comment['link_id'])) is None:
+	thread_id = utils.id_from_fullname(comment['link_id'])
+	if database.get_comment_by_threadthread_id() is None:
+		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
 		try:
 			bldr = utils.get_footer(reminder.render_comment_confirmation())
 			result_id = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
-			reminder.comment_id = result_id
 			database.save_reminder(reminder)
 
-			bldr = utils.get_footer(reminder.render_comment_confirmation())
-			reddit.edit_comment(''.join(bldr), comment_id=reminder.comment_id)
-
 			db_comment = DbComment(
-				thread_id=utils.id_from_fullname(comment['link_id']),
+				thread_id=thread_id,
+				comment_id=result_id,
 				reminder_id=reminder.db_id,
+				user=reminder.user,
 				source=reminder.source
 			)
 			database.save_comment(db_comment)

@@ -18,14 +18,14 @@ class Reminder:
 		db_id=None,
 		time_string=None,
 		count_duplicates=1,
-		comment_id=None
+		thread_id=None
 	):
 		self.source = source
 		self.message = message
 		self.user = user
 		self.requested_date = requested_date
 		self.count_duplicates = count_duplicates
-		self.comment_id = comment_id
+		self.thread_id = thread_id
 
 		self.result_message = None
 		self.valid = True
@@ -93,12 +93,12 @@ class Reminder:
 		))
 		bldr.append(") to send a PM to also be reminded and to reduce spam.")
 
-		if self.comment_id is not None:
+		if self.thread_id is not None:
 			bldr.append("\n\n")
 			bldr.append("^(Parent commenter can ) [^(delete this message to hide from others.)](")
 			bldr.append(utils.build_message_link(
 				static.ACCOUNT_NAME,
 				"Delete Comment",
-				f"Delete! {self.comment_id}"
+				f"Delete! {self.thread_id}"
 			))
 			bldr.append(")")

@@ -129,9 +129,9 @@ def process_delete_comment(message, reddit, database):
 
 	ids = re.findall(r'delete!\s(\w+)', message.body, flags=re.IGNORECASE)
 	if len(ids) == 0:
-		bldr.append("I couldn't find a comment id to delete.")
+		bldr.append("I couldn't find a thread id to delete.")
 	else:
-		db_comment = database.get_comment(ids[0])
+		db_comment = database.get_comment_by_thread(ids[0])
 		if db_comment is not None:
 			if db_comment.user == message.author.name:
 				comment = reddit.get_comment(ids[0])

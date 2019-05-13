@@ -21,14 +21,14 @@ class Database:
 				RequestedDate TIMESTAMP NOT NULL,
 				TargetDate TIMESTAMP NOT NULL,
 				Message VARCHAR(500) NULL,
-				User VARCHAR(80) NOT NULL,
-				CommentID VARCHAR(12) NULL
+				User VARCHAR(80) NOT NULL
 			)
 		''',
 		'comments': '''
 			CREATE TABLE IF NOT EXISTS comments (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				ThreadID VARCHAR(12) NOT NULL,
+				CommentID VARCHAR(12) NOT NULL,
 				ReminderId INTEGER NOT NULL,
 				CurrentCount INTEGER DEFAULT 1,
 				User VARCHAR(80) NOT NULL,
@@ -97,8 +97,7 @@ class Database:
 						RequestedDate = ?,
 						TargetDate = ?,
 						Message = ?,
-						User = ?,
-						CommentId = ?
+						User = ?
 					WHERE ID = ?
 				''', (
 					reminder.source,
@@ -106,7 +105,6 @@ class Database:
 					utils.get_datetime_string(reminder.target_date),
 					reminder.message,
 					reminder.user,
-					reminder.comment_id,
 					reminder.db_id))
 			except sqlite3.IntegrityError as err:
 				log.warning(f"Failed to update reminder: {err}")
@@ -116,15 +114,14 @@ class Database:
 			try:
 				c.execute('''
 					INSERT INTO reminders
-					(Source, RequestedDate, TargetDate, Message, User, CommentId)
-					VALUES (?, ?, ?, ?, ?, ?)
+					(Source, RequestedDate, TargetDate, Message, User)
+					VALUES (?, ?, ?, ?, ?)
 				''', (
 					reminder.source,
 					utils.get_datetime_string(reminder.requested_date),
 					utils.get_datetime_string(reminder.target_date),
 					reminder.message,
-					reminder.user,
-					reminder.comment_id))
+					reminder.user))
 			except sqlite3.IntegrityError as err:
 				log.warning(f"Failed to save reminder: {err}")
 				return False
@@ -142,7 +139,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
 			WHERE TargetDate < CURRENT_TIMESTAMP
 			'''):
@@ -152,8 +149,7 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2]),
-				comment_id=row[6]
+				requested_date=utils.parse_datetime_string(row[2])
 			)
 			results.append(reminder)
 
@@ -165,7 +161,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
 			WHERE User = ?
 			''', (username,)):
@@ -175,8 +171,7 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2]),
-				comment_id=row[6]
+				requested_date=utils.parse_datetime_string(row[2])
 			)
 			results.append(reminder)
 
@@ -187,7 +182,7 @@ class Database:
 		log.debug(f"Fetching reminder by id: {reminder_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, CommentId
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
 			WHERE ID = ?
 			''', (reminder_id,))
@@ -203,8 +198,7 @@ class Database:
 			message=result[4],
 			user=result[5],
 			db_id=result[0],
-			requested_date=utils.parse_datetime_string(result[2]),
-			comment_id=result[6]
+			requested_date=utils.parse_datetime_string(result[2])
 		)
 
 		return reminder
@@ -250,6 +244,7 @@ class Database:
 				c.execute('''
 					UPDATE comments
 					SET ThreadID = ?,
+						CommentID = ?,
 						ReminderId = ?,
 						CurrentCount = ?,
 						User=?,
@@ -257,6 +252,7 @@ class Database:
 					WHERE ID = ?
 				''', (
 					db_comment.thread_id,
+					db_comment.comment_id,
 					db_comment.reminder_id,
 					db_comment.current_count,
 					db_comment.user,
@@ -270,10 +266,11 @@ class Database:
 			try:
 				c.execute('''
 					INSERT INTO comments
-					(ThreadID, ReminderId, CurrentCount, User, Source)
-					VALUES (?, ?, ?, ?, ?)
+					(ThreadID, CommentID, ReminderId, CurrentCount, User, Source)
+					VALUES (?, ?, ?, ?, ?, ?)
 				''', (
 					db_comment.thread_id,
+					db_comment.comment_id,
 					db_comment.reminder_id,
 					db_comment.current_count,
 					db_comment.user,
@@ -290,11 +287,11 @@ class Database:
 
 		return True
 
-	def get_comment_in_thread(self, thread_id):
+	def get_comment_by_thread(self, thread_id):
 		log.debug(f"Fetching comment for thread: {thread_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, ThreadID, ReminderId, CurrentCount, User, Source
+			SELECT ID, ThreadID, CommentID, ReminderId, CurrentCount, User, Source
 			FROM comments
 			WHERE ThreadID = ?
 			''', (thread_id,))
@@ -306,10 +303,11 @@ class Database:
 
 		db_comment = DbComment(
 			thread_id=result[1],
-			reminder_id=result[2],
-			user=result[4],
-			source=result[5],
-			current_count=result[3],
+			comment_id=result[2],
+			reminder_id=result[3],
+			user=result[5],
+			source=result[6],
+			current_count=result[4],
 			db_id=result[0]
 		)
 
