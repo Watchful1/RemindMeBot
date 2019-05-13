@@ -28,7 +28,10 @@ class Reddit:
 
 	def get_messages(self):
 		log.debug("Fetching unread messages")
-		return self.reddit.inbox.unread(limit=500)
+		message_list = []
+		for message in self.reddit.inbox.unread(limit=500):
+			message_list.append(message)
+		return message_list
 
 	def reply_message(self, message, body):
 		log.debug(f"Replying to message: {message.id}")

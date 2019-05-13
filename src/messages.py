@@ -174,7 +174,8 @@ def process_message(message, reddit, database):
 
 def process_messages(reddit, database):
 	messages = reddit.get_messages()
-	for message in messages:
+	log.debug(f"Processing {len(messages)} messages")
+	for message in messages[::-1]:
 		try:
 			process_message(message, reddit, database)
 		except Exception:
