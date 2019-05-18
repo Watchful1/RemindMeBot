@@ -5,9 +5,11 @@
   -delete comment
   -remove all reminders
   handle replies and mentions
-search for trigger
+-search for trigger
 send reminders
 update comments
 database backups
 cakeday
 delete downvoted comments
+migration script
+discord logging

@@ -40,6 +40,11 @@ class Reddit:
 		else:
 			message.reply(body)
 
+	def mark_read(self, message):
+		log.debug(f"Marking message as read: {message.id}")
+		if not self.no_post:
+			message.mark_read()
+
 	def reply_comment(self, comment, body):
 		log.debug(f"Replying to message: {comment.id}")
 		if self.no_post:

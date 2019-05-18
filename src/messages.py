@@ -1,7 +1,6 @@
 import logging
 import re
 import traceback
-from datetime import datetime
 
 import utils
 import static
@@ -169,8 +168,6 @@ def process_message(message, reddit, database):
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
 
-	message.mark_read()
-
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]
 
@@ -186,5 +183,11 @@ def process_messages(reddit, database):
 			process_message(message, reddit, database)
 		except Exception:
 			log.warning(f"Error processing message: {message.id} : {message.author.name}")
+			log.warning(traceback.format_exc())
+
+		try:
+			reddit.mark_read(message)
+		except Exception:
+			log.warning(f"Error marking message read: {message.id} : {message.author.name}")
 			log.warning(traceback.format_exc())
 

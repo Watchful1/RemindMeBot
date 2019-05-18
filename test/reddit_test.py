@@ -17,7 +17,10 @@ class RedditObject:
 		body=None,
 		author=None,
 		created=None,
-		id=None
+		id=None,
+		permalink=None,
+		link_id=None,
+		prefix="t4"
 	):
 		self.body = body
 		if author is None:
@@ -28,14 +31,26 @@ class RedditObject:
 			self.id = utils.random_id()
 		else:
 			self.id = id
-		self.fullname = "t4_"+self.id
+		self.fullname = f"{prefix}_{self.id}"
 		if created is None:
 			self.created_utc = utils.datetime_now().timestamp()
 		else:
 			self.created_utc = created.timestamp()
+		self.permalink = permalink
+		self.link_id = link_id
 
 		self.parent = None
 		self.children = []
+
+	def get_pushshift_dict(self):
+		return {
+			'id': self.id,
+			'author': self.author.name,
+			'link_id': self.link_id,
+			'body': self.body,
+			'permalink': self.permalink,
+			'created_utc': self.created_utc,
+		}
 
 	def get_first_child(self):
 		if len(self.children):
@@ -70,8 +85,15 @@ class Reddit:
 
 	def reply_comment(self, comment, body):
 		new_comment = comment.reply(body)
-		self.add_comment(comment, True)
-		return new_comment
+		self.add_comment(new_comment, True)
+		return new_comment.id
+
+	def mark_read(self, message):
+		message.mark_read()
+
+	def send_message(self, username, subject, body):
+		new_message = RedditObject(body, static.ACCOUNT_NAME)
+		self.sent_messages.append(new_message)
 
 	def get_comment(self, comment_id):
 		if comment_id in self.all_comments:

@@ -1,5 +1,6 @@
 import logging.handlers
 import prawcore
+import traceback
 
 import utils
 import static
@@ -26,7 +27,8 @@ def parse_comment(comment, database):
 		log.debug("Comment is from remindmebot")
 		return None
 
-	if "!remindme" not in comment['body'] and "remindme!" not in comment['body']:
+	body = comment['body'].lower()
+	if "remindme!" not in body and "!remindme" not in body:
 		log.debug("Command not in comment")
 		return None
 
@@ -62,7 +64,7 @@ def process_comment(comment, reddit, database):
 
 	commented = False
 	thread_id = utils.id_from_fullname(comment['link_id'])
-	if database.get_comment_by_threadthread_id() is None:
+	if database.get_comment_by_thread(thread_id) is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
 		try:
@@ -93,6 +95,12 @@ def process_comment(comment, reddit, database):
 def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments("remindme", database_get_seen(database))
 	for comment in comments[::-1]:
-		process_comment(comment, reddit, database)
+		try:
+			process_comment(comment, reddit, database)
+		except Exception:
+			log.warning(f"Error processing comment: {comment['id']} : {comment['author']}")
+			log.warning(traceback.format_exc())
+
+		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
 
 	return
