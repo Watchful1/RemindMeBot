@@ -179,11 +179,14 @@ def process_messages(reddit, database):
 	messages = reddit.get_messages()
 	log.debug(f"Processing {len(messages)} messages")
 	for message in messages[::-1]:
-		try:
-			process_message(message, reddit, database)
-		except Exception:
-			log.warning(f"Error processing message: {message.id} : {message.author.name}")
-			log.warning(traceback.format_exc())
+		if reddit.is_message(message):
+			try:
+				process_message(message, reddit, database)
+			except Exception:
+				log.warning(f"Error processing message: {message.id} : {message.author.name}")
+				log.warning(traceback.format_exc())
+		else:
+			log.debug(f"Object not message, skipping: {message.id}")
 
 		try:
 			reddit.mark_read(message)

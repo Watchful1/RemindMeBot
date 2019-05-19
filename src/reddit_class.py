@@ -12,6 +12,21 @@ from classes.queue import Queue
 log = logging.getLogger("bot")
 
 
+# class DebugReddit(praw.Reddit):
+# 	def __init__(
+# 			self,
+# 			site_name=None,
+# 			requestor_class=None,
+# 			requestor_kwargs=None,
+# 			**config_settings):
+# 		super(DebugReddit, self).__init__(site_name, requestor_class, requestor_kwargs, **config_settings)
+# 		self.request_count = 0
+#
+# 	def request(self, method, path, params=None, data=None, files=None):
+# 		self.request_count += 1
+# 		return super(DebugReddit, self).request(method, path, params, data, files)
+
+
 class Reddit:
 	def __init__(self, user, no_post):
 		self.no_post = no_post
@@ -25,6 +40,9 @@ class Reddit:
 		static.ACCOUNT_NAME = self.reddit.user.me().name
 		log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
 		self.processed_comments = Queue(100)
+
+	def is_message(self, item):
+		return isinstance(item, praw.models.Message)
 
 	def get_messages(self, count=500):
 		log.debug("Fetching unread messages")
