@@ -13,6 +13,7 @@ import database_class
 import static
 import reddit_class
 import messages
+import comments
 
 LOG_LEVEL = logging.DEBUG
 
@@ -83,6 +84,8 @@ class RemindMeBot:
 
 		messages.process_messages(self.reddit, self.database)
 
+		comments.process_comments(self.reddit, self.database)
+
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 
 
@@ -90,7 +93,11 @@ if __name__ == "__main__":
 	remind_me_bot = RemindMeBot()
 
 	while True:
-		remind_me_bot.process_once()
+		try:
+			remind_me_bot.process_once()
+		except Exception:
+			log.warning("Error in main loop")
+			log.warning(traceback.format_exc())
 		if remind_me_bot.once:
 			break
 		time.sleep(static.LOOP_TIME)
