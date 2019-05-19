@@ -28,7 +28,7 @@ def parse_comment(comment, database):
 		return None
 
 	body = comment['body'].lower()
-	if "remindme!" not in body and "!remindme" not in body:
+	if f"{static.TRIGGER_LOWER}!" not in body and f"!{static.TRIGGER_LOWER}" not in body:
 		log.debug("Command not in comment")
 		return None
 
@@ -93,7 +93,7 @@ def process_comment(comment, reddit, database):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments("remindme", database_get_seen(database))
+	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database))
 	for comment in comments[::-1]:
 		try:
 			process_comment(comment, reddit, database)

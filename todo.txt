@@ -4,7 +4,7 @@
   -get reminders
   -delete comment
   -remove all reminders
-  handle replies and mentions
+  -handle replies and mentions
 -search for trigger
 send reminders
 update comments

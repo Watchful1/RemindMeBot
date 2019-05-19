@@ -6,3 +6,5 @@ DATABASE_NAME = "database.db"
 DATABASE_DEBUG_NAME = "database_debug.db"
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "RemindMeBot"
+TRIGGER = "RemindMe"
+TRIGGER_LOWER = TRIGGER.lower()

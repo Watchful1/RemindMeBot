@@ -157,7 +157,7 @@ def process_message(message, reddit, database):
 	body = message.body.lower()
 
 	bldr = None
-	if "remindme" in body:
+	if static.TRIGGER_LOWER in body:
 		bldr = process_remind_me(message, database)
 	elif "myreminders!" in body:
 		bldr = process_get_reminders(message, database)

@@ -36,7 +36,8 @@ def find_reminder_message(body):
 
 
 def find_reminder_time(body):
-	times = re.findall(r'(?:remindme.? )(.*)(?:\[|\n|$)', body, flags=re.IGNORECASE)
+	regex_string = r'(?:{trigger}.? )(.*)(?:\[|\n|$)'.format(trigger=static.TRIGGER_LOWER)
+	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0:
 		return times[0]
 	else:
@@ -139,7 +140,7 @@ def get_footer(bldr=None):
 	bldr.append(build_message_link(
 		static.ACCOUNT_NAME,
 		"Reminder",
-		"[Link or message inside square brackets]\n\nRemindMe! Time period here"
+		f"[Link or message inside square brackets]\n\n{static.TRIGGER}! Time period here"
 	))
 	bldr.append(")")
 	bldr.append("|[^(Your Reminders)]()")
