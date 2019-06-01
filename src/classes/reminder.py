@@ -102,3 +102,36 @@ class Reminder:
 				f"Delete! {self.thread_id}"
 			))
 			bldr.append(")")
+
+		return bldr
+
+	def render_notification(self):
+		bldr = utils.str_bldr()
+
+		bldr.append("RemindMeBot reminder here!")
+		bldr.append("\n\n")
+
+		if self.message is not None:
+			bldr.append("I'm here to remind you:\n\n> ")
+			bldr.append(self.message)
+			bldr.append("\n\n")
+
+		bldr.append("The source comment or message:\n\n>")
+		bldr.append(self.source)
+		bldr.append("\n\n")
+
+		bldr.append("You requested this reminder on: ")
+		bldr.append(utils.render_time(self.requested_date))
+		bldr.append("\n\n")
+
+		bldr.append("[Click here](")
+		bldr.append(utils.build_message_link(
+			static.ACCOUNT_NAME,
+			"Reminder",
+			f"[{self.source}]\n\n{static.TRIGGER}! "
+		))
+		bldr.append(") and set the time after the ")
+		bldr.append(static.TRIGGER)
+		bldr.append(" command to be reminded of the original comment again.")
+
+		return bldr

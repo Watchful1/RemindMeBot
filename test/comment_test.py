@@ -25,9 +25,7 @@ def test_process_comment(database, reddit):
 	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
 	result = comment.get_first_child().body
 
-	assert "This time has already passed" not in result
-	assert "Could not find a time in message" not in result
-	assert "Could not parse date" not in result
+	assert "CLICK THIS LINK" in result
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1

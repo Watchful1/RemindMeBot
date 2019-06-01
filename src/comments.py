@@ -89,8 +89,6 @@ def process_comment(comment, reddit, database):
 		bldr = utils.get_footer(reminder.render_message_confirmation())
 		reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 
-	return
-
 
 def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database))
@@ -102,5 +100,3 @@ def process_comments(reddit, database):
 			log.warning(traceback.format_exc())
 
 		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
-
-	return
