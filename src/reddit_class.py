@@ -4,6 +4,7 @@ import configparser
 import traceback
 import requests
 import time
+from datetime import timedelta
 
 import static
 import utils
@@ -108,6 +109,9 @@ class Reddit:
 		return True
 
 	def get_keyword_comments(self, keyword, last_seen):
+		if not len(self.processed_comments.list):
+			log.info("Processed comments is empty, incrementing last_seen by one second")
+			last_seen = last_seen + timedelta(seconds=1)
 		log.debug(f"Fetching comments for keyword: {keyword} : {utils.get_datetime_string(last_seen)}")
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
