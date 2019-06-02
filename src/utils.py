@@ -56,9 +56,9 @@ def parse_time(time_string, base_time=datetime.utcnow()):
 def render_time(date_time):
 	bldr = str_bldr()
 	bldr.append("[**")
-	bldr.append(date_time.strftime('%Y-%m-%d %I:%M:%S %p %Z'))
+	bldr.append(date_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
 	bldr.append("**](http://www.wolframalpha.com/input/?i=")
-	bldr.append(date_time.strftime('%Y-%m-%d %I:%M:%S %p %Z').replace(" ", "%20"))
+	bldr.append(date_time.strftime('%Y-%m-%d %H:%M:%S %Z').replace(" ", "%20"))
 	bldr.append(" To Local Time".replace(" ", "%20"))
 	bldr.append(")")
 	return ''.join(bldr)
