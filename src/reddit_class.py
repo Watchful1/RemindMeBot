@@ -140,3 +140,6 @@ class Reddit:
 
 		log.debug(f"Found comments: {len(result_comments)}")
 		return result_comments
+
+	def mark_keyword_comment_processed(self, comment_id):
+		self.processed_comments.put(comment_id)
