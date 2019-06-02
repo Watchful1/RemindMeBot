@@ -19,7 +19,9 @@ def send_reminders(reddit, database, timestamp=utils.datetime_now()):
 		i = 0
 		for reminder in reminders:
 			i += 1
-			log.info(f"{i}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user}")
+			log.info(
+				f"{i}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user} : "
+				f"{reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
 			bldr = utils.get_footer(reminder.render_notification())
 			reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
 
