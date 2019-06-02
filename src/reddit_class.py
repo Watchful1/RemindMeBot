@@ -112,6 +112,7 @@ class Reddit:
 		if not len(self.processed_comments.list):
 			log.info("Processed comments is empty, incrementing last_seen by one second")
 			last_seen = last_seen + timedelta(seconds=1)
+			self.processed_comments.put("xxx")
 		log.debug(f"Fetching comments for keyword: {keyword} : {utils.get_datetime_string(last_seen)}")
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
