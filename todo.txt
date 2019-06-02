@@ -14,3 +14,7 @@ delete downvoted comments
 migration script
 discord logging
 dynamic looping
+
+specify time zone
+relative dates in reminder list
+keep track of subreddits where the bot is banned
