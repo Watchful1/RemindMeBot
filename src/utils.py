@@ -46,6 +46,8 @@ def find_reminder_time(body):
 
 def parse_time(time_string, base_time=datetime.utcnow()):
 	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time})
+	if date_time is None:
+		return None
 	if date_time.tzinfo is None:
 		date_time = datetime_force_utc(date_time)
 	return date_time

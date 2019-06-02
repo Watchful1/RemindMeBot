@@ -34,7 +34,12 @@ class Reminder:
 			self.target_date = target_date
 		elif time_string is not None:
 			self.target_date = utils.parse_time(time_string, requested_date)
-			if self.target_date < self.requested_date:
+			if self.target_date is None:
+				self.result_message = f"Could not parse time: {time_string}"
+				log.warning(self.result_message)
+				self.valid = False
+
+			elif self.target_date < self.requested_date:
 				self.result_message = f"This time is in the past: {time_string}"
 				log.warning(self.result_message)
 				self.valid = False
