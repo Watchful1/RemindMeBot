@@ -13,3 +13,4 @@ cakeday
 delete downvoted comments
 migration script
 discord logging
+dynamic looping
