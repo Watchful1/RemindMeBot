@@ -27,6 +27,7 @@ def parse_comment(comment, database):
 		log.debug("Comment is from remindmebot")
 		return None
 
+	log.info(f"Processing comment {comment['id']} from u/{comment['author']}")
 	body = comment['body'].lower()
 	if f"{static.TRIGGER_LOWER}!" not in body and f"!{static.TRIGGER_LOWER}" not in body:
 		log.debug("Command not in comment")
@@ -55,7 +56,6 @@ def parse_comment(comment, database):
 
 
 def process_comment(comment, reddit, database):
-	log.info(f"Processing comment {comment['id']} from u/{comment['author']}")
 	reminder = parse_comment(comment, database)
 
 	if reminder is None or not reminder.valid:
@@ -70,6 +70,9 @@ def process_comment(comment, reddit, database):
 		try:
 			bldr = utils.get_footer(reminder.render_comment_confirmation())
 			result_id = reddit.reply_comment(reddit_comment, ''.join(bldr))
+			log.info(
+				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
+				"replied as comment: {result_id}")
 
 			database.save_reminder(reminder)
 
@@ -83,9 +86,13 @@ def process_comment(comment, reddit, database):
 			database.save_comment(db_comment)
 			commented = True
 		except prawcore.exceptions.Forbidden:
+			log.info("Unable to reply as comment")
 			pass
 
 	if not commented:
+		log.info(
+			f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
+			"replying as message")
 		bldr = utils.get_footer(reminder.render_message_confirmation())
 		reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 

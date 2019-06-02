@@ -72,6 +72,8 @@ def process_remind_me(message, database):
 		log.info("Something went wrong saving the reminder")
 		return ["Something went wrong saving the reminder"]
 
+	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
+
 	return reminder.render_message_confirmation()
 
 

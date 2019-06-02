@@ -16,7 +16,7 @@ import messages
 import comments
 import notifications
 
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 
 
 LOG_FOLDER_NAME = "logs"
