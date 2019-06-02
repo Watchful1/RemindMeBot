@@ -5,7 +5,9 @@ import utils
 log = logging.getLogger("bot")
 
 
-def send_reminders(reddit, database, timestamp=utils.datetime_now()):
+def send_reminders(reddit, database, timestamp=None):
+	if timestamp is None:
+		timestamp = utils.datetime_now()
 	count_reminders = database.get_count_pending_reminders(timestamp)
 	if count_reminders == 0:
 		count_to_send = 0
