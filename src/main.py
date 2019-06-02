@@ -14,6 +14,7 @@ import static
 import reddit_class
 import messages
 import comments
+import notifications
 
 LOG_LEVEL = logging.DEBUG
 
@@ -50,8 +51,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 class RemindMeBot:
 	def __init__(self):
-		log.debug("Connecting to reddit")
-
 		self.once = False
 		self.debug_db = False
 		self.clone_db = False
@@ -85,6 +84,8 @@ class RemindMeBot:
 		messages.process_messages(self.reddit, self.database)
 
 		comments.process_comments(self.reddit, self.database)
+
+		notifications.send_reminders(self.reddit, self.database)
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 

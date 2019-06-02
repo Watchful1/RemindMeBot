@@ -80,7 +80,7 @@ class Reminder:
 		bldr.append("\n\n")
 
 		bldr.append("[**")
-		if self.count_duplicates <= 1:
+		if self.count_duplicates > 1:
 			bldr.append(str(self.count_duplicates))
 			bldr.append(" OTHERS CLICKED")
 		else:

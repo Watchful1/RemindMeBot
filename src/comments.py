@@ -92,6 +92,8 @@ def process_comment(comment, reddit, database):
 
 def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database))
+	if len(comments):
+		log.debug(f"Processing {len(comments)} comments")
 	for comment in comments[::-1]:
 		try:
 			process_comment(comment, reddit, database)

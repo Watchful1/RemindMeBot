@@ -12,7 +12,7 @@ def test_process_comment(database, reddit):
 	comment_id = utils.random_id()
 	thread_id = utils.random_id()
 	comment = reddit_test.RedditObject(
-		body=f"RemindMe! 1 day",
+		body=f"{static.TRIGGER}! 1 day",
 		author=username,
 		created=created,
 		id=comment_id,
@@ -41,7 +41,7 @@ def test_comment_in_thread(database, reddit):
 	comment_id = utils.random_id()
 	thread_id = utils.random_id()
 	comment = reddit_test.RedditObject(
-		body=f"RemindMe! 1 day",
+		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
 		created=utils.datetime_now(),
 		id=comment_id,
@@ -54,7 +54,7 @@ def test_comment_in_thread(database, reddit):
 
 	comment_id_2 = utils.random_id()
 	comment_2 = reddit_test.RedditObject(
-		body=f"RemindMe! 1 day",
+		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
 		created=utils.datetime_now(),
 		id=comment_id_2,

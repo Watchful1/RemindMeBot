@@ -136,21 +136,21 @@ def get_footer(bldr=None):
 	bldr.append("\n\n")
 
 	bldr.append("|[^(Info)](http://np.reddit.com/r/RemindMeBot/comments/24duzp/remindmebot_info/)")
-	bldr.append("|[^(Custom)]()")
+	bldr.append("|[^(Custom)](")
 	bldr.append(build_message_link(
 		static.ACCOUNT_NAME,
 		"Reminder",
 		f"[Link or message inside square brackets]\n\n{static.TRIGGER}! Time period here"
 	))
 	bldr.append(")")
-	bldr.append("|[^(Your Reminders)]()")
+	bldr.append("|[^(Your Reminders)](")
 	bldr.append(build_message_link(
 		static.ACCOUNT_NAME,
 		"List Of Reminders",
 		"MyReminders!"
 	))
 	bldr.append(")")
-	bldr.append("|[^(Feedback)]()")
+	bldr.append("|[^(Feedback)](")
 	bldr.append(build_message_link(
 		static.OWNER,
 		"Feedback"

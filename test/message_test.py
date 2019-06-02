@@ -19,7 +19,7 @@ def test_add_reminder(database, reddit):
 	keyword = "reminderstring"
 	id = utils.random_id()
 	message = reddit_test.RedditObject(
-		body=f"[{keyword}]\nRemindMe! 1 day",
+		body=f"[{keyword}]\n{static.TRIGGER}! 1 day",
 		author=username,
 		created=created,
 		id=id
@@ -49,7 +49,7 @@ def test_add_reminder_no_message(database, reddit):
 	username = "Watchful1"
 	id = utils.random_id()
 	message = reddit_test.RedditObject(
-		body="RemindMe! 1 day",
+		body=f"{static.TRIGGER}! 1 day",
 		author=username,
 		created=created,
 		id=id

@@ -177,7 +177,8 @@ def process_message(message, reddit, database):
 
 def process_messages(reddit, database):
 	messages = reddit.get_messages()
-	log.debug(f"Processing {len(messages)} messages")
+	if len(messages):
+		log.debug(f"Processing {len(messages)} messages")
 	for message in messages[::-1]:
 		if reddit.is_message(message):
 			try:

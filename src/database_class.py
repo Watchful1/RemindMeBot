@@ -54,7 +54,7 @@ class Database:
 	}
 
 	def __init__(self, debug=False, publish=False, clone=False):
-		log.debug(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
+		log.info(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
 		if debug:
 			if clone:
 				if os.path.exists(static.DATABASE_DEBUG_NAME):
@@ -74,7 +74,7 @@ class Database:
 			c.execute(Database.tables[table])
 
 		if self.get_keystore("remindme_comment") is None:
-			self.update_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
+			self.save_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
 
 		self.dbConn.commit()
 

@@ -29,6 +29,7 @@ log = logging.getLogger("bot")
 
 class Reddit:
 	def __init__(self, user, no_post):
+		log.info(f"Initializing reddit class: user={user} no_post={no_post}")
 		self.no_post = no_post
 		try:
 			self.reddit = praw.Reddit(
