@@ -5,8 +5,8 @@ import utils
 log = logging.getLogger("bot")
 
 
-def send_reminders(reddit, database):
-	count_reminders = database.get_count_pending_reminders()
+def send_reminders(reddit, database, timestamp=utils.datetime_now()):
+	count_reminders = database.get_count_pending_reminders(timestamp)
 	if count_reminders == 0:
 		count_to_send = 0
 	elif count_reminders < 200:
@@ -14,7 +14,7 @@ def send_reminders(reddit, database):
 	else:
 		count_to_send = min(1000, int(count_reminders / 5))
 
-	reminders = database.get_pending_reminders(count_to_send)
+	reminders = database.get_pending_reminders(count_to_send, timestamp)
 	if len(reminders) > 0:
 		i = 0
 		for reminder in reminders:

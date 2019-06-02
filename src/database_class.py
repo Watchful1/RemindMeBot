@@ -134,14 +134,14 @@ class Database:
 
 		return True
 
-	def get_count_pending_reminders(self, key):
+	def get_count_pending_reminders(self, timestamp):
 		log.debug("Fetching count of pending reminders")
 		c = self.dbConn.cursor()
 		c.execute('''
 			SELECT COUNT(*)
 			FROM reminders
-			WHERE TargetDate < CURRENT_TIMESTAMP
-			''')
+			WHERE TargetDate < ?
+			''', (utils.get_datetime_string(timestamp),))
 
 		result = c.fetchone()
 		if result is None or len(result) == 0:
@@ -151,17 +151,17 @@ class Database:
 		log.debug(f"Count reminders: {result[0]}")
 		return result[0]
 
-	def get_pending_reminders(self, count):
+	def get_pending_reminders(self, count, timestamp):
 		log.debug("Fetching pending reminders")
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
 			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
-			WHERE TargetDate < CURRENT_TIMESTAMP
+			WHERE TargetDate < ?
 			ORDER BY TargetDate ASC
 			LIMIT ?
-			''', (count,)):
+			''', (utils.get_datetime_string(timestamp), count)):
 			reminder = Reminder(
 				source=row[1],
 				target_date=utils.parse_datetime_string(row[3]),

@@ -85,15 +85,15 @@ def test_get_reminders(database, reddit):
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
+		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
@@ -121,22 +121,22 @@ def test_remove_reminder(database, reddit):
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
+		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	reminder3 = Reminder(
 		source="https://www.reddit.com/message/messages/ZZZZZ",
 		message="JJJJJ",
 		user="Watchful2",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-03-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-03-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
+		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
@@ -179,22 +179,22 @@ def test_remove_all_reminders(database, reddit):
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-01-01 04:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-01-04 05:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
 		user="Watchful1",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-02-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-02-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
+		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	reminder3 = Reminder(
 		source="https://www.reddit.com/message/messages/ZZZZZ",
 		message="JJJJJ",
 		user="Watchful2",
-		requested_date=utils.datetime_force_utc(datetime.strptime("2019-03-02 06:00:00 AM", '%Y-%m-%d %I:%M:%S %p')),
-		target_date=utils.datetime_force_utc(datetime.strptime("2019-03-05 07:00:00 AM", '%Y-%m-%d %I:%M:%S %p'))
+		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
+		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
