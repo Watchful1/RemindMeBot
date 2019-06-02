@@ -28,7 +28,7 @@ def fullname_type(fullname):
 
 
 def find_reminder_message(body):
-	messages = re.findall(r'(?:\[)(.*?)(?:\])', body, flags=re.IGNORECASE)
+	messages = re.findall(r'(?:[\[\"])(.*?)(?:[\]\"])', body, flags=re.IGNORECASE)
 	if len(messages) > 0:
 		return messages[0]
 	else:
@@ -36,7 +36,7 @@ def find_reminder_message(body):
 
 
 def find_reminder_time(body):
-	regex_string = r'(?:{trigger}.? )(.*?)(?:\[|\n|$)'.format(trigger=static.TRIGGER_LOWER)
+	regex_string = r'(?:{trigger}.? )(.*?)(?:\[|\n|\"|$)'.format(trigger=static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0:
 		return times[0]
