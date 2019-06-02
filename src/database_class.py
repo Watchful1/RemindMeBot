@@ -183,7 +183,7 @@ class Database:
 			SELECT ID, Source, RequestedDate, TargetDate, Message, User
 			FROM reminders
 			WHERE User = ?
-			ORDER BY TargetDate DESC
+			ORDER BY TargetDate ASC
 			''', (username,)):
 			reminder = Reminder(
 				source=row[1],
