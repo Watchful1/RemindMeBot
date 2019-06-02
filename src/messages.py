@@ -32,7 +32,8 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append("|")
 			bldr.append(reminder.source)
 			bldr.append("|")
-			bldr.append(reminder.message)
+			if reminder.message is not None:
+				bldr.append(reminder.message)
 			bldr.append("|")
 			bldr.append(utils.render_time(reminder.target_date))
 			bldr.append("|")
