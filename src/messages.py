@@ -155,7 +155,7 @@ def process_delete_comment(message, reddit, database):
 
 
 def process_message(message, reddit, database):
-	log.info(f"Message /u/{message.author.name} : {message.id}")
+	log.info(f"Message u/{message.author.name} : {message.id}")
 	body = message.body.lower()
 
 	bldr = None
@@ -186,7 +186,7 @@ def process_messages(reddit, database):
 			try:
 				process_message(message, reddit, database)
 			except Exception:
-				log.warning(f"Error processing message: {message.id} : {message.author.name}")
+				log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 				log.warning(traceback.format_exc())
 		else:
 			log.debug(f"Object not message, skipping: {message.id}")
