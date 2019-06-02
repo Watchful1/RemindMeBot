@@ -26,6 +26,7 @@ LOG_FILENAME = LOG_FOLDER_NAME+"/"+"bot.log"
 LOG_FILE_BACKUPCOUNT = 5
 LOG_FILE_MAXSIZE = 1024 * 1024 * 16
 
+logging.Formatter.converter = time.gmtime
 log = logging.getLogger("bot")
 log.setLevel(LOG_LEVEL)
 log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
