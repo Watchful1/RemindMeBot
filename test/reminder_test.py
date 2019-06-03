@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import utils
 import notifications
 from classes.reminder import Reminder

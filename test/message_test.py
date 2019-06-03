@@ -1,5 +1,4 @@
 from datetime import timedelta
-from datetime import datetime
 
 import messages
 import utils

@@ -4,7 +4,7 @@ import static
 import utils
 
 
-log = discord_logging.get_logger(True)
+log = discord_logging.get_logger()
 
 
 class User:

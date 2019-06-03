@@ -7,15 +7,14 @@ import time
 import traceback
 import discord_logging
 
+log = discord_logging.init_logging()
+
 import database_class
 import static
 import reddit_class
 import messages
 import comments
 import notifications
-
-
-log = discord_logging.init_logging()
 
 
 def signal_handler(signal, frame):
@@ -49,6 +48,8 @@ class RemindMeBot:
 		else:
 			log.error("No user specified, aborting")
 			raise ValueError
+
+		discord_logging.init_discord_logging(self.user)
 
 		self.reddit = reddit_class.Reddit(self.user, self.no_post)
 

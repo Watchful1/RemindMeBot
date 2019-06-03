@@ -1,5 +1,8 @@
 import sys
 import pytest
+import discord_logging
+
+log = discord_logging.init_logging()
 
 sys.path.append("src")
 
