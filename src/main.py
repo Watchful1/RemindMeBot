@@ -1,13 +1,12 @@
 #!/usr/bin/python3
 
-import praw
 import os
 import logging.handlers
 import sys
-import configparser
 import signal
 import time
 import traceback
+import discord_logging
 
 import database_class
 import static
@@ -15,6 +14,8 @@ import reddit_class
 import messages
 import comments
 import notifications
+
+log = discord_logging.init_logging()
 
 LOG_LEVEL = logging.INFO
 

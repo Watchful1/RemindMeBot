@@ -18,3 +18,4 @@ dynamic looping
 specify time zone
 relative dates in reminder list
 keep track of subreddits where the bot is banned
+dynamic timing for logging handler

@@ -4,12 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 praw = "*"
 dateparser = {git = "https://github.com/Watchful1/dateparser.git"}
 pytz = "*"
-pytest = "*"
+discord-logging = {git = "https://github.com/Watchful1/DiscordLogging.git"}
 
 [requires]
 python_version = "3.7"
