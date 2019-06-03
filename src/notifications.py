@@ -1,8 +1,9 @@
-import logging.handlers
+import discord_logging
 
 import utils
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger()
 
 
 def send_reminders(reddit, database, timestamp=None):

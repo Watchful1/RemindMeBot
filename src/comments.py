@@ -1,4 +1,4 @@
-import logging.handlers
+import discord_logging
 import prawcore
 import traceback
 
@@ -7,7 +7,8 @@ import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger()
 
 
 def database_set_seen(database, comment_seen):

@@ -1,4 +1,4 @@
-import logging
+import discord_logging
 import re
 import traceback
 
@@ -6,7 +6,8 @@ import utils
 import static
 from classes.reminder import Reminder
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger()
 
 
 def get_reminders_string(user, database, previous=False):

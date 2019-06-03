@@ -1,9 +1,10 @@
-import logging.handlers
+import discord_logging
 
 import static
 import utils
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger(True)
 
 
 class User:

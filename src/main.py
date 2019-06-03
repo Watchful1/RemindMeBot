@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import os
 import logging.handlers
 import sys
 import signal
@@ -15,32 +14,8 @@ import messages
 import comments
 import notifications
 
+
 log = discord_logging.init_logging()
-
-LOG_LEVEL = logging.INFO
-
-
-LOG_FOLDER_NAME = "logs"
-if not os.path.exists(LOG_FOLDER_NAME):
-	os.makedirs(LOG_FOLDER_NAME)
-LOG_FILENAME = LOG_FOLDER_NAME+"/"+"bot.log"
-LOG_FILE_BACKUPCOUNT = 5
-LOG_FILE_MAXSIZE = 1024 * 1024 * 16
-
-logging.Formatter.converter = time.gmtime
-log = logging.getLogger("bot")
-log.setLevel(LOG_LEVEL)
-log_formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s')
-log_stderrHandler = logging.StreamHandler()
-log_stderrHandler.setFormatter(log_formatter)
-log.addHandler(log_stderrHandler)
-if LOG_FILENAME is not None:
-	log_fileHandler = logging.handlers.RotatingFileHandler(
-		LOG_FILENAME,
-	    maxBytes=LOG_FILE_MAXSIZE,
-	     backupCount=LOG_FILE_BACKUPCOUNT)
-	log_fileHandler.setFormatter(log_formatter)
-	log.addHandler(log_fileHandler)
 
 
 def signal_handler(signal, frame):
@@ -70,7 +45,7 @@ class RemindMeBot:
 				elif arg == 'no_post':
 					self.no_post = True
 				elif arg == 'debug':
-					log.setLevel(logging.DEBUG)
+					discord_logging.set_level(logging.DEBUG)
 		else:
 			log.error("No user specified, aborting")
 			raise ValueError

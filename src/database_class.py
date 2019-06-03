@@ -1,7 +1,6 @@
 import sqlite3
-import logging
+import discord_logging
 import os
-from datetime import datetime
 from shutil import copyfile
 
 from classes.reminder import Reminder
@@ -9,7 +8,8 @@ from classes.comment import DbComment
 import static
 import utils
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger(True)
 
 
 class Database:

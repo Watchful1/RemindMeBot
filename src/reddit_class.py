@@ -1,4 +1,4 @@
-import logging.handlers
+import discord_logging
 import praw
 import configparser
 import traceback
@@ -10,7 +10,8 @@ import static
 import utils
 from classes.queue import Queue
 
-log = logging.getLogger("bot")
+
+log = discord_logging.get_logger()
 
 
 # class DebugReddit(praw.Reddit):

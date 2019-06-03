@@ -1,9 +1,3 @@
-import logging
-
-
-log = logging.getLogger("bot")
-
-
 class DbComment:
 	def __init__(
 		self,

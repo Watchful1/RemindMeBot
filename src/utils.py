@@ -1,5 +1,5 @@
 import re
-import logging
+import discord_logging
 import dateparser
 import pytz
 from datetime import datetime
@@ -7,8 +7,7 @@ from datetime import datetime
 import static
 import random
 
-
-log = logging.getLogger("bot")
+log = discord_logging.get_logger()
 
 
 def random_id():

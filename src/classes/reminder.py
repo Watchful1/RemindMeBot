@@ -1,10 +1,10 @@
 import utils
-import logging
+import discord_logging
 
 import static
 
 
-log = logging.getLogger("bot")
+log = discord_logging.get_logger()
 
 
 class Reminder:
