@@ -18,7 +18,7 @@ import notifications
 
 
 def signal_handler(signal, frame):
-	log.info("Handling interupt")
+	log.info("Handling interrupt")
 	sys.exit(0)
 
 

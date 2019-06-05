@@ -12,10 +12,12 @@ database backups
 cakeday
 delete downvoted comments
 migration script
-discord logging
+-discord logging
 dynamic looping
 
 specify time zone
 relative dates in reminder list
 keep track of subreddits where the bot is banned
 dynamic timing for logging handler
+delete reminders if the related user comes back as deleted
+track events in database

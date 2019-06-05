@@ -42,7 +42,9 @@ class Reddit:
 			raise ValueError
 		static.ACCOUNT_NAME = self.reddit.user.me().name
 		log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
+
 		self.processed_comments = Queue(100)
+		self.consecutive_timeouts = 0
 
 	def is_message(self, item):
 		return isinstance(item, praw.models.Message)
@@ -117,7 +119,7 @@ class Reddit:
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
 			requestTime = time.perf_counter()
-			json = requests.get(url, headers={'User-Agent': static.USER_AGENT})
+			json = requests.get(url, headers={'User-Agent': static.USER_AGENT}, timeout=5)
 			requestSeconds = int(time.perf_counter() - requestTime)
 			if requestSeconds > 5:
 				log.warning(f"Long request time for search term: {keyword} : seconds: {str(requestSeconds)}")
@@ -125,6 +127,14 @@ class Reddit:
 				log.warning(f"Could not parse data for search term: {keyword} status: {str(json.status_code)}")
 				return []
 			comments = json.json()['data']
+
+		except requests.exceptions.ReadTimeout:
+			self.consecutive_timeouts += 1
+			if self.consecutive_timeouts >= 5:
+				log.warning(f"Five consecutive timeouts for search term: {keyword}")
+				self.consecutive_timeouts = 0
+			return []
+
 		except Exception as err:
 			log.warning(f"Could not parse data for search term: {keyword}")
 			log.warning(traceback.format_exc())
