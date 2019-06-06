@@ -12,6 +12,10 @@ database backups
 cakeday
 delete downvoted comments
 migration script
+  -remove quotes
+  -handle default message
+  handle empty origin date
+  handle source of info page
 -discord logging
 dynamic looping
 

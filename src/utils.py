@@ -92,12 +92,16 @@ def datetime_from_timestamp(timestamp):
 
 
 def get_datetime_string(date_time, convert_utc=True):
+	if date_time is None:
+		return ""
 	if convert_utc:
 		date_time = datetime_as_utc(date_time)
 	return date_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
 def parse_datetime_string(date_time_string, force_utc=True):
+	if date_time_string is None or date_time_string == "None":
+		return None
 	date_time = datetime.strptime(date_time_string, "%Y-%m-%d %H:%M:%S")
 	if force_utc:
 		date_time = datetime_force_utc(date_time)

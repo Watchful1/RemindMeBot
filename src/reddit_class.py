@@ -119,7 +119,7 @@ class Reddit:
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
 			requestTime = time.perf_counter()
-			json = requests.get(url, headers={'User-Agent': static.USER_AGENT}, timeout=5)
+			json = requests.get(url, headers={'User-Agent': static.USER_AGENT}, timeout=10)
 			requestSeconds = int(time.perf_counter() - requestTime)
 			if requestSeconds > 5:
 				log.warning(f"Long request time for search term: {keyword} : seconds: {str(requestSeconds)}")

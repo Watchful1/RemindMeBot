@@ -35,7 +35,7 @@ class Reminder:
 		elif time_string is not None:
 			self.target_date = utils.parse_time(time_string, requested_date)
 
-			if self.target_date < self.requested_date:
+			if self.requested_date is not None and self.target_date < self.requested_date:
 				self.result_message = f"This time is in the past: {time_string}"
 				log.warning(self.result_message)
 				self.valid = False
@@ -51,6 +51,11 @@ class Reminder:
 			self.target_date = utils.parse_time("1 day")
 
 		self.db_id = db_id
+
+	def __str__(self):
+		return f"{utils.get_datetime_string(self.requested_date)} " \
+			f": {utils.get_datetime_string(self.target_date)} : {self.user} " \
+			f": {self.source} : {self.message}"
 
 	def render_message_confirmation(self):
 		bldr = utils.str_bldr()
@@ -121,8 +126,11 @@ class Reminder:
 		bldr.append(self.source)
 		bldr.append("\n\n")
 
-		bldr.append("You requested this reminder on: ")
-		bldr.append(utils.render_time(self.requested_date))
+		if self.requested_date is None:
+			bldr.append("This reminder was created before I started saving the creation date of reminders.")
+		else:
+			bldr.append("You requested this reminder on: ")
+			bldr.append(utils.render_time(self.requested_date))
 		bldr.append("\n\n")
 
 		bldr.append("[Click here](")
