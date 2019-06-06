@@ -1,15 +1,29 @@
 import sqlite3
 import discord_logging
 import time
+import os
 
 log = discord_logging.init_logging()
 
 from classes.reminder import Reminder
 import utils
+from database_class import Database
 
 
-dbConn = sqlite3.connect("databaseLive.db")
-c = dbConn.cursor()
+old_database = "databaseLive.db"
+new_database = "database_new.db"
+
+log.info(f"Importing from {old_database} to {new_database}")
+
+old_db_conn = sqlite3.connect(old_database)
+old_c = old_db_conn.cursor()
+
+if os.path.exists(new_database):
+	log.info("Deleting existing database")
+	os.remove(new_database)
+new_db_conn = sqlite3.connect(new_database)
+new_c = new_db_conn.cursor()
+new_c.execute(Database.tables['reminders'])
 
 default_comment = "Hello, I'm here to remind you to see the parent comment!"
 info_page = "http://np.reddit.com/r/RemindMeBot/comments/24duzp/remindmebot_info/"
@@ -18,8 +32,7 @@ startTime = time.perf_counter()
 loop = 0
 count_default_comment = 0
 count_info_page = 0
-count_info_both = 0
-for row in c.execute('''
+for row in old_c.execute('''
 	SELECT permalink, message, new_date, origin_date, userID
 	FROM message_date
 	'''):
@@ -43,13 +56,26 @@ for row in c.execute('''
 			reminder.source = reminder.source.decode("utf-8")
 		if reminder.source == info_page:
 			count_info_page += 1
+			reminder.source = "Unfortunately I couldn't find a source for this reminder. " \
+				"This happens sometimes with really old reminders"
 
-		if reminder.message is None and reminder.source == info_page:
-			count_info_both += 1
+		new_c.execute('''
+			INSERT INTO reminders
+			(Source, RequestedDate, TargetDate, Message, User)
+			VALUES (?, ?, ?, ?, ?)
+		''', (
+			reminder.source,
+			utils.get_datetime_string(reminder.requested_date),
+			utils.get_datetime_string(reminder.target_date),
+			reminder.message,
+			reminder.user))
 	except Exception as err:
 		log.info(err)
 		log.info(reminder)
 	if loop % 10000 == 0:
-		log.info(f"{loop}: {int(time.perf_counter() - startTime)}s : {count_default_comment} : {count_info_page} : {count_info_both}")
+		log.info(f"{loop}: {int(time.perf_counter() - startTime)}s : {count_default_comment} : {count_info_page}")
 
-log.info(f"{loop}: {int(time.perf_counter() - startTime)}s : {count_default_comment} : {count_info_page} : {count_info_both}")
+new_db_conn.commit()
+new_db_conn.close()
+old_db_conn.close()
+log.info(f"{loop}: {int(time.perf_counter() - startTime)}s : {count_default_comment} : {count_info_page}")

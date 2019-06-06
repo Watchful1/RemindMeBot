@@ -9,13 +9,14 @@
 -send reminders
 update comments
 database backups
+    close database in handler
 cakeday
 delete downvoted comments
-migration script
+-migration script
   -remove quotes
   -handle default message
-  handle empty origin date
-  handle source of info page
+  -handle empty origin date
+  -handle source of info page
 -discord logging
 dynamic looping
 
