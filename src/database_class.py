@@ -2,6 +2,7 @@ import sqlite3
 import discord_logging
 import os
 from shutil import copyfile
+from datetime import datetime
 
 from classes.reminder import Reminder
 from classes.comment import DbComment
@@ -55,6 +56,11 @@ class Database:
 
 	def __init__(self, debug=False, publish=False, clone=False):
 		log.info(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
+		self.debug = debug
+		self.dbConn = None
+		self.init(debug, publish, clone)
+
+	def init(self, debug, publish, clone):
 		if debug:
 			if clone:
 				if os.path.exists(static.DATABASE_DEBUG_NAME):
@@ -66,7 +72,7 @@ class Database:
 			self.dbConn = sqlite3.connect(static.DATABASE_NAME)
 
 		c = self.dbConn.cursor()
-		if publish or (debug and not clone):
+		if publish:
 			for table in Database.tables:
 				c.execute(f"DROP TABLE IF EXISTS {table}")
 
@@ -78,10 +84,23 @@ class Database:
 
 		self.dbConn.commit()
 
-	def close(self):
-		log.debug("Closing database")
+	def close(self, silent=False):
+		if not silent:
+			log.debug("Closing database")
 		self.dbConn.commit()
 		self.dbConn.close()
+
+	def backup(self):
+		log.info("Backing up database")
+		self.close(True)
+
+		if not os.path.exists(static.BACKUP_FOLDER_NAME):
+			os.makedirs(static.BACKUP_FOLDER_NAME)
+		copyfile(
+			static.DATABASE_NAME,
+			static.BACKUP_FOLDER_NAME + "/" + datetime.utcnow().strftime("%Y-%m-%d_%H-%M") + ".db")
+
+		self.init(self.debug, False, False)
 
 	def save_reminder(self, reminder):
 		if not isinstance(reminder, Reminder):

@@ -3,6 +3,7 @@ import discord_logging
 import dateparser
 import pytz
 from datetime import datetime
+from datetime import timedelta
 
 import static
 import random
@@ -81,6 +82,10 @@ def datetime_as_utc(date_time):
 
 def datetime_force_utc(date_time):
 	return pytz.utc.localize(date_time)
+
+
+def time_offset(date_time, hours=0, minutes=0, seconds=0):
+	return date_time < datetime_now() - timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
 
 def datetime_now():

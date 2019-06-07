@@ -18,7 +18,7 @@ def remind_me_bot():
 
 @pytest.fixture
 def database():
-	return database_class.Database(debug=True)
+	return database_class.Database(debug=True, publish=True)
 
 
 @pytest.fixture

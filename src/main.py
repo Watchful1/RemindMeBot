@@ -15,10 +15,15 @@ import reddit_class
 import messages
 import comments
 import notifications
+import utils
+
+
+remind_me_bot = None
 
 
 def signal_handler(signal, frame):
 	log.info("Handling interrupt")
+	remind_me_bot.close()
 	sys.exit(0)
 
 
@@ -53,30 +58,60 @@ class RemindMeBot:
 
 		self.reddit = reddit_class.Reddit(self.user, self.no_post)
 
-		self.database = database_class.Database(self.debug_db, self.clone_db)
+		self.database = database_class.Database(debug=self.debug_db, clone=self.clone_db)
 
-	def process_once(self):
-		startTime = time.perf_counter()
-		log.debug("Starting run")
+	def close(self):
+		self.database.close()
 
+	def process_messages(self):
 		messages.process_messages(self.reddit, self.database)
 
+	def process_comments(self):
 		comments.process_comments(self.reddit, self.database)
 
+	def send_notifications(self):
 		notifications.send_reminders(self.reddit, self.database)
 
-		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
+	def backup_database(self):
+		self.database.backup()
 
 
 if __name__ == "__main__":
 	remind_me_bot = RemindMeBot()
 
+	last_backup = None
 	while True:
+		startTime = time.perf_counter()
+		log.debug("Starting run")
+
 		try:
-			remind_me_bot.process_once()
+			remind_me_bot.process_messages()
 		except Exception:
-			log.warning("Error in main loop")
+			log.warning("Error processing messages")
 			log.warning(traceback.format_exc())
+
+		try:
+			remind_me_bot.process_comments()
+		except Exception:
+			log.warning("Error processing comments")
+			log.warning(traceback.format_exc())
+
+		try:
+			remind_me_bot.send_notifications()
+		except Exception:
+			log.warning("Error sending notifications")
+			log.warning(traceback.format_exc())
+
+		if last_backup is None or utils.time_offset(last_backup, hours=24):
+			try:
+				remind_me_bot.backup_database()
+				last_backup = utils.datetime_now()
+			except Exception:
+				log.warning("Error backing up database")
+				log.warning(traceback.format_exc())
+
+		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
+
 		if remind_me_bot.once:
 			break
 		time.sleep(static.LOOP_TIME)

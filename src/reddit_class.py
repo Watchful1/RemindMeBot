@@ -130,8 +130,8 @@ class Reddit:
 
 		except requests.exceptions.ReadTimeout:
 			self.consecutive_timeouts += 1
-			if self.consecutive_timeouts >= 5:
-				log.warning(f"Five consecutive timeouts for search term: {keyword}")
+			if self.consecutive_timeouts >= 8:
+				log.warning(f"Eight consecutive timeouts for search term: {keyword}")
 				self.consecutive_timeouts = 0
 			return []
 

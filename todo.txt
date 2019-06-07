@@ -19,6 +19,7 @@ delete downvoted comments
   -handle source of info page
 -discord logging
 dynamic looping
+draft info post
 
 specify time zone
 relative dates in reminder list

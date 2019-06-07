@@ -8,3 +8,4 @@ MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "Watchful1BotTest"
 TRIGGER = "ReminderTest"#"RemindMe"
 TRIGGER_LOWER = TRIGGER.lower()
+BACKUP_FOLDER_NAME = "backup"
