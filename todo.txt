@@ -8,9 +8,12 @@
 -search for trigger
 -send reminders
 update comments
-database backups
-    close database in handler
+-database backups
+    -close database in handler
 cakeday
+    add cakeday
+    remove cakeday
+    send cakeday
 delete downvoted comments
 -migration script
   -remove quotes
@@ -20,6 +23,8 @@ delete downvoted comments
 -discord logging
 dynamic looping
 draft info post
+    r/cakeday
+    new date library
 
 specify time zone
 relative dates in reminder list

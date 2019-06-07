@@ -37,6 +37,14 @@ class Database:
 				UNIQUE (ThreadID)
 			)
 		''',
+		'cakeday': '''
+			CREATE TABLE IF NOT EXISTS cakeday (
+				ID INTEGER PRIMARY KEY AUTOINCREMENT,
+				CakedayDate TIMESTAMP NOT NULL,
+				User VARCHAR(80) NOT NULL,
+				UNIQUE (User)
+			)
+		''',
 		'keystore': '''
 			CREATE TABLE IF NOT EXISTS keystore (
 				Key VARCHAR(32) NOT NULL,

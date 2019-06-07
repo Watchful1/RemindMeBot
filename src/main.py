@@ -86,28 +86,28 @@ if __name__ == "__main__":
 
 		try:
 			remind_me_bot.process_messages()
-		except Exception:
-			log.warning("Error processing messages")
+		except Exception as err:
+			log.warning(f"Error processing messages: {err}")
 			log.warning(traceback.format_exc())
 
 		try:
 			remind_me_bot.process_comments()
-		except Exception:
-			log.warning("Error processing comments")
+		except Exception as err:
+			log.warning(f"Error processing comments: {err}")
 			log.warning(traceback.format_exc())
 
 		try:
 			remind_me_bot.send_notifications()
-		except Exception:
-			log.warning("Error sending notifications")
+		except Exception as err:
+			log.warning(f"Error sending notifications: {err}")
 			log.warning(traceback.format_exc())
 
-		if last_backup is None or utils.time_offset(last_backup, hours=24):
+		if utils.time_offset(last_backup, hours=24):
 			try:
 				remind_me_bot.backup_database()
 				last_backup = utils.datetime_now()
-			except Exception:
-				log.warning("Error backing up database")
+			except Exception as err:
+				log.warning(f"Error backing up database: {err}")
 				log.warning(traceback.format_exc())
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))

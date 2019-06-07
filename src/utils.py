@@ -85,6 +85,8 @@ def datetime_force_utc(date_time):
 
 
 def time_offset(date_time, hours=0, minutes=0, seconds=0):
+	if date_time is None:
+		return True
 	return date_time < datetime_now() - timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
 

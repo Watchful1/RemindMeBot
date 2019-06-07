@@ -118,11 +118,7 @@ class Reddit:
 		log.debug(f"Fetching comments for keyword: {keyword} : {utils.get_datetime_string(last_seen)}")
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
 		try:
-			requestTime = time.perf_counter()
 			json = requests.get(url, headers={'User-Agent': static.USER_AGENT}, timeout=10)
-			requestSeconds = int(time.perf_counter() - requestTime)
-			if requestSeconds > 5:
-				log.warning(f"Long request time for search term: {keyword} : seconds: {str(requestSeconds)}")
 			if json.status_code != 200:
 				log.warning(f"Could not parse data for search term: {keyword} status: {str(json.status_code)}")
 				return []
@@ -130,8 +126,8 @@ class Reddit:
 
 		except requests.exceptions.ReadTimeout:
 			self.consecutive_timeouts += 1
-			if self.consecutive_timeouts >= 8:
-				log.warning(f"Eight consecutive timeouts for search term: {keyword}")
+			if self.consecutive_timeouts >= 10:
+				log.warning(f"Ten consecutive timeouts for search term: {keyword}")
 				self.consecutive_timeouts = 0
 			return []
 
