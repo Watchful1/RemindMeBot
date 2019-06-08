@@ -3,9 +3,11 @@ import discord_logging
 import os
 from shutil import copyfile
 from datetime import datetime
+from datetime import timedelta
 
 from classes.reminder import Reminder
 from classes.comment import DbComment
+from classes.cakeday import Cakeday
 import static
 import utils
 
@@ -37,8 +39,8 @@ class Database:
 				UNIQUE (ThreadID)
 			)
 		''',
-		'cakeday': '''
-			CREATE TABLE IF NOT EXISTS cakeday (
+		'cakedays': '''
+			CREATE TABLE IF NOT EXISTS cakedays (
 				ID INTEGER PRIMARY KEY AUTOINCREMENT,
 				CakedayDate TIMESTAMP NOT NULL,
 				User VARCHAR(80) NOT NULL,
@@ -378,6 +380,133 @@ class Database:
 		else:
 			log.debug("Comment not deleted")
 			return False
+
+	def add_cakeday(self, cakeday):
+		if cakeday.db_id is not None:
+			log.warning(f"This cakeday already exists: {cakeday.db_id}")
+
+		c = self.dbConn.cursor()
+		log.debug("Saving new cakeday")
+		try:
+			c.execute('''
+				INSERT INTO cakedays
+				(CakedayDate, User)
+				VALUES (?, ?)
+			''', (
+				utils.get_datetime_string(cakeday.date_time),
+				cakeday.user))
+		except sqlite3.IntegrityError as err:
+			log.warning(f"Failed to save cakeday: {err}")
+			return False
+
+		if c.lastrowid is not None:
+			cakeday.db_id = c.lastrowid
+			log.debug(f"Saved to: {cakeday.db_id}")
+
+		self.dbConn.commit()
+
+		return True
+
+	def delete_cakeday(self, cakeday):
+		log.debug(f"Deleting cakeday by id: {cakeday.db_id}")
+		if cakeday.db_id is None:
+			return False
+
+		c = self.dbConn.cursor()
+		c.execute('''
+			DELETE FROM cakedays
+			WHERE ID = ?
+		''', (cakeday.db_id,))
+		self.dbConn.commit()
+
+		if c.rowcount == 1:
+			log.debug("Cakeday deleted")
+			return True
+		else:
+			log.debug("Cakeday not deleted")
+			return False
+
+	def bump_cakeday(self, cakeday):
+		if cakeday.db_id is None:
+			log.warning(f"This cakeday doesn't exist: {cakeday.user}")
+
+		c = self.dbConn.cursor()
+		log.debug("Bumping cakeday one year")
+		try:
+			c.execute('''
+				UPDATE cakedays
+				SET CakedayDate = ?
+				WHERE ID = ?
+			''', (
+				utils.get_datetime_string(utils.add_years(cakeday.date_time, 1)),
+				cakeday.db_id))
+		except sqlite3.IntegrityError as err:
+			log.warning(f"Failed to bump cakeday: {err}")
+			return False
+
+		self.dbConn.commit()
+
+		return True
+
+	def get_cakeday(self, user):
+		log.debug(f"Fetching cake by user: {user}")
+		c = self.dbConn.cursor()
+		c.execute('''
+			SELECT ID, CakedayDate, User
+			FROM cakedays
+			WHERE User = ?
+			''', (user,))
+
+		result = c.fetchone()
+		if result is None or len(result) == 0:
+			log.debug("Cakeday not found")
+			return None
+
+		cakeday = Cakeday(
+			user=result[2],
+			date_time=utils.parse_datetime_string(result[1]),
+			db_id=result[0]
+		)
+
+		return cakeday
+
+	def get_count_pending_cakedays(self, timestamp):
+		log.debug("Fetching count of pending cakedays")
+		c = self.dbConn.cursor()
+		c.execute('''
+			SELECT COUNT(*)
+			FROM cakedays
+			WHERE CakedayDate < ?
+			''', (utils.get_datetime_string(timestamp),))
+
+		result = c.fetchone()
+		if result is None or len(result) == 0:
+			log.debug("No pending cakedays")
+			return 0
+
+		log.debug(f"Count cakedays: {result[0]}")
+		return result[0]
+
+	def get_pending_cakedays(self, count, timestamp):
+		log.debug("Fetching pending cakedays")
+		c = self.dbConn.cursor()
+		results = []
+		for row in c.execute('''
+			SELECT ID, CakedayDate, User
+			FROM cakedays
+			WHERE CakedayDate < ?
+			ORDER BY CakedayDate ASC
+			LIMIT ?
+			''', (utils.get_datetime_string(timestamp), count)):
+			cakeday = Cakeday(
+				user=row[2],
+				date_time=utils.parse_datetime_string(row[1]),
+				db_id=row[0]
+			)
+			results.append(cakeday)
+
+		log.debug(f"Found cakedays: {len(results)}")
+		return results
 
 	def save_keystore(self, key, value):
 		log.debug(f"Saving keystore: {key} : {value}")

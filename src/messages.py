@@ -5,6 +5,7 @@ import traceback
 import utils
 import static
 from classes.reminder import Reminder
+from classes.cakeday import Cakeday
 
 
 log = discord_logging.get_logger()
@@ -14,7 +15,8 @@ def get_reminders_string(user, database, previous=False):
 	bldr = utils.str_bldr()
 
 	reminders = database.get_user_reminders(user)
-	if len(reminders):
+	cakeday = database.get_cakeday(user)
+	if len(reminders) or cakeday is not None:
 		if previous:
 			bldr.append("Your previous reminders:")
 		else:
@@ -29,6 +31,18 @@ def get_reminders_string(user, database, previous=False):
 		log.debug(f"Building list with {len(reminders)} reminders")
 		bldr.append("|Source|Message|Date|Remove|\n")
 		bldr.append("|-|-|-|:-:|\n")
+		if cakeday is not None:
+			bldr.append("||")
+			bldr.append("Happy cakeday!")
+			bldr.append("|")
+			bldr.append("Yearly on ")
+			bldr.append(utils.render_time(cakeday.date_time, "%m-%d %H:%M:%S %Z"))
+			bldr.append("|")
+			bldr.append("[Remove](")
+			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
+			bldr.append(")")
+			bldr.append("|\n")
+
 		for reminder in reminders:
 			bldr.append("|")
 			bldr.append(reminder.source)
@@ -85,7 +99,16 @@ def process_remove_reminder(message, database):
 
 	ids = re.findall(r'remove!\s(\d+)', message.body, flags=re.IGNORECASE)
 	if len(ids) == 0:
-		bldr.append("I couldn't find a reminder id to remove.")
+		cakeday_string = re.findall(r'remove!\s(cakeday)', message.body, flags=re.IGNORECASE)
+		if len(cakeday_string):
+			cakeday = database.get_cakeday(message.author.name)
+			if cakeday is None:
+				bldr.append("You don't have a cakeday reminder set.")
+			else:
+				database.delete_cakeday(cakeday)
+				bldr.append("Cakeday reminder deleted.")
+		else:
+			bldr.append("I couldn't find a reminder id to remove.")
 	else:
 		reminder = database.get_reminder(ids[0])
 		if reminder is None or reminder.user != message.author.name:
@@ -116,6 +139,11 @@ def process_remove_all_reminders(message, database):
 		bldr.append("Deleted **")
 		bldr.append(str(reminders_deleted))
 		bldr.append("** reminders.\n\n")
+
+	cakeday = database.get_cakeday(message.author.name)
+	if cakeday is not None:
+		database.delete_cakeday(cakeday)
+		bldr.append("Deleted cakeday reminder.\n\n")
 
 	bldr.extend(current_reminders)
 
@@ -156,6 +184,21 @@ def process_delete_comment(message, reddit, database):
 	return bldr
 
 
+def process_cakeday_message(message, reddit, database):
+	log.info("Processing cakeday")
+
+	account_created = utils.datetime_from_timestamp(message.author.created_utc)
+	next_anniversary = utils.add_years(account_created, utils.datetime_now().year - account_created.year)
+	log.debug(
+		f"u/{message.author.name} created {utils.get_datetime_string(account_created)}, "
+		f"anniversary {utils.get_datetime_string(next_anniversary)}")
+
+	cakeday = Cakeday(message.author.name, next_anniversary)
+	database.add_cakeday(cakeday)
+
+	return cakeday.render_confirmation()
+
+
 def process_message(message, reddit, database):
 	log.info(f"Message u/{message.author.name} : {message.id}")
 	body = message.body.lower()
@@ -171,6 +214,8 @@ def process_message(message, reddit, database):
 		bldr = process_remove_all_reminders(message, database)
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
+	elif "cakeday!" in body:
+		bldr = process_cakeday_message(message, reddit, database)
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]

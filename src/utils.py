@@ -53,10 +53,10 @@ def parse_time(time_string, base_time=datetime.utcnow()):
 	return date_time
 
 
-def render_time(date_time):
+def render_time(date_time, format_string="%Y-%m-%d %H:%M:%S %Z"):
 	bldr = str_bldr()
 	bldr.append("[**")
-	bldr.append(date_time.strftime('%Y-%m-%d %H:%M:%S %Z'))
+	bldr.append(date_time.strftime(format_string))
 	bldr.append("**](http://www.wolframalpha.com/input/?i=")
 	bldr.append(date_time.strftime('%Y-%m-%d %H:%M:%S %Z').replace(" ", "%20"))
 	bldr.append(" To Local Time".replace(" ", "%20"))
@@ -90,6 +90,13 @@ def time_offset(date_time, hours=0, minutes=0, seconds=0):
 	return date_time < datetime_now() - timedelta(hours=hours, minutes=minutes, seconds=seconds)
 
 
+def add_years(date_time, years):
+	try:
+		return date_time.replace(year=date_time.year + years)
+	except ValueError:
+		return date_time + (datetime(date_time.year + years, 3, 1) - datetime(date_time.year, 3, 1))
+
+
 def datetime_now():
 	return datetime_force_utc(datetime.utcnow().replace(microsecond=0))
 
@@ -98,12 +105,12 @@ def datetime_from_timestamp(timestamp):
 	return datetime_force_utc(datetime.utcfromtimestamp(timestamp))
 
 
-def get_datetime_string(date_time, convert_utc=True):
+def get_datetime_string(date_time, convert_utc=True, format_string="%Y-%m-%d %H:%M:%S"):
 	if date_time is None:
 		return ""
 	if convert_utc:
 		date_time = datetime_as_utc(date_time)
-	return date_time.strftime("%Y-%m-%d %H:%M:%S")
+	return date_time.strftime(format_string)
 
 
 def parse_datetime_string(date_time_string, force_utc=True):
