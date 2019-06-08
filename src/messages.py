@@ -119,7 +119,9 @@ def process_remove_reminder(message, database):
 			else:
 				bldr.append("Something went wrong, reminder not deleted.")
 
-	bldr.append(" ")
+	bldr.append("\n\n")
+	bldr.append("*****")
+	bldr.append("\n\n")
 
 	bldr.extend(get_reminders_string(message.author.name, database))
 
@@ -144,6 +146,10 @@ def process_remove_all_reminders(message, database):
 	if cakeday is not None:
 		database.delete_cakeday(cakeday)
 		bldr.append("Deleted cakeday reminder.\n\n")
+
+	bldr.append("\n\n")
+	bldr.append("*****")
+	bldr.append("\n\n")
 
 	bldr.extend(current_reminders)
 
