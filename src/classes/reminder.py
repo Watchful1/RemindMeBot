@@ -17,7 +17,7 @@ class Reminder:
 		target_date=None,
 		db_id=None,
 		time_string=None,
-		count_duplicates=1,
+		count_duplicates=0,
 		thread_id=None
 	):
 		self.source = source
@@ -37,7 +37,7 @@ class Reminder:
 
 			if self.requested_date is not None and self.target_date < self.requested_date:
 				self.result_message = f"This time is in the past: {time_string}"
-				log.warning(self.result_message)
+				log.info(self.result_message)
 				self.valid = False
 		else:
 			self.target_date = None
@@ -48,7 +48,7 @@ class Reminder:
 			else:
 				self.result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
 			log.info(self.result_message)
-			self.target_date = utils.parse_time("1 day")
+			self.target_date = utils.parse_time("1 day", requested_date)
 
 		self.db_id = db_id
 
@@ -86,7 +86,7 @@ class Reminder:
 		bldr.append("\n\n")
 
 		bldr.append("[**")
-		if self.count_duplicates > 1:
+		if self.count_duplicates > 0:
 			bldr.append(str(self.count_duplicates))
 			bldr.append(" OTHERS CLICKED")
 		else:

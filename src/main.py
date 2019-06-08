@@ -36,6 +36,7 @@ class RemindMeBot:
 		self.debug_db = False
 		self.clone_db = False
 		self.no_post = False
+		self.no_backup = False
 		self.user = None
 		if len(sys.argv) >= 2:
 			self.user = sys.argv[1]
@@ -48,6 +49,8 @@ class RemindMeBot:
 					self.clone_db = True
 				elif arg == 'no_post':
 					self.no_post = True
+				elif arg == 'no_backup':
+					self.no_backup = True
 				elif arg == 'debug':
 					discord_logging.set_level(logging.DEBUG)
 		else:
@@ -69,6 +72,9 @@ class RemindMeBot:
 	def process_comments(self):
 		comments.process_comments(self.reddit, self.database)
 
+	def update_comments(self):
+		comments.update_comments(self.reddit, self.database)
+
 	def send_notifications(self):
 		notifications.send_reminders(self.reddit, self.database)
 		notifications.send_cakeday_notifications(self.reddit, self.database)
@@ -81,6 +87,7 @@ if __name__ == "__main__":
 	remind_me_bot = RemindMeBot()
 
 	last_backup = None
+	last_comments = None
 	while True:
 		startTime = time.perf_counter()
 		log.debug("Starting run")
@@ -103,7 +110,15 @@ if __name__ == "__main__":
 			log.warning(f"Error sending notifications: {err}")
 			log.warning(traceback.format_exc())
 
-		if utils.time_offset(last_backup, hours=24):
+		if utils.time_offset(last_comments, minutes=30):
+			try:
+				remind_me_bot.update_comments()
+				last_comments = utils.datetime_now()
+			except Exception as err:
+				log.warning(f"Error updating comments: {err}")
+				log.warning(traceback.format_exc())
+
+		if not remind_me_bot.no_backup and utils.time_offset(last_backup, hours=24):
 			try:
 				remind_me_bot.backup_database()
 				last_backup = utils.datetime_now()

@@ -193,3 +193,12 @@ def bldr_length(bldr):
 	for item in bldr:
 		length += len(item)
 	return length
+
+
+def requests_available(requests_pending):
+	if requests_pending == 0:
+		return 0
+	elif requests_pending < 200:
+		return 30
+	else:
+		return min(1000, int(requests_pending / 5))

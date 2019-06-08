@@ -111,3 +111,26 @@ def process_comments(reddit, database):
 
 		reddit.mark_keyword_comment_processed(comment['id'])
 		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
+
+
+def update_comments(reddit, database):
+	count_incorrect = database.get_pending_incorrect_comments()
+
+	incorrect_items = database.get_incorrect_comments(utils.requests_available(count_incorrect))
+	if len(incorrect_items):
+		i = 0
+		for incorrect in incorrect_items:
+			i += 1
+			db_comment = incorrect[0]
+			reminder = incorrect[1]
+			log.info(
+				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
+				f"{db_comment.comment_id} : {db_comment.current_count}/{reminder.count_duplicates}")
+
+			bldr = utils.get_footer(reminder.render_comment_confirmation())
+			reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
+			db_comment.current_count = reminder.count_duplicates
+			database.save_comment(db_comment)
+
+	else:
+		log.debug("No incorrect comments")

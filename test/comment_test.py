@@ -4,6 +4,7 @@ import comments
 import utils
 import reddit_test
 import static
+from classes.reminder import Reminder
 
 
 def test_process_comment(database, reddit):
@@ -68,3 +69,90 @@ def test_comment_in_thread(database, reddit):
 	assert len(comment_2.children) == 0
 	assert len(reddit.sent_messages) == 1
 	assert reddit.sent_messages[0].author.name == static.ACCOUNT_NAME
+
+
+def test_update_incorrect_comments(database, reddit):
+	comment_id1 = utils.random_id()
+	thread_id1 = utils.random_id()
+	comment1 = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id1,
+		link_id="t3_"+thread_id1,
+		permalink=f"/r/test/{thread_id1}/_/{comment_id1}/"
+	)
+	reddit.add_comment(comment1)
+	comments.process_comment(comment1.get_pushshift_dict(), reddit, database)
+
+	comment_id2 = utils.random_id()
+	thread_id2 = utils.random_id()
+	comment2 = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id2,
+		link_id="t3_"+thread_id2,
+		permalink=f"/r/test/{thread_id2}/_/{comment_id2}/"
+	)
+	reddit.add_comment(comment2)
+	comments.process_comment(comment2.get_pushshift_dict(), reddit, database)
+
+	comment_id3 = utils.random_id()
+	thread_id3 = utils.random_id()
+	comment3 = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id3,
+		link_id="t3_"+thread_id3,
+		permalink=f"/r/test/{thread_id3}/_/{comment_id3}/"
+	)
+	reddit.add_comment(comment3)
+	comments.process_comment(comment3.get_pushshift_dict(), reddit, database)
+
+	reminders = [
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message=utils.reddit_link(comment1.permalink),
+			user="Watchful1",
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-05 05:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message=utils.reddit_link(comment1.permalink),
+			user="Watchful1",
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-06 05:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message=utils.reddit_link(comment1.permalink),
+			user="Watchful1",
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-07 05:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message=utils.reddit_link(comment2.permalink),
+			user="Watchful1",
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-08 05:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message=utils.reddit_link(comment2.permalink),
+			user="Watchful1",
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-09 05:00:00")
+		)
+	]
+	for reminder in reminders:
+		database.save_reminder(reminder)
+
+	comments.update_comments(reddit, database)
+
+	assert "3 OTHERS CLICKED THIS LINK" in reddit.get_comment(comment_id1).get_first_child().body
+	assert "2 OTHERS CLICKED THIS LINK" in reddit.get_comment(comment_id2).get_first_child().body
+	assert "CLICK THIS LINK" in reddit.get_comment(comment_id3).get_first_child().body

@@ -9,14 +9,8 @@ log = discord_logging.get_logger()
 def send_reminders(reddit, database):
 	timestamp = utils.datetime_now()
 	count_reminders = database.get_count_pending_reminders(timestamp)
-	if count_reminders == 0:
-		count_to_send = 0
-	elif count_reminders < 200:
-		count_to_send = 30
-	else:
-		count_to_send = min(1000, int(count_reminders / 5))
 
-	reminders = database.get_pending_reminders(count_to_send, timestamp)
+	reminders = database.get_pending_reminders(utils.requests_available(count_reminders), timestamp)
 	if len(reminders) > 0:
 		i = 0
 		for reminder in reminders:
@@ -36,14 +30,8 @@ def send_reminders(reddit, database):
 def send_cakeday_notifications(reddit, database):
 	timestamp = utils.datetime_now()
 	count_cakedays = database.get_count_pending_cakedays(timestamp)
-	if count_cakedays == 0:
-		count_to_send = 0
-	elif count_cakedays < 200:
-		count_to_send = 30
-	else:
-		count_to_send = min(1000, int(count_cakedays / 5))
 
-	cakedays = database.get_pending_cakedays(count_to_send, timestamp)
+	cakedays = database.get_pending_cakedays(utils.requests_available(count_cakedays), timestamp)
 	if len(cakedays) > 0:
 		i = 0
 		for cakeday in cakedays:

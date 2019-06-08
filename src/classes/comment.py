@@ -6,7 +6,7 @@ class DbComment:
 		reminder_id,
 		user,
 		source,
-		current_count=1,
+		current_count=0,
 		db_id=None
 	):
 		self.thread_id = thread_id

@@ -381,6 +381,95 @@ class Database:
 			log.debug("Comment not deleted")
 			return False
 
+	def get_pending_incorrect_comments(self):
+		log.debug("Fetching count of incorrect comments")
+		c = self.dbConn.cursor()
+		c.execute('''
+			SELECT count(*)
+			FROM comments cm
+			LEFT JOIN
+				(
+					SELECT rm1.ID,
+						   count(*) as NewCount
+					FROM reminders rm1
+						INNER JOIN reminders rm2
+							ON rm1.Source = rm2.Message
+					GROUP BY rm1.ID
+				) AS rm
+					ON cm.ReminderId = rm.ID
+			WHERE rm.NewCount != cm.CurrentCount
+			''')
+
+		result = c.fetchone()
+		if result is None or len(result) == 0:
+			log.debug("No incorrect comments")
+			return 0
+
+		log.debug(f"Incorrect comments: {result[0]}")
+		return result[0]
+
+	def get_incorrect_comments(self, count):
+		log.debug(f"Fetching incorrect comments")
+		c = self.dbConn.cursor()
+		results = []
+		for row in c.execute('''
+			SELECT cm.ID,
+				cm.ThreadID,
+				cm.CommentID,
+				cm.ReminderId,
+				cm.CurrentCount,
+				cm.User,
+				cm.Source,
+				rm.ID,
+				rm.Source,
+				rm.RequestedDate,
+				rm.TargetDate,
+				rm.Message,
+				rm.User,
+				rm.NewCount
+			FROM comments cm
+			LEFT JOIN
+				(
+					SELECT rm1.ID,
+						rm1.Source,
+						rm1.RequestedDate,
+						rm1.TargetDate,
+						rm1.Message,
+						rm1.User,
+						count(*) as NewCount
+					FROM reminders rm1
+						INNER JOIN reminders rm2
+							ON rm1.Source = rm2.Message
+					GROUP BY rm1.ID
+				) AS rm
+					ON cm.ReminderId = rm.ID
+			WHERE rm.NewCount != cm.CurrentCount
+			LIMIT ?
+			''', (count,)):
+			db_comment = DbComment(
+				thread_id=row[1],
+				comment_id=row[2],
+				reminder_id=row[3],
+				user=row[5],
+				source=row[6],
+				current_count=row[4],
+				db_id=row[0]
+			)
+			reminder = Reminder(
+				source=row[8],
+				target_date=utils.parse_datetime_string(row[10]),
+				message=row[11],
+				user=row[12],
+				db_id=row[7],
+				requested_date=utils.parse_datetime_string(row[9]),
+				count_duplicates=row[13],
+				thread_id=row[1]
+			)
+			results.append((db_comment, reminder))
+
+		log.debug(f"Found incorrect comments: {len(results)}")
+		return results
+
 	def add_cakeday(self, cakeday):
 		if cakeday.db_id is not None:
 			log.warning(f"This cakeday already exists: {cakeday.db_id}")

@@ -103,6 +103,12 @@ class Reddit:
 		else:
 			return RedditObject(id=comment_id)
 
+	def edit_comment(self, body, comment=None, comment_id=None):
+		if comment is None:
+			comment = self.get_comment(comment_id)
+
+		comment.body = body
+
 	def delete_comment(self, comment):
 		if comment.id in self.all_comments:
 			del self.all_comments[comment.id]
