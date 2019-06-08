@@ -7,7 +7,7 @@
   -handle replies and mentions
 -search for trigger
 -send reminders
-update comments
+-update comments
 -database backups
     -close database in handler
 -cakeday
