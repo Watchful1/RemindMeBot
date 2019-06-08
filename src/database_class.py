@@ -108,7 +108,7 @@ class Database:
 			os.makedirs(static.BACKUP_FOLDER_NAME)
 		copyfile(
 			static.DATABASE_NAME,
-			static.BACKUP_FOLDER_NAME + "/" + datetime.utcnow().strftime("%Y-%m-%d_%H-%M") + ".db")
+			static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
 
 		self.init(self.debug, False, False)
 

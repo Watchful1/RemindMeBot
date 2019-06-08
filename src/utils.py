@@ -9,6 +9,7 @@ import static
 import random
 
 log = discord_logging.get_logger()
+debug_time = None
 
 
 def random_id():
@@ -44,7 +45,7 @@ def find_reminder_time(body):
 		return None
 
 
-def parse_time(time_string, base_time=datetime.utcnow()):
+def parse_time(time_string, base_time):
 	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time})
 	if date_time is None:
 		return None
@@ -98,7 +99,10 @@ def add_years(date_time, years):
 
 
 def datetime_now():
-	return datetime_force_utc(datetime.utcnow().replace(microsecond=0))
+	if debug_time is None:
+		return datetime_force_utc(datetime.utcnow().replace(microsecond=0))
+	else:
+		return debug_time
 
 
 def datetime_from_timestamp(timestamp):

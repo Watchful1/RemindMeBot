@@ -11,8 +11,8 @@ update comments
 -database backups
     -close database in handler
 cakeday
-    add cakeday
-    remove cakeday
+    -add cakeday
+    -remove cakeday
     send cakeday
 delete downvoted comments
 -migration script

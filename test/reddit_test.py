@@ -8,8 +8,9 @@ log = discord_logging.get_logger()
 
 
 class User:
-	def __init__(self, name):
+	def __init__(self, name, created_utc=None):
 		self.name = name
+		self.created_utc = created_utc
 
 
 class RedditObject:
@@ -24,7 +25,7 @@ class RedditObject:
 		prefix="t4"
 	):
 		self.body = body
-		if author is None:
+		if isinstance(author, User):
 			self.author = author
 		else:
 			self.author = User(author)

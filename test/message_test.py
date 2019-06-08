@@ -6,6 +6,7 @@ import reddit_test
 import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
+from classes.cakeday import Cakeday
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -41,6 +42,49 @@ def test_add_reminder(database, reddit):
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].db_id is not None
+
+
+def test_add_cakeday(database, reddit):
+	username = "Watchful1"
+	created = utils.parse_datetime_string("2015-05-05 15:25:17")
+	user = reddit_test.User(username, created.timestamp())
+	message = reddit_test.RedditObject(
+		body="Cakeday!",
+		author=user
+	)
+
+	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
+	messages.process_message(message, reddit, database)
+	result = message.get_first_child().body
+
+	assert "to remind you of your cakeday" in result
+
+	cakeday = database.get_cakeday(username)
+	assert cakeday is not None
+	assert cakeday.user == username
+	assert cakeday.date_time == utils.parse_datetime_string("2019-05-05 15:25:17")
+	assert cakeday.db_id is not None
+
+
+def test_add_cakeday_exists(database, reddit):
+	username = "Watchful1"
+	created = utils.parse_datetime_string("2015-05-05 15:25:17")
+	user = reddit_test.User(username, created.timestamp())
+	message = reddit_test.RedditObject(
+		body="Cakeday!",
+		author=user
+	)
+	messages.process_message(message, reddit, database)
+
+	message2 = reddit_test.RedditObject(
+		body="Cakeday!",
+		author=user
+	)
+	messages.process_message(message2, reddit, database)
+
+	result = message2.get_first_child().body
+
+	assert "It looks like you already have a cakeday reminder set." in result
 
 
 def test_add_reminder_no_message(database, reddit):
@@ -96,6 +140,11 @@ def test_get_reminders(database, reddit):
 	)
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
+	cakeday = Cakeday(
+		user="Watchful1",
+		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+	)
+	database.add_cakeday(cakeday)
 
 	message = reddit_test.RedditObject(
 		body="MyReminders!",
@@ -105,6 +154,8 @@ def test_get_reminders(database, reddit):
 	result = message.get_first_child().body
 
 	assert "Click here to delete all your reminders" in result
+
+	assert "Happy cakeday!" in result
 
 	assert reminder1.source in result
 	assert reminder1.message in result
@@ -166,6 +217,35 @@ def test_remove_reminder(database, reddit):
 	assert len(database.get_user_reminders("Watchful2")) == 1
 
 
+def test_remove_cakeday(database, reddit):
+	cakeday1 = Cakeday(
+		user="Watchful1",
+		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+	)
+	cakeday2 = Cakeday(
+		user="Watchful2",
+		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+	)
+	database.add_cakeday(cakeday1)
+	database.add_cakeday(cakeday2)
+
+	message = reddit_test.RedditObject(
+		body=f"Remove! cakeday",
+		author="Watchful3"
+	)
+	messages.process_message(message, reddit, database)
+	assert "You don't have a cakeday reminder set." in message.get_first_child().body
+
+	message = reddit_test.RedditObject(
+		body=f"Remove! cakeday",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert "Cakeday reminder deleted." in message.get_first_child().body
+	assert database.get_cakeday("Watchful1") is None
+	assert database.get_cakeday("Watchful2") is not None
+
+
 def test_remove_all_reminders(database, reddit):
 	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
@@ -198,13 +278,20 @@ def test_remove_all_reminders(database, reddit):
 	database.save_reminder(reminder1)
 	database.save_reminder(reminder2)
 	database.save_reminder(reminder3)
+	cakeday = Cakeday(
+		user="Watchful1",
+		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+	)
+	database.add_cakeday(cakeday)
 
 	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)
-	assert "Deleted **2** reminders." in message.get_first_child().body
+	body = message.get_first_child().body
+	assert "Deleted **2** reminders." in body
+	assert "Deleted cakeday reminder." in body
 
 	assert len(database.get_user_reminders("Watchful1")) == 0
 	assert len(database.get_user_reminders("Watchful2")) == 1

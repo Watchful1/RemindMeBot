@@ -28,7 +28,7 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove All", "RemoveAll!"))
 			bldr.append(")\n\n")
 
-		log.debug(f"Building list with {len(reminders)} reminders")
+		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
 		bldr.append("|Source|Message|Date|Remove|\n")
 		bldr.append("|-|-|-|:-:|\n")
 		if cakeday is not None:
@@ -184,8 +184,12 @@ def process_delete_comment(message, reddit, database):
 	return bldr
 
 
-def process_cakeday_message(message, reddit, database):
+def process_cakeday_message(message, database):
 	log.info("Processing cakeday")
+
+	if database.get_cakeday(message.author.name) is not None:
+		log.info("Cakeday already exists")
+		return ["It looks like you already have a cakeday reminder set."]
 
 	account_created = utils.datetime_from_timestamp(message.author.created_utc)
 	next_anniversary = utils.add_years(account_created, utils.datetime_now().year - account_created.year)
@@ -215,7 +219,7 @@ def process_message(message, reddit, database):
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
 	elif "cakeday!" in body:
-		bldr = process_cakeday_message(message, reddit, database)
+		bldr = process_cakeday_message(message, database)
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]

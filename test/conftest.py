@@ -6,14 +6,8 @@ log = discord_logging.init_logging()
 
 sys.path.append("src")
 
-import main
 import database_class
 import reddit_test
-
-
-@pytest.fixture
-def remind_me_bot():
-	return main.RemindMeBot()
 
 
 @pytest.fixture
