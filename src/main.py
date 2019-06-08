@@ -71,6 +71,7 @@ class RemindMeBot:
 
 	def send_notifications(self):
 		notifications.send_reminders(self.reddit, self.database)
+		notifications.send_cakeday_notifications(self.reddit, self.database)
 
 	def backup_database(self):
 		self.database.backup()

@@ -31,3 +31,30 @@ def send_reminders(reddit, database):
 
 	else:
 		log.debug("No reminders to send")
+
+
+def send_cakeday_notifications(reddit, database):
+	timestamp = utils.datetime_now()
+	count_cakedays = database.get_count_pending_cakedays(timestamp)
+	if count_cakedays == 0:
+		count_to_send = 0
+	elif count_cakedays < 200:
+		count_to_send = 30
+	else:
+		count_to_send = min(1000, int(count_cakedays / 5))
+
+	cakedays = database.get_pending_cakedays(count_to_send, timestamp)
+	if len(cakedays) > 0:
+		i = 0
+		for cakeday in cakedays:
+			i += 1
+			log.info(
+				f"{i}/{len(cakedays)}/{count_cakedays}: Sending cakeday notification to u/{cakeday.user} : "
+				f"{cakeday.db_id} : {utils.get_datetime_string(cakeday.date_time)}")
+			bldr = utils.get_footer(cakeday.render_notification())
+			reddit.send_message(cakeday.user, "RemindMeBot Here! Happy cakeday!", ''.join(bldr))
+
+			database.bump_cakeday(cakeday)
+
+	else:
+		log.debug("No cakedays to send")

@@ -10,10 +10,10 @@
 update comments
 -database backups
     -close database in handler
-cakeday
+-cakeday
     -add cakeday
     -remove cakeday
-    send cakeday
+    -send cakeday
 delete downvoted comments
 -migration script
   -remove quotes
@@ -32,3 +32,4 @@ keep track of subreddits where the bot is banned
 dynamic timing for logging handler
 delete reminders if the related user comes back as deleted
 track events in database
+apologize for being late in reminders
