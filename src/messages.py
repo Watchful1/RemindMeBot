@@ -254,3 +254,4 @@ def process_messages(reddit, database):
 			log.warning(f"Error marking message read: {message.id} : {message.author.name}")
 			log.warning(traceback.format_exc())
 
+	return len(messages)

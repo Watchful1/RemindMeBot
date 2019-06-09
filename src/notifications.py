@@ -26,6 +26,8 @@ def send_reminders(reddit, database):
 	else:
 		log.debug("No reminders to send")
 
+	len(reminders)
+
 
 def send_cakeday_notifications(reddit, database):
 	timestamp = utils.datetime_now()
@@ -46,3 +48,5 @@ def send_cakeday_notifications(reddit, database):
 
 	else:
 		log.debug("No cakedays to send")
+
+	len(cakedays)

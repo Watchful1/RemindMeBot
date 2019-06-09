@@ -65,24 +65,30 @@ if __name__ == "__main__":
 		startTime = time.perf_counter()
 		log.debug("Starting run")
 
+		actions = 0
+		errors = 0
+
 		try:
-			messages.process_messages(reddit, database)
+			actions += messages.process_messages(reddit, database)
 		except Exception as err:
 			log.warning(f"Error processing messages: {err}")
 			log.warning(traceback.format_exc())
+			errors += 1
 
 		try:
-			comments.process_comments(reddit, database)
+			actions += comments.process_comments(reddit, database)
 		except Exception as err:
 			log.warning(f"Error processing comments: {err}")
 			log.warning(traceback.format_exc())
+			errors += 1
 
 		try:
-			notifications.send_reminders(reddit, database)
-			notifications.send_cakeday_notifications(reddit, database)
+			actions += notifications.send_reminders(reddit, database)
+			actions += notifications.send_cakeday_notifications(reddit, database)
 		except Exception as err:
 			log.warning(f"Error sending notifications: {err}")
 			log.warning(traceback.format_exc())
+			errors += 1
 
 		if utils.time_offset(last_comments, minutes=30):
 			try:
@@ -91,6 +97,7 @@ if __name__ == "__main__":
 			except Exception as err:
 				log.warning(f"Error updating comments: {err}")
 				log.warning(traceback.format_exc())
+				errors += 1
 
 		if not args.no_backup and utils.time_offset(last_backup, hours=24):
 			try:
@@ -99,9 +106,14 @@ if __name__ == "__main__":
 			except Exception as err:
 				log.warning(f"Error backing up database: {err}")
 				log.warning(traceback.format_exc())
+				errors += 1
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 
 		if args.once:
 			break
-		time.sleep(static.LOOP_TIME)
+
+		sleep_time = max(30 - actions, 0) + (30 * errors)
+		log.debug(f"Sleeping {sleep_time}")
+
+		time.sleep(sleep_time)

@@ -112,6 +112,8 @@ def process_comments(reddit, database):
 		reddit.mark_keyword_comment_processed(comment['id'])
 		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
 
+	return len(comments)
+
 
 def update_comments(reddit, database):
 	count_incorrect = database.get_pending_incorrect_comments()

@@ -24,7 +24,8 @@ class Database:
 				RequestedDate TIMESTAMP NOT NULL,
 				TargetDate TIMESTAMP NOT NULL,
 				Message VARCHAR(500) NULL,
-				User VARCHAR(80) NOT NULL
+				User VARCHAR(80) NOT NULL,
+				Defaulted BOOLEAN NOT NULL
 			)
 		''',
 		'comments': '''
@@ -126,7 +127,8 @@ class Database:
 						RequestedDate = ?,
 						TargetDate = ?,
 						Message = ?,
-						User = ?
+						User = ?,
+						Defaulted = ?
 					WHERE ID = ?
 				''', (
 					reminder.source,
@@ -134,6 +136,7 @@ class Database:
 					utils.get_datetime_string(reminder.target_date),
 					reminder.message,
 					reminder.user,
+					reminder.defaulted,
 					reminder.db_id))
 			except sqlite3.IntegrityError as err:
 				log.warning(f"Failed to update reminder: {err}")
@@ -143,14 +146,15 @@ class Database:
 			try:
 				c.execute('''
 					INSERT INTO reminders
-					(Source, RequestedDate, TargetDate, Message, User)
-					VALUES (?, ?, ?, ?, ?)
+					(Source, RequestedDate, TargetDate, Message, User, Defaulted)
+					VALUES (?, ?, ?, ?, ?, ?)
 				''', (
 					reminder.source,
 					utils.get_datetime_string(reminder.requested_date),
 					utils.get_datetime_string(reminder.target_date),
 					reminder.message,
-					reminder.user))
+					reminder.user,
+					reminder.defaulted))
 			except sqlite3.IntegrityError as err:
 				log.warning(f"Failed to save reminder: {err}")
 				return False
@@ -185,7 +189,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
 			FROM reminders
 			WHERE TargetDate < ?
 			ORDER BY TargetDate ASC
@@ -197,7 +201,8 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2])
+				requested_date=utils.parse_datetime_string(row[2]),
+				defaulted=row[6] == 1
 			)
 			results.append(reminder)
 
@@ -209,7 +214,7 @@ class Database:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
 			FROM reminders
 			WHERE User = ?
 			ORDER BY TargetDate ASC
@@ -220,7 +225,8 @@ class Database:
 				message=row[4],
 				user=row[5],
 				db_id=row[0],
-				requested_date=utils.parse_datetime_string(row[2])
+				requested_date=utils.parse_datetime_string(row[2]),
+				defaulted=row[6] == 1
 			)
 			results.append(reminder)
 
@@ -231,7 +237,7 @@ class Database:
 		log.debug(f"Fetching reminder by id: {reminder_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User
+			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
 			FROM reminders
 			WHERE ID = ?
 			''', (reminder_id,))
@@ -247,7 +253,8 @@ class Database:
 			message=result[4],
 			user=result[5],
 			db_id=result[0],
-			requested_date=utils.parse_datetime_string(result[2])
+			requested_date=utils.parse_datetime_string(result[2]),
+			defaulted=result[6] == 1
 		)
 
 		return reminder
@@ -426,6 +433,7 @@ class Database:
 				rm.TargetDate,
 				rm.Message,
 				rm.User,
+				rm.Defaulted,
 				rm.NewCount
 			FROM comments cm
 			LEFT JOIN
@@ -462,8 +470,9 @@ class Database:
 				user=row[12],
 				db_id=row[7],
 				requested_date=utils.parse_datetime_string(row[9]),
-				count_duplicates=row[13],
-				thread_id=row[1]
+				count_duplicates=row[14],
+				thread_id=row[1],
+				defaulted=row[13] == 1
 			)
 			results.append((db_comment, reminder))
 

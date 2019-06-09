@@ -18,7 +18,8 @@ class Reminder:
 		db_id=None,
 		time_string=None,
 		count_duplicates=0,
-		thread_id=None
+		thread_id=None,
+		defaulted=False
 	):
 		self.source = source
 		self.message = message
@@ -29,6 +30,7 @@ class Reminder:
 
 		self.result_message = None
 		self.valid = True
+		self.defaulted = defaulted
 
 		if target_date is not None:
 			self.target_date = target_date
@@ -48,6 +50,7 @@ class Reminder:
 			else:
 				self.result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
 			log.info(self.result_message)
+			self.defaulted = True
 			self.target_date = utils.parse_time("1 day", requested_date)
 
 		self.db_id = db_id
@@ -77,6 +80,10 @@ class Reminder:
 
 	def render_comment_confirmation(self):
 		bldr = utils.str_bldr()
+
+		if self.defaulted:
+			bldr.append("**Defaulted to one day.**\n\n")
+
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date))
 		bldr.append(" to remind you of [**this link**](")

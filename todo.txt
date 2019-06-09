@@ -14,17 +14,17 @@
     -add cakeday
     -remove cakeday
     -send cakeday
-delete downvoted comments
 -migration script
   -remove quotes
   -handle default message
   -handle empty origin date
   -handle source of info page
 -discord logging
-dynamic looping
+-dynamic looping
 draft info post
     r/cakeday
     new date library
+    readme
 
 specify time zone
 relative dates in reminder list
@@ -33,3 +33,4 @@ dynamic timing for logging handler
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders
+recurring reminders
