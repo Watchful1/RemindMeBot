@@ -37,7 +37,7 @@ class Reminder:
 		elif time_string is not None:
 			self.target_date = utils.parse_time(time_string, requested_date)
 
-			if self.requested_date is not None and self.target_date < self.requested_date:
+			if self.target_date is not None and self.target_date < self.requested_date:
 				self.result_message = f"This time is in the past: {time_string}"
 				log.info(self.result_message)
 				self.valid = False
