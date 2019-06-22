@@ -444,6 +444,7 @@ class Database:
 						rm1.TargetDate,
 						rm1.Message,
 						rm1.User,
+						rm1.Defaulted,
 						count(*) as NewCount
 					FROM reminders rm1
 						INNER JOIN reminders rm2
