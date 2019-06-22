@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d39a82390b2074e08268688d1be3dbe1f0fd68cfa080b94c1a8380e4ee56d498"
+            "sha256": "60290958f54efb524a9d2913ce639532db2120766d013e54cac2efa009fecaf8"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -32,11 +32,17 @@
         },
         "dateparser": {
             "git": "https://github.com/Watchful1/dateparser.git",
-            "ref": "4802f2f8f25ed38eff2d88c71bdf3436690556bf"
+            "ref": "0c2d48234262b21b42c1dcedc9b77d5c4285b293"
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",
             "ref": "733c4a9fae662b5dd10c24976685e7fe664f68c4"
+        },
+        "future": {
+            "hashes": [
+                "sha256:67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
+            ],
+            "version": "==0.17.1"
         },
         "idna": {
             "hashes": [
@@ -45,13 +51,21 @@
             ],
             "version": "==2.8"
         },
-        "praw": {
+        "parsedatetime": {
             "hashes": [
-                "sha256:290bafad69f3a478f5fb64a8f8d8bfe2dab215af7e5fad7737f910e38fc6b97f",
-                "sha256:79767ebeae643ea3c99016d0611bd43976ed7dbde06d6c6f60564012f8523c5b"
+                "sha256:3d817c58fb9570d1eec1dd46fa9448cd644eeed4fb612684b02dfda3a79cb84b",
+                "sha256:9ee3529454bf35c40a77115f5a596771e59e1aee8c53306f346c461b8e913094"
             ],
             "index": "pypi",
-            "version": "==6.2.0"
+            "version": "==2.4"
+        },
+        "praw": {
+            "hashes": [
+                "sha256:bf004df19989756e9c5aac5cefdb7d8779760f1ec2f1e9b1d6a2195cc1099d96",
+                "sha256:cc2f5f46f9041b843f245b47097e8c2f63881a3e11a223c1b5eee5cd02fa9d87"
+            ],
+            "index": "pypi",
+            "version": "==6.3.1"
         },
         "prawcore": {
             "hashes": [
@@ -129,10 +143,10 @@
         },
         "importlib-metadata": {
             "hashes": [
-                "sha256:a9f185022cfa69e9ca5f7eabfd5a58b689894cb78a11e3c8c89398a8ccbb8e7f",
-                "sha256:df1403cd3aebeb2b1dcd3515ca062eecb5bd3ea7611f18cba81130c68707e879"
+                "sha256:6dfd58dfe281e8d240937776065dd3624ad5469c835248219bd16cf2e12dbeb7",
+                "sha256:cb6ee23b46173539939964df59d3d72c3e0c1b5d54b84f1d8a7e912fe43612db"
             ],
-            "version": "==0.17"
+            "version": "==0.18"
         },
         "more-itertools": {
             "hashes": [
@@ -172,11 +186,11 @@
         },
         "pytest": {
             "hashes": [
-                "sha256:8304c2f6466cf48f24631263d60320a1996668acfd659d8fa5e5e8f28129e1cd",
-                "sha256:b68d84c7c01073ddf2a918a7504ab73849d52483d9f1f15f3875487011d09f71"
+                "sha256:4a784f1d4f2ef198fe9b7aef793e9fa1a3b2f84e822d9b3a64a181293a572d45",
+                "sha256:926855726d8ae8371803f7b2e6ec0a69953d9c6311fa7c3b6c1b929ff92d27da"
             ],
             "index": "pypi",
-            "version": "==4.6.1"
+            "version": "==4.6.3"
         },
         "six": {
             "hashes": [

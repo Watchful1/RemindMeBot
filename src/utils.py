@@ -1,6 +1,7 @@
 import re
 import discord_logging
 import dateparser
+from dateparser.search import search_dates
 import pytz
 from datetime import datetime
 from datetime import timedelta
@@ -46,7 +47,16 @@ def find_reminder_time(body):
 
 
 def parse_time(time_string, base_time):
-	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time})
+	date_time = dateparser.parse(
+		time_string,
+		settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+	if date_time is None:
+		date_tuples = search_dates(
+			time_string,
+			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+		if len(date_tuples):
+			date_time = date_tuples[0][1]
+
 	if date_time is None:
 		return None
 	if date_time.tzinfo is None:
@@ -117,10 +127,10 @@ def get_datetime_string(date_time, convert_utc=True, format_string="%Y-%m-%d %H:
 	return date_time.strftime(format_string)
 
 
-def parse_datetime_string(date_time_string, force_utc=True):
+def parse_datetime_string(date_time_string, force_utc=True, format_string="%Y-%m-%d %H:%M:%S"):
 	if date_time_string is None or date_time_string == "None":
 		return None
-	date_time = datetime.strptime(date_time_string, "%Y-%m-%d %H:%M:%S")
+	date_time = datetime.strptime(date_time_string, format_string)
 	if force_utc:
 		date_time = datetime_force_utc(date_time)
 	return date_time

@@ -21,6 +21,9 @@
   -handle source of info page
 -discord logging
 -dynamic looping
+date parsing problems
+    numbers as words
+    search_dates
 draft info post
     r/cakeday
     new date library
