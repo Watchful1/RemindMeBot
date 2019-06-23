@@ -61,8 +61,8 @@ for row in old_c.execute('''
 
 		new_c.execute('''
 			INSERT INTO reminders
-			(Source, RequestedDate, TargetDate, Message, User)
-			VALUES (?, ?, ?, ?, ?)
+			(Source, RequestedDate, TargetDate, Message, User, Defaulted)
+			VALUES (?, ?, ?, ?, ?, 0)
 		''', (
 			reminder.source,
 			utils.get_datetime_string(reminder.requested_date),
