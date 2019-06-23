@@ -40,7 +40,7 @@ def find_reminder_message(body):
 def find_reminder_time(body):
 	regex_string = r'(?:{trigger}.? )(.*?)(?:\[|\n|\"|$)'.format(trigger=static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
-	if len(times) > 0:
+	if len(times) > 0 and times[0] != "":
 		return times[0]
 	else:
 		return None
