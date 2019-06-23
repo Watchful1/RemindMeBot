@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "60290958f54efb524a9d2913ce639532db2120766d013e54cac2efa009fecaf8"
+            "sha256": "e5a9f963d72c77e84fc65b2fe21d96842c0641d20cb0410a76f056f663a61816"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -18,10 +18,10 @@
     "default": {
         "certifi": {
             "hashes": [
-                "sha256:59b7658e26ca9c7339e00f8f4636cdfe59d34fa37b9b04f6f9e9926b3cece1a5",
-                "sha256:b26104d6835d1f5e49452a26eb2ff87fe7090b89dfcaee5ea2212697e1e1d7ae"
+                "sha256:046832c04d4e752f37383b628bc601a7ea7211496b4638f6514d0e5b9acc4939",
+                "sha256:945e3ba63a0b9f577b1395204e13c3a231f9bc0223888be653286534e5873695"
             ],
-            "version": "==2019.3.9"
+            "version": "==2019.6.16"
         },
         "chardet": {
             "hashes": [
@@ -32,7 +32,7 @@
         },
         "dateparser": {
             "git": "https://github.com/Watchful1/dateparser.git",
-            "ref": "0c2d48234262b21b42c1dcedc9b77d5c4285b293"
+            "ref": "48a48e29472d8667198b87ee7081d8b5545c4f27"
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",

@@ -2,6 +2,7 @@ import re
 import discord_logging
 import dateparser
 from dateparser.search import search_dates
+import parsedatetime
 import pytz
 from datetime import datetime
 from datetime import timedelta
@@ -11,6 +12,7 @@ import random
 
 log = discord_logging.get_logger()
 debug_time = None
+cal = parsedatetime.Calendar()
 
 
 def random_id():
@@ -47,15 +49,28 @@ def find_reminder_time(body):
 
 
 def parse_time(time_string, base_time):
-	date_time = dateparser.parse(
-		time_string,
-		settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
-	if date_time is None:
-		date_tuples = search_dates(
+	try:
+		date_time = dateparser.parse(
 			time_string,
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
-		if len(date_tuples):
-			date_time = date_tuples[0][1]
+	except Exception:
+		date_time = None
+	# if date_time is None:
+	# 	try:
+	# 		date_tuples = search_dates(
+	# 			time_string,
+	# 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+	# 		if date_tuples and len(date_tuples):
+	# 			date_time = date_tuples[0][1]
+	# 	except Exception:
+	# 		date_time = None
+	if date_time is None:
+		try:
+			date_time, result_code = cal.parseDT(time_string, base_time)
+			if result_code == 0:
+				date_time = None
+		except Exception:
+			date_time = None
 
 	if date_time is None:
 		return None
