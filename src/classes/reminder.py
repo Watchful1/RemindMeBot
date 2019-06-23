@@ -144,7 +144,7 @@ class Reminder:
 		bldr.append(utils.build_message_link(
 			static.ACCOUNT_NAME,
 			"Reminder",
-			f"[{self.source}]\n\n{static.TRIGGER}! "
+			f"[{self.message}]\n\n{static.TRIGGER}! "
 		))
 		bldr.append(") and set the time after the ")
 		bldr.append(static.TRIGGER)
