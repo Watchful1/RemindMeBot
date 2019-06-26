@@ -124,10 +124,12 @@ class Reddit:
 				return []
 			comments = json.json()['data']
 
+			self.consecutive_timeouts = 0
+
 		except requests.exceptions.ReadTimeout:
 			self.consecutive_timeouts += 1
-			if self.consecutive_timeouts >= 10:
-				log.warning(f"Ten consecutive timeouts for search term: {keyword}")
+			if self.consecutive_timeouts >= 5:
+				log.warning(f"Five consecutive timeouts for search term: {keyword}")
 				self.consecutive_timeouts = 0
 			return []
 
