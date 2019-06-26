@@ -2,6 +2,8 @@ Welcome to the newly redesigned RemindMeBot!
 
 u/RemindMeBotWrangler agreed to let me take over the bot since he didn't have time to keep it up anymore. I have fully rewritten the code to be more stable, faster and with a couple extra features.
 
+Right now, the new version of the bot is running under the test account u/Watchful1BotTest, using ReminderTest! instead of RemindMe!. I'm hoping to get a few people using it to iron out the bugs, and then I'll copy all the reminders over and switch it back to the main account. I'll keep running the old version under the main account until then.
+
 **Parsing library:** The old bot used the [parsedatetime](https://github.com/bear/parsedatetime) library, which is no longer updated. The new version uses [dateparser](https://github.com/scrapinghub/dateparser), which is much more comprehensive, supporting things like timezones, and even foreign languages.
 
 **Cakeday:** You can now message the bot "Cakeday!" and it will send you a notification each year on your cakeday, until you tell it to stop.
@@ -24,36 +26,6 @@ Only the RemindMe! command can be done in a comment, all others must be private 
 6. **Cakeday!** Set up a reminder each year on your cakeday.
 
 **Date Options**
-
-import utils
-current = utils.datetime_now()
-times = [
-    "One Year",
-    "3 Months",
-    "One Week",
-    "1 Day",
-    "33 Hours",
-    "10 Minutes",
-    "August 25th, 2014",
-    "25 Aug 2014",
-    "5pm August 25",
-    "Next Saturday",
-    "Tomorrow",
-    "Next Thursday at 4pm",
-    "Tonight",
-    "at 4pm",
-    "2 Hours After Noon",
-    "eoy",
-    "eom",
-    "eod",
-]
-
-print(f"If the time is: {current.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-print("Time Option | New Time")
-print("---------|----------")
-for time in times:
-	print(f"RemindMe! {time} | {utils.get_datetime_string(utils.parse_time(time, current), format_string='%Y-%m-%d %H:%M:%S %Z')}")
-
 
 If the time is: 2014-06-01 01:37:35 UTC
 
