@@ -6,6 +6,7 @@ import parsedatetime
 import pytz
 from datetime import datetime
 from datetime import timedelta
+import urllib.parse
 
 import static
 import random
@@ -152,13 +153,7 @@ def parse_datetime_string(date_time_string, force_utc=True, format_string="%Y-%m
 
 
 def html_encode(message):
-	encodings = {
-		' ': '%20',
-		'(': '%28',
-		')': '%29',
-		'\n': '%0A'
-	}
-	return re.sub(r'[ ()\n]', lambda a: encodings[a.group(0)] if a.group(0) in encodings else a.group(0), message)
+	return urllib.parse.quote(message, safe='')
 
 
 def build_message_link(recipient, subject, content=None):
