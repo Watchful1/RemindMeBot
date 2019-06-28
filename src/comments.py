@@ -73,7 +73,7 @@ def process_comment(comment, reddit, database):
 			result_id = reddit.reply_comment(reddit_comment, ''.join(bldr))
 			log.info(
 				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
-				"replied as comment: {result_id}")
+				f"replied as comment: {result_id}")
 
 			database.save_reminder(reminder)
 

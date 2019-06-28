@@ -210,6 +210,9 @@ def process_cakeday_message(message, database):
 
 
 def process_message(message, reddit, database):
+	if message.author is None:
+		log.info(f"Subreddit message, skipping : {message.id}")
+		return
 	log.info(f"Message u/{message.author.name} : {message.id}")
 	body = message.body.lower()
 
