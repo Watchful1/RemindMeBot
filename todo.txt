@@ -21,18 +21,18 @@
   -handle source of info page
 -discord logging
 -dynamic looping
-date parsing problems
-    numbers as words
-    search_dates
-draft info post
+-date parsing problems
+    -numbers as words
+    -search_dates
+-draft info post
     r/cakeday
-    new date library
+    -new date library
     readme
 
 specify time zone
 relative dates in reminder list
 keep track of subreddits where the bot is banned
-dynamic timing for logging handler
+-dynamic timing for logging handler
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders

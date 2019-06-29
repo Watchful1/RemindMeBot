@@ -110,6 +110,8 @@ if __name__ == "__main__":
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 
+		discord_logging.flush_discord()
+
 		if args.once:
 			break
 
