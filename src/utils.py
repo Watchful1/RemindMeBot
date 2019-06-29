@@ -144,7 +144,7 @@ def get_datetime_string(date_time, convert_utc=True, format_string="%Y-%m-%d %H:
 
 
 def parse_datetime_string(date_time_string, force_utc=True, format_string="%Y-%m-%d %H:%M:%S"):
-	if date_time_string is None or date_time_string == "None":
+	if date_time_string is None or date_time_string == "None" or date_time_string == "":
 		return None
 	date_time = datetime.strptime(date_time_string, format_string)
 	if force_utc:
