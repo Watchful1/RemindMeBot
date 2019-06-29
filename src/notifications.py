@@ -1,4 +1,5 @@
 import discord_logging
+import praw
 
 import utils
 
@@ -19,7 +20,13 @@ def send_reminders(reddit, database):
 				f"{i}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user} : "
 				f"{reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
 			bldr = utils.get_footer(reminder.render_notification())
-			reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
+			try:
+				reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
+			except praw.exceptions.APIException as err:
+				if err.error_type == 'INVALID_USER':
+					log.warning(f"User doesn't exist: u/{reminder.user}")
+				else:
+					raise
 
 			database.delete_reminder(reminder)
 
@@ -42,7 +49,13 @@ def send_cakeday_notifications(reddit, database):
 				f"{i}/{len(cakedays)}/{count_cakedays}: Sending cakeday notification to u/{cakeday.user} : "
 				f"{cakeday.db_id} : {utils.get_datetime_string(cakeday.date_time)}")
 			bldr = utils.get_footer(cakeday.render_notification())
-			reddit.send_message(cakeday.user, "RemindMeBot Here! Happy cakeday!", ''.join(bldr))
+			try:
+				reddit.send_message(cakeday.user, "RemindMeBot Here! Happy cakeday!", ''.join(bldr))
+			except praw.exceptions.APIException as err:
+				if err.error_type == 'INVALID_USER':
+					log.warning(f"User doesn't exist: u/{cakeday.user}")
+				else:
+					raise
 
 			database.bump_cakeday(cakeday)
 
