@@ -38,7 +38,8 @@ class Reminder:
 			self.target_date = utils.parse_time(time_string, requested_date)
 
 			if self.target_date is not None and self.target_date < self.requested_date:
-				self.result_message = f"This time is in the past: {time_string}"
+				self.result_message = f"This time, {time_string}, was interpreted as " \
+					f"{utils.get_datetime_string(target_date)}, which is in the past"
 				log.info(self.result_message)
 				self.valid = False
 		else:
