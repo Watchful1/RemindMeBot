@@ -10,8 +10,8 @@ import utils
 from database_class import Database
 
 
-old_database = "databaseLive.db"
-new_database = "database_new.db"
+old_database = "databaseOld.db"
+new_database = "database.db"
 
 log.info(f"Importing from {old_database} to {new_database}")
 
