@@ -1,32 +1,18 @@
 import discord_logging
 import praw
+import prawcore
 import configparser
 import traceback
 import requests
-import time
 from datetime import timedelta
 
 import static
 import utils
 from classes.queue import Queue
+from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
-
-
-# class DebugReddit(praw.Reddit):
-# 	def __init__(
-# 			self,
-# 			site_name=None,
-# 			requestor_class=None,
-# 			requestor_kwargs=None,
-# 			**config_settings):
-# 		super(DebugReddit, self).__init__(site_name, requestor_class, requestor_kwargs, **config_settings)
-# 		self.request_count = 0
-#
-# 	def request(self, method, path, params=None, data=None, files=None):
-# 		self.request_count += 1
-# 		return super(DebugReddit, self).request(method, path, params, data, files)
 
 
 class Reddit:
@@ -46,6 +32,25 @@ class Reddit:
 		self.processed_comments = Queue(100)
 		self.consecutive_timeouts = 0
 
+	def run_function(self, function, arguments):
+		output = None
+		result = None
+		try:
+			output = function(*arguments)
+		except praw.exceptions.APIException as err:
+			for return_type in ReturnType:
+				if err.error_type == return_type.name:
+					result = return_type
+					break
+			if result is None:
+				raise
+		except prawcore.exceptions.Forbidden:
+			result = ReturnType.FORBIDDEN
+
+		if result is None:
+			result = ReturnType.SUCCESS
+		return output, result
+
 	def is_message(self, item):
 		return isinstance(item, praw.models.Message)
 
@@ -60,8 +65,10 @@ class Reddit:
 		log.debug(f"Replying to message: {message.id}")
 		if self.no_post:
 			log.info(body)
+			return ReturnType.SUCCESS
 		else:
-			message.reply(body)
+			output, result = self.run_function(message.reply, [body])
+			return result
 
 	def mark_read(self, message):
 		log.debug(f"Marking message as read: {message.id}")
@@ -72,16 +79,23 @@ class Reddit:
 		log.debug(f"Replying to message: {comment.id}")
 		if self.no_post:
 			log.info(body)
-			return "xxxxxx"
+			return "xxxxxx", ReturnType.SUCCESS
 		else:
-			return comment.reply(body).id
+			output, result = self.run_function(comment.reply, [body])
+			if output is not None:
+				return output.id, result
+			else:
+				return None, result
 
 	def send_message(self, username, subject, body):
 		log.debug(f"Sending message to u/{username}")
 		if self.no_post:
 			log.info(body)
+			return ReturnType.SUCCESS
 		else:
-			self.reddit.redditor(username).message(subject, body)
+			redditor = self.reddit.redditor(username)
+			output, result = self.run_function(redditor.message, [subject, body])
+			return result
 
 	def get_comment(self, comment_id):
 		log.debug(f"Fetching comment by id: {comment_id}")
@@ -98,7 +112,8 @@ class Reddit:
 		if self.no_post:
 			log.info(body)
 		else:
-			comment.edit(body)
+			output, result = self.run_function(comment.edit, [body])
+			return result
 
 	def delete_comment(self, comment):
 		log.debug(f"Deleting comment: {comment.id}")

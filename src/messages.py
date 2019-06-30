@@ -6,6 +6,7 @@ import utils
 import static
 from classes.reminder import Reminder
 from classes.cakeday import Cakeday
+from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -236,7 +237,9 @@ def process_message(message, reddit, database):
 		bldr = ["I couldn't find anything in your message."]
 
 	bldr.extend(utils.get_footer())
-	reddit.reply_message(message, ''.join(bldr))
+	result = reddit.reply_message(message, ''.join(bldr))
+	if result != ReturnType.SUCCESS:
+		raise ValueError(f"Error sending message: {result.name}")
 
 
 def process_messages(reddit, database):

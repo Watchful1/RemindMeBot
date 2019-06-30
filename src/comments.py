@@ -1,11 +1,11 @@
 import discord_logging
-import prawcore
 import traceback
 
 import utils
 import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
+from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -68,9 +68,13 @@ def process_comment(comment, reddit, database):
 	if database.get_comment_by_thread(thread_id) is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
-		try:
-			bldr = utils.get_footer(reminder.render_comment_confirmation())
-			result_id = reddit.reply_comment(reddit_comment, ''.join(bldr))
+		bldr = utils.get_footer(reminder.render_comment_confirmation())
+
+		result_id, result = reddit.reply_comment(reddit_comment, ''.join(bldr))
+
+		if result != ReturnType.SUCCESS:
+			log.info(f"Unable to reply as comment: {result.name}")
+		else:
 			log.info(
 				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
@@ -86,16 +90,15 @@ def process_comment(comment, reddit, database):
 			)
 			database.save_comment(db_comment)
 			commented = True
-		except prawcore.exceptions.Forbidden:
-			log.info("Unable to reply as comment")
-			pass
 
 	if not commented:
 		log.info(
 			f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
 			"replying as message")
 		bldr = utils.get_footer(reminder.render_message_confirmation())
-		reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
+		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
+		if result != ReturnType.SUCCESS:
+			log.info(f"Unable to send message: {result.name}")
 
 
 def process_comments(reddit, database):
