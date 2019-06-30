@@ -23,7 +23,7 @@ def send_reminders(reddit, database):
 			try:
 				reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
 			except praw.exceptions.APIException as err:
-				if err.error_type == 'INVALID_USER':
+				if err.error_type in ('INVALID_USER', 'USER_DOESNT_EXIST'):
 					log.warning(f"User doesn't exist: u/{reminder.user}")
 				else:
 					raise
@@ -52,7 +52,7 @@ def send_cakeday_notifications(reddit, database):
 			try:
 				reddit.send_message(cakeday.user, "RemindMeBot Here! Happy cakeday!", ''.join(bldr))
 			except praw.exceptions.APIException as err:
-				if err.error_type == 'INVALID_USER':
+				if err.error_type in ('INVALID_USER', 'USER_DOESNT_EXIST'):
 					log.warning(f"User doesn't exist: u/{cakeday.user}")
 				else:
 					raise
