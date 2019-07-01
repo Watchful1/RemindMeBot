@@ -23,7 +23,7 @@ def send_reminders(reddit, database):
 			bldr = utils.get_footer(reminder.render_notification())
 			result = reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
 			if result in (ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST):
-				log.warning(f"User doesn't exist: u/{reminder.user}")
+				log.info(f"User doesn't exist: u/{reminder.user}")
 
 			database.delete_reminder(reminder)
 
@@ -48,7 +48,7 @@ def send_cakeday_notifications(reddit, database):
 			bldr = utils.get_footer(cakeday.render_notification())
 			result = reddit.send_message(cakeday.user, "RemindMeBot Here! Happy cakeday!", ''.join(bldr))
 			if result in (ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST):
-				log.warning(f"User doesn't exist: u/{cakeday.user}")
+				log.info(f"User doesn't exist: u/{cakeday.user}")
 
 			database.bump_cakeday(cakeday)
 
