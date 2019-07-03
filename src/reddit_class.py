@@ -46,6 +46,8 @@ class Reddit:
 				raise
 		except prawcore.exceptions.Forbidden:
 			result = ReturnType.FORBIDDEN
+		except IndexError:
+			result = ReturnType.QUARANTINED
 
 		if result is None:
 			result = ReturnType.SUCCESS

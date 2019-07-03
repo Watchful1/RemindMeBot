@@ -72,23 +72,27 @@ def process_comment(comment, reddit, database, count_string):
 
 		result_id, result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
-		if result != ReturnType.SUCCESS:
+		if result != ReturnType.SUCCESS and result != ReturnType.QUARANTINED:
 			log.info(f"Unable to reply as comment: {result.name}")
 		else:
+			if result == ReturnType.QUARANTINED:
+				result_id = "QUARANTINED"
+
 			log.info(
 				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
 
 			database.save_reminder(reminder)
 
-			db_comment = DbComment(
-				thread_id=thread_id,
-				comment_id=result_id,
-				reminder_id=reminder.db_id,
-				user=reminder.user,
-				source=reminder.source
-			)
-			database.save_comment(db_comment)
+			if result != ReturnType.QUARANTINED:
+				db_comment = DbComment(
+					thread_id=thread_id,
+					comment_id=result_id,
+					reminder_id=reminder.db_id,
+					user=reminder.user,
+					source=reminder.source
+				)
+				database.save_comment(db_comment)
 			commented = True
 
 	if not commented:
