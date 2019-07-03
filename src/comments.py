@@ -113,7 +113,7 @@ def process_comments(reddit, database):
 	for comment in comments[::-1]:
 		i += 1
 		try:
-			process_comment(comment, reddit, database, f"{i}/{len(messages)}")
+			process_comment(comment, reddit, database, f"{i}/{len(comments)}")
 		except Exception:
 			log.warning(f"Error processing comment: {comment['id']} : {comment['author']}")
 			log.warning(traceback.format_exc())
