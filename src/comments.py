@@ -23,12 +23,12 @@ def database_get_seen(database):
 	return utils.parse_datetime_string(result)
 
 
-def parse_comment(comment, database):
+def parse_comment(comment, database, count_string):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None
 
-	log.info(f"Processing comment {comment['id']} from u/{comment['author']}")
+	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
 	body = comment['body'].lower()
 	if f"{static.TRIGGER_LOWER}!" not in body and f"!{static.TRIGGER_LOWER}" not in body:
 		log.debug("Command not in comment")
@@ -56,8 +56,8 @@ def parse_comment(comment, database):
 	return reminder
 
 
-def process_comment(comment, reddit, database):
-	reminder = parse_comment(comment, database)
+def process_comment(comment, reddit, database, count_string):
+	reminder = parse_comment(comment, database, count_string)
 
 	if reminder is None or not reminder.valid:
 		log.debug("Not replying")
@@ -105,9 +105,11 @@ def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database))
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
+	i = 0
 	for comment in comments[::-1]:
+		i += 1
 		try:
-			process_comment(comment, reddit, database)
+			process_comment(comment, reddit, database, f"{i}/{len(messages)}")
 		except Exception:
 			log.warning(f"Error processing comment: {comment['id']} : {comment['author']}")
 			log.warning(traceback.format_exc())

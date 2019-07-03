@@ -212,11 +212,11 @@ def process_cakeday_message(message, database):
 	return cakeday.render_confirmation()
 
 
-def process_message(message, reddit, database):
+def process_message(message, reddit, database, count_string):
 	if message.author is None:
 		log.info(f"Subreddit message, skipping : {message.id}")
 		return
-	log.info(f"Message u/{message.author.name} : {message.id}")
+	log.info(f"{count_string}: Message u/{message.author.name} : {message.id}")
 	body = message.body.lower()
 
 	bldr = None
@@ -246,15 +246,17 @@ def process_messages(reddit, database):
 	messages = reddit.get_messages()
 	if len(messages):
 		log.debug(f"Processing {len(messages)} messages")
+	i = 0
 	for message in messages[::-1]:
+		i += 1
 		if reddit.is_message(message):
 			try:
-				process_message(message, reddit, database)
+				process_message(message, reddit, database, f"{i}/{len(messages)}")
 			except Exception:
 				log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 				log.warning(traceback.format_exc())
 		else:
-			log.debug(f"Object not message, skipping: {message.id}")
+			log.info(f"Object not message, skipping: {message.id}")
 
 		try:
 			reddit.mark_read(message)
