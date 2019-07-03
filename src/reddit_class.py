@@ -128,6 +128,17 @@ class Reddit:
 				return False
 		return True
 
+	def quarantine_opt_in(self, subreddit):
+		log.debug(f"Opting in to subreddit: {subreddit}")
+		if not self.no_post:
+			try:
+				subreddit.quaran.opt_in()
+			except Exception:
+				log.warning(f"Error opting in to subreddit: {subreddit}")
+				log.warning(traceback.format_exc())
+				return False
+		return True
+
 	def get_keyword_comments(self, keyword, last_seen):
 		if not len(self.processed_comments.list):
 			last_seen = last_seen + timedelta(seconds=1)
