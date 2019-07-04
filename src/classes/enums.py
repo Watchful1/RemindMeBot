@@ -9,3 +9,4 @@ class ReturnType(Enum):
 	THREAD_LOCKED = 5
 	DELETED_COMMENT = 6
 	QUARANTINED = 7
+	RATELIMIT = 8
