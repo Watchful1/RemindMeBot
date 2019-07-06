@@ -10,8 +10,7 @@ import argparse
 
 log = discord_logging.init_logging()
 
-import database_class
-import static
+from database import Database
 import reddit_class
 import messages
 import comments
@@ -54,7 +53,7 @@ if __name__ == "__main__":
 
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
 	reddit = reddit_class.Reddit(args.user, args.no_post)
-	database = database_class.Database(debug=args.debug_db, clone=args.clone_db)
+	database = Database(debug=args.debug_db, clone=args.clone_db)
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")
 		database.update_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))

@@ -6,13 +6,13 @@ log = discord_logging.init_logging()
 
 sys.path.append("src")
 
-import database_class
+from database import Database
 import reddit_test
 
 
 @pytest.fixture
 def database():
-	return database_class.Database(debug=True, publish=True)
+	return Database(debug=True, publish=True)
 
 
 @pytest.fixture
