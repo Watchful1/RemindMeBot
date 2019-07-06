@@ -38,7 +38,7 @@ class Reminder:
 			self.target_date = utils.parse_time(time_string, requested_date)
 
 			if self.target_date is not None and self.target_date < self.requested_date:
-				self.result_message = f"This time, {time_string}, was interpreted as " \
+				self.result_message = f"This time, {time_string.strip()}, was interpreted as " \
 					f"{utils.get_datetime_string(self.target_date)}, which is in the past"
 				log.info(self.result_message)
 				self.valid = False
@@ -49,7 +49,7 @@ class Reminder:
 			if time_string is None:
 				self.result_message = "Could not find a time in message, defaulting to one day"
 			else:
-				self.result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
+				self.result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
 			log.info(self.result_message)
 			self.defaulted = True
 			self.target_date = utils.parse_time("1 day", requested_date)
