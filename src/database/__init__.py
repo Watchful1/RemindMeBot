@@ -5,37 +5,15 @@ from shutil import copyfile
 
 import static
 import utils
+from ._reminders import _DatabaseReminders
+from ._comments import _DatabaseComments
+from ._keystore import _DatabaseKeystore
 
 
 log = discord_logging.get_logger()
 
 
-class Database:
-	from ._reminders import \
-		save_reminder, \
-		get_count_pending_reminders, \
-		get_pending_reminders, \
-		get_user_reminders, \
-		get_reminder, \
-		delete_reminder, \
-		delete_user_reminders, \
-		add_cakeday, \
-		delete_cakeday, \
-		bump_cakeday, \
-		get_cakeday, \
-		get_count_pending_cakedays
-	from ._comments import \
-		save_comment, \
-		get_comment_by_thread, \
-		delete_comment, \
-		get_pending_incorrect_comments, \
-		get_incorrect_comments
-	from ._keystore import \
-		save_keystore, \
-		update_keystore, \
-		get_keystore, \
-		delete_keystore
-
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore):
 	tables = {
 		'reminders': '''
 			CREATE TABLE IF NOT EXISTS reminders (
@@ -90,6 +68,9 @@ class Database:
 		self.debug = debug
 		self.dbConn = None
 		self.init(debug, publish, clone)
+		_DatabaseReminders.__init__(self)
+		_DatabaseComments.__init__(self)
+		_DatabaseKeystore.__init__(self)
 
 	def init(self, debug, publish, clone):
 		if debug:
