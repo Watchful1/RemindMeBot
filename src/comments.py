@@ -77,8 +77,8 @@ def process_comment(comment, reddit, database, count_string):
 		else:
 			if result == ReturnType.QUARANTINED:
 				result_id = "QUARANTINED"
-				log.info(f"Opting in to quarantined subreddit: {reddit_comment.subreddit.display_name}")
-				reddit.quarantine_opt_in(reddit_comment.subreddit)
+				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
+				reddit.quarantine_opt_in(comment['subreddit'])
 
 			log.info(
 				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "

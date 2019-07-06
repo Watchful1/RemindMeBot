@@ -32,6 +32,7 @@
 specify time zone
 relative dates in reminder list
 keep track of subreddits where the bot is banned
+include reason for pm when pm'ing for comment
 -dynamic timing for logging handler
 delete reminders if the related user comes back as deleted
 track events in database

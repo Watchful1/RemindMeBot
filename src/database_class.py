@@ -2,8 +2,6 @@ import sqlite3
 import discord_logging
 import os
 from shutil import copyfile
-from datetime import datetime
-from datetime import timedelta
 
 from classes.reminder import Reminder
 from classes.comment import DbComment

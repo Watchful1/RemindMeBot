@@ -128,13 +128,13 @@ class Reddit:
 				return False
 		return True
 
-	def quarantine_opt_in(self, subreddit):
-		log.debug(f"Opting in to subreddit: {subreddit}")
+	def quarantine_opt_in(self, subreddit_name):
+		log.debug(f"Opting in to subreddit: {subreddit_name}")
 		if not self.no_post:
 			try:
-				subreddit.quaran.opt_in()
+				self.reddit.subreddit(subreddit_name).quaran.opt_in()
 			except Exception:
-				log.warning(f"Error opting in to subreddit: {subreddit}")
+				log.warning(f"Error opting in to subreddit: {subreddit_name}")
 				log.warning(traceback.format_exc())
 				return False
 		return True
