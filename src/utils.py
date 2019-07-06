@@ -34,13 +34,13 @@ def fullname_type(fullname):
 
 def find_reminder_message(body):
 	line_messages = re.findall(
-		r'(?:{trigger}.*[\[\"“])(.*?)(?:[\]\"”])'.format(trigger=static.TRIGGER_LOWER),
+		r'(?:{trigger}.*[\[\"“])(.*?)(?:[\]\"”])(?:[^(]|\n|$)'.format(trigger=static.TRIGGER_LOWER),
 		body,
 		flags=re.IGNORECASE)
 	if len(line_messages) > 0:
 		return line_messages[0]
 
-	messages = re.findall(r'(?:[\[\"“])(.*?)(?:[\]\"”])', body, flags=re.IGNORECASE)
+	messages = re.findall(r'(?:[\[\"“])(.*?)(?:[\]\"”])(?:[^(]|\n|$)', body, flags=re.IGNORECASE)
 	if len(messages) > 0:
 		return messages[0]
 	else:
