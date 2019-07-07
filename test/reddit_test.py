@@ -80,6 +80,8 @@ class Reddit:
 		self.sent_messages = []
 		self.self_comments = []
 		self.all_comments = {}
+		self.banned_subreddits = set()
+		self.locked_threads = set()
 
 	def add_comment(self, comment, self_comment=False):
 		self.all_comments[comment.id] = comment
@@ -91,9 +93,16 @@ class Reddit:
 		return ReturnType.SUCCESS
 
 	def reply_comment(self, comment, body):
-		new_comment = comment.reply(body)
-		self.add_comment(new_comment, True)
-		return new_comment.id, ReturnType.SUCCESS
+		if comment.subreddit is not None and comment.subreddit in self.banned_subreddits:
+			return None, ReturnType.FORBIDDEN
+		elif comment.link_id is not None and utils.id_from_fullname(comment.link_id) in self.locked_threads:
+			return None, ReturnType.THREAD_LOCKED
+		elif comment.id not in self.all_comments:
+			return None, ReturnType.DELETED_COMMENT
+		else:
+			new_comment = comment.reply(body)
+			self.add_comment(new_comment, True)
+			return new_comment.id, ReturnType.SUCCESS
 
 	def mark_read(self, message):
 		message.mark_read()
@@ -134,3 +143,9 @@ class Reddit:
 			child.parent = None
 
 		return True
+
+	def ban_subreddit(self, subreddit):
+		self.banned_subreddits.add(subreddit)
+
+	def lock_thread(self, thread_id):
+		self.locked_threads.add(thread_id)

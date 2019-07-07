@@ -88,7 +88,7 @@ class Reminder:
 			bldr.append("\n\n")
 			bldr.append("I'm sending this to you as a message instead of replying to your comment because ")
 			if comment_return == ReturnType.FORBIDDEN:
-				bldr.append("the bot isn't allowed to reply in this subreddit.")
+				bldr.append("I'm not allowed to reply in this subreddit.")
 			elif comment_return == ReturnType.THREAD_LOCKED:
 				bldr.append("the thread is locked.")
 			elif comment_return == ReturnType.DELETED_COMMENT:

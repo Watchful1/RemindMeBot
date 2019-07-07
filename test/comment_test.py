@@ -71,6 +71,7 @@ def test_comment_in_thread(database, reddit):
 	assert len(comment_2.children) == 0
 	assert len(reddit.sent_messages) == 1
 	assert reddit.sent_messages[0].author.name == static.ACCOUNT_NAME
+	assert "I've already replied to another comment in this thread" in reddit.sent_messages[0].body
 
 
 def test_update_incorrect_comments(database, reddit):
@@ -163,5 +164,65 @@ def test_update_incorrect_comments(database, reddit):
 	assert "CLICK THIS LINK" in reddit.get_comment(comment_id3).get_first_child().body
 
 
-# def test_commenting_blocked(database, reddit):
-#
+def test_commenting_banned(database, reddit):
+	reddit.ban_subreddit("test")
+
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	reddit.add_comment(comment)
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+
+	assert len(comment.children) == 0
+	assert len(reddit.sent_messages) == 1
+	assert "I'm not allowed to reply in this subreddit" in reddit.sent_messages[0].body
+
+
+def test_commenting_locked(database, reddit):
+	thread_id = utils.random_id()
+
+	reddit.lock_thread(thread_id)
+
+	comment_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	reddit.add_comment(comment)
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+
+	assert len(comment.children) == 0
+	assert len(reddit.sent_messages) == 1
+	assert "the thread is locked" in reddit.sent_messages[0].body
+
+
+def test_commenting_deleted(database, reddit):
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+
+	assert len(comment.children) == 0
+	assert len(reddit.sent_messages) == 1
+	assert "it was deleted before I could get to it" in reddit.sent_messages[0].body
