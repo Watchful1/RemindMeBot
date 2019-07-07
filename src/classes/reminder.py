@@ -2,6 +2,7 @@ import utils
 import discord_logging
 
 import static
+from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -61,7 +62,7 @@ class Reminder:
 			f": {utils.get_datetime_string(self.target_date)} : {self.user} " \
 			f": {self.source} : {self.message}"
 
-	def render_message_confirmation(self):
+	def render_message_confirmation(self, comment_return=None):
 		bldr = utils.str_bldr()
 		if self.result_message is not None:
 			bldr.append(self.result_message)
@@ -76,6 +77,26 @@ class Reminder:
 		else:
 			bldr.append(": ")
 			bldr.append(self.message)
+
+		if comment_return is not None and comment_return in (
+			ReturnType.FORBIDDEN,
+			ReturnType.THREAD_LOCKED,
+			ReturnType.DELETED_COMMENT,
+			ReturnType.RATELIMIT,
+			ReturnType.THREAD_REPLIED
+		):
+			bldr.append("\n\n")
+			bldr.append("I'm sending this to you as a message instead of replying to your comment because ")
+			if comment_return == ReturnType.FORBIDDEN:
+				bldr.append("the bot isn't allowed to reply in this subreddit.")
+			elif comment_return == ReturnType.THREAD_LOCKED:
+				bldr.append("the thread is locked.")
+			elif comment_return == ReturnType.DELETED_COMMENT:
+				bldr.append("it was deleted before I could get to it.")
+			elif comment_return == ReturnType.RATELIMIT:
+				bldr.append("I'm new to this subreddit and have already replied to another thread here recently.")
+			elif comment_return == ReturnType.THREAD_REPLIED:
+				bldr.append("I've already replied to another comment in this thread.")
 
 		return bldr
 

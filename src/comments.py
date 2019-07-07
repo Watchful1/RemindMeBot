@@ -65,17 +65,32 @@ def process_comment(comment, reddit, database, count_string):
 
 	commented = False
 	thread_id = utils.id_from_fullname(comment['link_id'])
-	if database.get_comment_by_thread(thread_id) is None:
+	comment_result = None
+	if database.get_comment_by_thread(thread_id) is not None:
+		comment_result = ReturnType.THREAD_REPLIED
+	if comment_result is None and database.get_subreddit_banned(comment['subreddit']):
+		comment_result = ReturnType.FORBIDDEN
+	if comment_result is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
 		bldr = utils.get_footer(reminder.render_comment_confirmation())
 
-		result_id, result = reddit.reply_comment(reddit_comment, ''.join(bldr))
+		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
-		if result != ReturnType.SUCCESS and result != ReturnType.QUARANTINED:
-			log.info(f"Unable to reply as comment: {result.name}")
+		if comment_result in (
+				ReturnType.INVALID_USER,
+				ReturnType.USER_DOESNT_EXIST,
+				ReturnType.THREAD_LOCKED,
+				ReturnType.DELETED_COMMENT,
+				ReturnType.RATELIMIT):
+			log.info(f"Unable to reply as comment: {comment_result.name}")
+
+		elif comment_result == ReturnType.FORBIDDEN:
+			log.warning(f"Banned in subreddit, saving: {comment['subreddit']}")
+			database.ban_subreddit(comment['subreddit'])
+
 		else:
-			if result == ReturnType.QUARANTINED:
+			if comment_result == ReturnType.QUARANTINED:
 				result_id = "QUARANTINED"
 				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
 				reddit.quarantine_opt_in(comment['subreddit'])
@@ -86,7 +101,7 @@ def process_comment(comment, reddit, database, count_string):
 
 			database.save_reminder(reminder)
 
-			if result != ReturnType.QUARANTINED:
+			if comment_result != ReturnType.QUARANTINED:
 				db_comment = DbComment(
 					thread_id=thread_id,
 					comment_id=result_id,
@@ -101,7 +116,7 @@ def process_comment(comment, reddit, database, count_string):
 		log.info(
 			f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
 			"replying as message")
-		bldr = utils.get_footer(reminder.render_message_confirmation())
+		bldr = utils.get_footer(reminder.render_message_confirmation(comment_result))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")

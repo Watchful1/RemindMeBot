@@ -8,12 +8,13 @@ import utils
 from ._reminders import _DatabaseReminders
 from ._comments import _DatabaseComments
 from ._keystore import _DatabaseKeystore
+from ._subreddits import _DatabaseSubreddits
 
 
 log = discord_logging.get_logger()
 
 
-class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore):
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddits):
 	tables = {
 		'reminders': '''
 			CREATE TABLE IF NOT EXISTS reminders (
@@ -52,15 +53,15 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore):
 				Value VARCHAR(200) NOT NULL,
 				UNIQUE (Key)
 			)
+		''',
+		'subreddits': '''
+			CREATE TABLE IF NOT EXISTS subreddits (
+				Subreddit VARCHAR(80) NOT NULL,
+				Banned BOOLEAN NOT NULL,
+				BanChecked TIMESTAMP NULL,
+				UNIQUE (Subreddit)
+			)
 		'''
-		# 'subreddits': '''
-		# 	CREATE TABLE IF NOT EXISTS subreddits (
-		# 		Subreddit VARCHAR(80) NOT NULL,
-		# 		Banned BOOLEAN NOT NULL,
-		# 		BanChecked TIMESTAMP NULL,
-		# 		UNIQUE (Subreddit)
-		# 	)
-		# '''
 	}
 
 	def __init__(self, debug=False, publish=False, clone=False):
@@ -71,6 +72,7 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore):
 		_DatabaseReminders.__init__(self)
 		_DatabaseComments.__init__(self)
 		_DatabaseKeystore.__init__(self)
+		_DatabaseSubreddits.__init__(self)
 
 	def init(self, debug, publish, clone):
 		if debug:
@@ -113,36 +115,3 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore):
 			static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
 
 		self.init(self.debug, False, False)
-
-
-	# def ban_subreddit(self, subreddit):
-	# 	c = self.dbConn.cursor()
-	# 	c.execute('''
-	# 		SELECT Banned
-	# 		FROM subreddits
-	# 		WHERE Subreddit = ?
-	# 		''', (subreddit,))
-	#
-	# 	result = c.fetchone()
-	# 	if result is None or len(result) == 0:
-	# 		try:
-	# 			c.execute('''
-	# 				INSERT INTO subreddits
-	# 				(Subreddit, Banned, BanChecked)
-	# 				VALUES (?, ?, ?)
-	# 			''', (subreddit, True, utils.get_datetime_string(utils.datetime_now())))
-	# 		except sqlite3.IntegrityError as err:
-	# 			log.warning(f"Failed to ban subreddit: {err}")
-	# 			return False
-	# 	else:
-	# 		try:
-	# 			c.execute('''
-	# 				UPDATE subreddits
-	# 				SET Banned = ?
-	# 					,BanChecked = ?
-	# 				WHERE Subreddit = ?
-	# 			''', (value, key))
-	# 		except sqlite3.IntegrityError as err:
-	# 			log.warning(f"Failed to update keystore: {err}")
-	# 			return False
-
