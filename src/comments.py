@@ -86,7 +86,7 @@ def process_comment(comment, reddit, database, count_string=""):
 			log.info(f"Unable to reply as comment: {comment_result.name}")
 
 		elif comment_result == ReturnType.FORBIDDEN:
-			log.warning(f"Banned in subreddit, saving: {comment['subreddit']}")
+			log.info(f"Banned in subreddit, saving: {comment['subreddit']}")
 			database.ban_subreddit(comment['subreddit'])
 
 		else:
