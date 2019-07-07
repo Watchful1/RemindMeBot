@@ -20,6 +20,7 @@
   -handle empty origin date
   -handle source of info page
 -discord logging
+    -dynamic timing
 -dynamic looping
 -date parsing problems
     -numbers as words
@@ -28,12 +29,11 @@
     r/cakeday
     -new date library
     readme
+-track subreddits the bot is banned in
+    -include reason for message instead of comment
 
 specify time zone
 relative dates in reminder list
-keep track of subreddits where the bot is banned
-include reason for pm when pm'ing for comment
--dynamic timing for logging handler
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders
