@@ -2,6 +2,7 @@ import discord_logging
 
 import static
 import utils
+from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -22,7 +23,8 @@ class RedditObject:
 		id=None,
 		permalink=None,
 		link_id=None,
-		prefix="t4"
+		prefix="t4",
+		subreddit=None
 	):
 		self.body = body
 		if isinstance(author, User):
@@ -40,6 +42,7 @@ class RedditObject:
 			self.created_utc = created.timestamp()
 		self.permalink = permalink
 		self.link_id = link_id
+		self.subreddit = subreddit
 
 		self.parent = None
 		self.children = []
@@ -52,6 +55,7 @@ class RedditObject:
 			'body': self.body,
 			'permalink': self.permalink,
 			'created_utc': self.created_utc,
+			'subreddit': self.subreddit
 		}
 
 	def get_first_child(self):
@@ -84,11 +88,12 @@ class Reddit:
 
 	def reply_message(self, message, body):
 		self.sent_messages.append(message.reply(body))
+		return ReturnType.SUCCESS
 
 	def reply_comment(self, comment, body):
 		new_comment = comment.reply(body)
 		self.add_comment(new_comment, True)
-		return new_comment.id
+		return new_comment.id, ReturnType.SUCCESS
 
 	def mark_read(self, message):
 		message.mark_read()
@@ -96,6 +101,7 @@ class Reddit:
 	def send_message(self, username, subject, body):
 		new_message = RedditObject(body, static.ACCOUNT_NAME)
 		self.sent_messages.append(new_message)
+		return ReturnType.SUCCESS
 
 	def get_comment(self, comment_id):
 		if comment_id in self.all_comments:
@@ -108,6 +114,7 @@ class Reddit:
 			comment = self.get_comment(comment_id)
 
 		comment.body = body
+		return ReturnType.SUCCESS
 
 	def delete_comment(self, comment):
 		if comment.id in self.all_comments:

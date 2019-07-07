@@ -212,7 +212,7 @@ def process_cakeday_message(message, database):
 	return cakeday.render_confirmation()
 
 
-def process_message(message, reddit, database, count_string):
+def process_message(message, reddit, database, count_string=""):
 	if message.author is None:
 		log.info(f"Subreddit message, skipping : {message.id}")
 		return

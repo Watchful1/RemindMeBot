@@ -56,7 +56,7 @@ def parse_comment(comment, database, count_string):
 	return reminder
 
 
-def process_comment(comment, reddit, database, count_string):
+def process_comment(comment, reddit, database, count_string=""):
 	reminder = parse_comment(comment, database, count_string)
 
 	if reminder is None or not reminder.valid:

@@ -18,7 +18,8 @@ def test_process_comment(database, reddit):
 		created=created,
 		id=comment_id,
 		link_id="t3_"+thread_id,
-		permalink=f"/r/test/{thread_id}/_/{comment_id}/"
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
 	)
 
 	reddit.add_comment(comment)
@@ -47,7 +48,8 @@ def test_comment_in_thread(database, reddit):
 		created=utils.datetime_now(),
 		id=comment_id,
 		link_id="t3_"+thread_id,
-		permalink=f"/r/test/{thread_id}/_/{comment_id}/"
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
 	)
 	reddit.add_comment(comment)
 
@@ -80,7 +82,8 @@ def test_update_incorrect_comments(database, reddit):
 		created=utils.datetime_now(),
 		id=comment_id1,
 		link_id="t3_"+thread_id1,
-		permalink=f"/r/test/{thread_id1}/_/{comment_id1}/"
+		permalink=f"/r/test/{thread_id1}/_/{comment_id1}/",
+		subreddit="test"
 	)
 	reddit.add_comment(comment1)
 	comments.process_comment(comment1.get_pushshift_dict(), reddit, database)
@@ -93,7 +96,8 @@ def test_update_incorrect_comments(database, reddit):
 		created=utils.datetime_now(),
 		id=comment_id2,
 		link_id="t3_"+thread_id2,
-		permalink=f"/r/test/{thread_id2}/_/{comment_id2}/"
+		permalink=f"/r/test/{thread_id2}/_/{comment_id2}/",
+		subreddit="test"
 	)
 	reddit.add_comment(comment2)
 	comments.process_comment(comment2.get_pushshift_dict(), reddit, database)
@@ -106,7 +110,8 @@ def test_update_incorrect_comments(database, reddit):
 		created=utils.datetime_now(),
 		id=comment_id3,
 		link_id="t3_"+thread_id3,
-		permalink=f"/r/test/{thread_id3}/_/{comment_id3}/"
+		permalink=f"/r/test/{thread_id3}/_/{comment_id3}/",
+		subreddit="test"
 	)
 	reddit.add_comment(comment3)
 	comments.process_comment(comment3.get_pushshift_dict(), reddit, database)
@@ -156,3 +161,7 @@ def test_update_incorrect_comments(database, reddit):
 	assert "3 OTHERS CLICKED THIS LINK" in reddit.get_comment(comment_id1).get_first_child().body
 	assert "2 OTHERS CLICKED THIS LINK" in reddit.get_comment(comment_id2).get_first_child().body
 	assert "CLICK THIS LINK" in reddit.get_comment(comment_id3).get_first_child().body
+
+
+# def test_commenting_blocked(database, reddit):
+#
