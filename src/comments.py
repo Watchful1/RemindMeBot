@@ -115,7 +115,7 @@ def process_comment(comment, reddit, database, count_string=""):
 	if not commented:
 		log.info(
 			f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
-			"replying as message")
+			f"replying as message: {comment_result.name}")
 		bldr = utils.get_footer(reminder.render_message_confirmation(comment_result))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:

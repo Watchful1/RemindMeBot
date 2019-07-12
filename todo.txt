@@ -31,9 +31,12 @@
     readme
 -track subreddits the bot is banned in
     -include reason for message instead of comment
-
 specify time zone
-relative dates in reminder list
+    relative dates in reminder list
+    message to set time zone
+    time zone list
+
+
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders
