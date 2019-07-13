@@ -7,6 +7,7 @@ import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
 from classes.cakeday import Cakeday
+from classes.user_settings import UserSettings
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -191,6 +192,18 @@ def test_get_reminders(database, reddit):
 	assert reminder2.source in result
 	assert reminder2.message in result
 	assert "02-05 07" in result
+
+	database.save_settings(
+		UserSettings(
+			user="Watchful1",
+			timezone="America/Los_Angeles"
+		)
+	)
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "Your timezone is currently set to: America/Los_Angeles" in result
+	assert "01-03 21" in result
+	assert "02-04 23" in result
 
 
 def test_remove_reminder(database, reddit):

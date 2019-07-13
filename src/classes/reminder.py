@@ -62,13 +62,13 @@ class Reminder:
 			f": {utils.get_datetime_string(self.target_date)} : {self.user} " \
 			f": {self.source} : {self.message}"
 
-	def render_message_confirmation(self, comment_return=None):
+	def render_message_confirmation(self, timezone, comment_return=None):
 		bldr = utils.str_bldr()
 		if self.result_message is not None:
 			bldr.append(self.result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date))
+		bldr.append(utils.render_time(self.target_date, timezone))
 		bldr.append(" to remind you")
 		if self.message is None:
 			bldr.append(" of [**this link**](")
@@ -140,7 +140,7 @@ class Reminder:
 
 		return bldr
 
-	def render_notification(self):
+	def render_notification(self, timezone):
 		bldr = utils.str_bldr()
 
 		bldr.append("RemindMeBot reminder here!")
@@ -159,7 +159,7 @@ class Reminder:
 			bldr.append("This reminder was created before I started saving the creation date of reminders.")
 		else:
 			bldr.append("You requested this reminder on: ")
-			bldr.append(utils.render_time(self.requested_date))
+			bldr.append(utils.render_time(self.requested_date, timezone))
 		bldr.append("\n\n")
 
 		bldr.append("[Click here](")

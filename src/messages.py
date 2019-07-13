@@ -30,6 +30,12 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove All", "RemoveAll!"))
 			bldr.append(")\n\n")
 
+		user_settings = database.get_settings(user)
+		if user_settings.timezone is not None:
+			bldr.append("Your timezone is currently set to: ")
+			bldr.append(user_settings.timezone)
+			bldr.append("\n\n")
+
 		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
 		bldr.append("|Source|Message|Date|Remove|\n")
 		bldr.append("|-|-|-|:-:|\n")
@@ -38,7 +44,7 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append("Happy cakeday!")
 			bldr.append("|")
 			bldr.append("Yearly on ")
-			bldr.append(utils.render_time(cakeday.date_time, "%m-%d %H:%M:%S %Z"))
+			bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
 			bldr.append("|")
 			bldr.append("[Remove](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
@@ -52,7 +58,7 @@ def get_reminders_string(user, database, previous=False):
 			if reminder.message is not None:
 				bldr.append(reminder.message)
 			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date))
+			bldr.append(utils.render_time(reminder.target_date, user_settings.timezone))
 			bldr.append("|")
 			bldr.append("[Remove](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.db_id}"))
@@ -92,7 +98,7 @@ def process_remind_me(message, database):
 
 	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation()
+	return reminder.render_message_confirmation(database.get_settings(message.author.name).timezone)
 
 
 def process_remove_reminder(message, database):
@@ -210,7 +216,7 @@ def process_cakeday_message(message, database):
 	cakeday = Cakeday(message.author.name, next_anniversary)
 	database.add_cakeday(cakeday)
 
-	return cakeday.render_confirmation()
+	return cakeday.render_confirmation(database.get_settings(message.author.name).timezone)
 
 
 def process_timezone_message(message, database):

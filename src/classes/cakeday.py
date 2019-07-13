@@ -13,10 +13,10 @@ class Cakeday:
 		self.date_time = date_time
 		self.db_id = db_id
 
-	def render_confirmation(self):
+	def render_confirmation(self, timezone):
 		bldr = utils.str_bldr()
 		bldr.append("I will message you every year at ")
-		bldr.append(utils.render_time(self.date_time, "%m-%d %H:%M:%S %Z"))
+		bldr.append(utils.render_time(self.date_time, timezone, "%m-%d %H:%M:%S %Z"))
 		bldr.append(" to remind you of your cakeday.")
 
 		bldr.append("\n\n")
@@ -27,14 +27,14 @@ class Cakeday:
 
 		return bldr
 
-	def render_notification(self):
+	def render_notification(self, timezone):
 		bldr = utils.str_bldr()
 		bldr.append("Happy cakeday!")
 
 		bldr.append("\n\n")
 
 		bldr.append("I will message you every year at ")
-		bldr.append(utils.render_time(self.date_time, "%m-%d %H:%M:%S %Z"))
+		bldr.append(utils.render_time(self.date_time, timezone, "%m-%d %H:%M:%S %Z"))
 		bldr.append(" to remind you of your cakeday.")
 
 		bldr.append("\n\n")

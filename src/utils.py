@@ -87,10 +87,10 @@ def parse_time(time_string, base_time):
 	return date_time
 
 
-def render_time(date_time, format_string="%Y-%m-%d %H:%M:%S %Z"):
+def render_time(date_time, timezone=None, format_string="%Y-%m-%d %H:%M:%S %Z"):
 	bldr = str_bldr()
 	bldr.append("[**")
-	bldr.append(date_time.strftime(format_string))
+	bldr.append(datetime_as_timezone(date_time, timezone).strftime(format_string))
 	bldr.append("**](http://www.wolframalpha.com/input/?i=")
 	bldr.append(date_time.strftime('%Y-%m-%d %H:%M:%S %Z').replace(" ", "%20"))
 	bldr.append(" To Local Time".replace(" ", "%20"))
@@ -108,6 +108,13 @@ def reddit_link(slug, np=False):
 
 def id_from_fullname(fullname):
 	return re.sub(r't\d_', "", fullname)
+
+
+def datetime_as_timezone(date_time, timezone_string):
+	if timezone_string is None:
+		return date_time
+	else:
+		return date_time.astimezone(pytz.timezone(timezone_string))
 
 
 def datetime_as_utc(date_time):

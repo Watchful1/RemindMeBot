@@ -33,9 +33,11 @@
     -include reason for message instead of comment
 specify time zone
     relative dates in reminder list
-    message to set time zone
-    time zone list
+    -message to set time zone
     include current time zone in reminder list
+    default time zone for reminder parsing
+    use timezone when rendering time
+    time zone list
 
 
 delete reminders if the related user comes back as deleted
