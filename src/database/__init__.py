@@ -9,12 +9,13 @@ from ._reminders import _DatabaseReminders
 from ._comments import _DatabaseComments
 from ._keystore import _DatabaseKeystore
 from ._subreddits import _DatabaseSubreddits
+from ._user_settings import _DatabaseUserSettings
 
 
 log = discord_logging.get_logger()
 
 
-class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddits):
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddits, _DatabaseUserSettings):
 	tables = {
 		'reminders': '''
 			CREATE TABLE IF NOT EXISTS reminders (
@@ -61,6 +62,13 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 				BanChecked TIMESTAMP NULL,
 				UNIQUE (Subreddit)
 			)
+		''',
+		'user_settings': '''
+			CREATE TABLE IF NOT EXISTS user_settings (
+				User VARCHAR(80) NOT NULL,
+				TimeZone VARCHAR(80) NULL,
+				UNIQUE (User)
+			)
 		'''
 	}
 
@@ -73,6 +81,7 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		_DatabaseComments.__init__(self)
 		_DatabaseKeystore.__init__(self)
 		_DatabaseSubreddits.__init__(self)
+		_DatabaseUserSettings.__init__(self)
 
 	def init(self, debug, publish, clone):
 		if debug:

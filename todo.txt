@@ -1,10 +1,10 @@
 -process messages:
-  -add reminder
-  -remove reminder
-  -get reminders
-  -delete comment
-  -remove all reminders
-  -handle replies and mentions
+    -add reminder
+    -remove reminder
+    -get reminders
+    -delete comment
+    -remove all reminders
+    -handle replies and mentions
 -search for trigger
 -send reminders
 -update comments
@@ -15,10 +15,10 @@
     -remove cakeday
     -send cakeday
 -migration script
-  -remove quotes
-  -handle default message
-  -handle empty origin date
-  -handle source of info page
+    -remove quotes
+    -handle default message
+    -handle empty origin date
+    -handle source of info page
 -discord logging
     -dynamic timing
 -dynamic looping
@@ -35,6 +35,7 @@ specify time zone
     relative dates in reminder list
     message to set time zone
     time zone list
+    include current time zone in reminder list
 
 
 delete reminders if the related user comes back as deleted
@@ -42,3 +43,4 @@ track events in database
 apologize for being late in reminders
 recurring reminders
 database backup downloading
+log warnings when behind
