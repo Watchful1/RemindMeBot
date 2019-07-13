@@ -1,6 +1,7 @@
 import discord_logging
 import re
 import traceback
+import pytz
 
 import utils
 import static
@@ -212,6 +213,34 @@ def process_cakeday_message(message, database):
 	return cakeday.render_confirmation()
 
 
+def process_timezone_message(message, database):
+	log.info("Processing timezone")
+	bldr = utils.str_bldr()
+
+	timezones = re.findall(r'(?:timezone!? )([\w/]{1,50})', message.body, flags=re.IGNORECASE)
+	if len(timezones) == 0:
+		log.debug("Couldn't find a timezone in your message")
+		bldr.append("I couldn't find a timezone in your message.")
+
+	elif timezones[0] not in pytz.common_timezones:
+		log.debug(f"Invalid timezone: {timezones[0]}")
+		bldr.append(f"{timezones[0]} is not a valid timezone.")
+
+	else:
+		user_settings = database.get_settings(message.author.name)
+		if timezones[0] == "UTC":
+			user_settings.timezone = None
+			bldr.append(f"Reset your timezone to the default")
+		else:
+			user_settings.timezone = timezones[0]
+			bldr.append(f"Updated your timezone to {timezones[0]}")
+		database.save_settings(user_settings)
+
+		log.info(f"u/{message.author.name} timezone updated to {timezones[0]}")
+
+	return bldr
+
+
 def process_message(message, reddit, database, count_string=""):
 	if message.author is None:
 		log.info(f"Subreddit message, skipping : {message.id}")
@@ -232,6 +261,8 @@ def process_message(message, reddit, database, count_string=""):
 		bldr = process_delete_comment(message, reddit, database)
 	elif "cakeday!" in body:
 		bldr = process_cakeday_message(message, database)
+	elif "timezone!" in body:
+		bldr = process_timezone_message(message, database)
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]

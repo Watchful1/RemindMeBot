@@ -2,7 +2,7 @@ import sys
 import pytest
 import discord_logging
 
-log = discord_logging.init_logging()
+log = discord_logging.init_logging(debug=True)
 
 sys.path.append("src")
 

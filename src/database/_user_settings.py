@@ -47,13 +47,15 @@ class _DatabaseUserSettings:
 		result = c.fetchone()
 		if result is None or len(result) == 0:
 			log.debug("User not found")
-			return None
+			user_settings = UserSettings(
+				user=user
+			)
 
-		log.debug(f"User found")
-
-		user_settings = UserSettings(
-			user=user,
-			timezone=result[0]
-		)
+		else:
+			log.debug(f"User found")
+			user_settings = UserSettings(
+				user=user,
+				timezone=result[0]
+			)
 
 		return user_settings

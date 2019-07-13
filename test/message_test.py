@@ -361,3 +361,33 @@ def test_delete_comment(database, reddit):
 	)
 	messages.process_message(message, reddit, database)
 	assert "Comment deleted." in message.get_first_child().body
+
+
+def test_set_timezone(database, reddit):
+	username = "Watchful1"
+	message = reddit_test.RedditObject(
+		body="Timezone! ",
+		author=username
+	)
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "I couldn't find a timezone in your message." in result
+
+	message.body = "Timezone! EST"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "EST is not a valid timezone." in result
+
+	message.body = "Timezone! America/Los_Angeles"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "Updated your timezone to America/Los_Angeles" in result
+	user_settings = database.get_settings(username)
+	assert user_settings.timezone == "America/Los_Angeles"
+
+	message.body = "Timezone! UTC"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "Reset your timezone to the default" in result
+	user_settings = database.get_settings(username)
+	assert user_settings.timezone is None

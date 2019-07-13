@@ -64,6 +64,12 @@ class RedditObject:
 		else:
 			return None
 
+	def get_last_child(self):
+		if len(self.children):
+			return self.children[-1]
+		else:
+			return None
+
 	def mark_read(self):
 		return
 
