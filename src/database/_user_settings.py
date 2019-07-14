@@ -12,25 +12,11 @@ class _DatabaseUserSettings:
 	def save_settings(self, user_settings):
 		log.debug(f"Saving settings: {user_settings.user}")
 		c = self.dbConn.cursor()
-		result = c.execute('''
-			SELECT count(*)
-			FROM user_settings
-			WHERE User = ?
-		''', (user_settings.user,))
-
-		if result.fetchone()[0] == 0:
-			c.execute('''
-				INSERT INTO user_settings
-				(User, TimeZone)
-				VALUES (?, ?)
-			''', (user_settings.user, user_settings.timezone))
-		else:
-			c.execute('''
-				UPDATE user_settings
-				SET TimeZone = ?
-				WHERE User = ?
-			''', (user_settings.timezone, user_settings.user))
-
+		c.execute('''
+			REPLACE INTO user_settings
+			(User, TimeZone)
+			VALUES (?, ?)
+		''', (user_settings.user, user_settings.timezone))
 		self.dbConn.commit()
 
 		return True
