@@ -201,7 +201,7 @@ def test_get_reminders(database, reddit):
 	)
 	messages.process_message(message, reddit, database)
 	result = message.get_last_child().body
-	assert "Your timezone is currently set to: America/Los_Angeles" in result
+	assert "Your timezone is currently set to: `America/Los_Angeles`" in result
 	assert "01-03 21" in result
 	assert "02-04 23" in result
 

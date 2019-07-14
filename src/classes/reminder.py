@@ -108,8 +108,11 @@ class Reminder:
 		if self.defaulted:
 			bldr.append("**Defaulted to one day.**\n\n")
 
+		if self.timezone is not None:
+			bldr.append("Your default time zone is set to `{}`. ")
+
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date))
+		bldr.append(utils.render_time(self.target_date, self.timezone))
 		bldr.append(" to remind you of [**this link**](")
 		bldr.append(utils.replace_np(self.source))
 		bldr.append(")")

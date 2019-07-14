@@ -5,6 +5,7 @@ import utils
 import reddit_test
 import static
 from classes.reminder import Reminder
+from classes.user_settings import UserSettings
 
 
 def test_process_comment(database, reddit):
@@ -37,6 +38,39 @@ def test_process_comment(database, reddit):
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].db_id is not None
+
+
+def test_process_comment_timezone(database, reddit):
+	database.save_settings(
+		UserSettings(
+			user="Watchful1",
+			timezone="America/Los_Angeles"
+		)
+	)
+
+	username = "Watchful1"
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	created = utils.datetime_now()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "Your default time zone is set to `America/Los_Angeles`" in result
+	assert "Your default time zone is set to `America/Los_Angeles`" in result
+
+	reminders = database.get_user_reminders(username)
+	assert reminders[0].target_date == created + timedelta(hours=24)
 
 
 def test_comment_in_thread(database, reddit):

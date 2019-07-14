@@ -38,6 +38,7 @@ specify time zone
     default time zone for reminder parsing
     -use timezone when rendering time
     time zone list
+    link to time zone list in comment replies that use it
 -database backup downloading
 
 

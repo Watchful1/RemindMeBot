@@ -32,9 +32,9 @@ def get_reminders_string(user, database, previous=False):
 
 		user_settings = database.get_settings(user)
 		if user_settings.timezone is not None:
-			bldr.append("Your timezone is currently set to: ")
+			bldr.append("Your timezone is currently set to: `")
 			bldr.append(user_settings.timezone)
-			bldr.append("\n\n")
+			bldr.append("`\n\n")
 
 		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
 		bldr.append("|Source|Message|Date|Remove|\n")
@@ -86,7 +86,8 @@ def process_remind_me(message, database):
 		message=message_text,
 		user=message.author.name,
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
-		time_string=time
+		time_string=time,
+		timezone=database.get_settings(message.author.name).timezone
 	)
 	if not reminder.valid:
 		log.debug("Reminder not valid, returning")
@@ -98,7 +99,6 @@ def process_remind_me(message, database):
 
 	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	reminder.timezone = database.get_settings(message.author.name).timezone
 	return reminder.render_message_confirmation()
 
 
