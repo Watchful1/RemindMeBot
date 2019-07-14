@@ -12,7 +12,7 @@ log = discord_logging.get_logger()
 
 
 def database_set_seen(database, comment_seen):
-	database.update_keystore("remindme_comment", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
+	database.save_keystore("remindme_comment", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
 
 
 def database_get_seen(database):
@@ -147,10 +147,8 @@ def update_comments(reddit, database):
 	incorrect_items = database.get_incorrect_comments(utils.requests_available(count_incorrect))
 	if len(incorrect_items):
 		i = 0
-		for incorrect in incorrect_items:
+		for db_comment, reminder in incorrect_items:
 			i += 1
-			db_comment = incorrect[0]
-			reminder = incorrect[1]
 			log.info(
 				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
 				f"{db_comment.comment_id} : {db_comment.current_count}/{reminder.count_duplicates}")

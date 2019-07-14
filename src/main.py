@@ -56,7 +56,7 @@ if __name__ == "__main__":
 	database = Database(debug=args.debug_db, clone=args.clone_db)
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")
-		database.update_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
+		database.save_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
 
 	last_backup = None
 	last_comments = None
