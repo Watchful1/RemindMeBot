@@ -158,6 +158,7 @@ class _DatabaseComments:
 				rm.Message,
 				rm.User,
 				rm.Defaulted,
+				rm.TimeZone,
 				rm.NewCount
 			FROM comments cm
 			LEFT JOIN
@@ -169,10 +170,13 @@ class _DatabaseComments:
 						rm1.Message,
 						rm1.User,
 						rm1.Defaulted,
+						us.TimeZone,
 						count(*) as NewCount
 					FROM reminders rm1
 						INNER JOIN reminders rm2
 							ON rm1.Source = rm2.Message
+						LEFT JOIN user_settings us
+							ON us.User = rm1.User
 					GROUP BY rm1.ID
 				) AS rm
 					ON cm.ReminderId = rm.ID
@@ -195,8 +199,9 @@ class _DatabaseComments:
 				user=row[12],
 				db_id=row[7],
 				requested_date=utils.parse_datetime_string(row[9]),
-				count_duplicates=row[14],
+				count_duplicates=row[15],
 				thread_id=row[1],
+				timezone=row[14],
 				defaulted=row[13] == 1
 			)
 			results.append((db_comment, reminder))

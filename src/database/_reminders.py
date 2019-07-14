@@ -89,10 +89,12 @@ class _DatabaseReminders:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
-			FROM reminders
-			WHERE TargetDate < ?
-			ORDER BY TargetDate ASC
+			SELECT rm.ID, rm.Source, rm.RequestedDate, rm.TargetDate, rm.Message, rm.User, rm.Defaulted, us.TimeZone
+			FROM reminders rm
+				LEFT JOIN user_settings us
+					ON us.User = rm.User
+			WHERE rm.TargetDate < ?
+			ORDER BY rm.TargetDate
 			LIMIT ?
 			''', (utils.get_datetime_string(timestamp), count)):
 			reminder = Reminder(
@@ -102,7 +104,8 @@ class _DatabaseReminders:
 				user=row[5],
 				db_id=row[0],
 				requested_date=utils.parse_datetime_string(row[2]),
-				defaulted=row[6] == 1
+				defaulted=row[6] == 1,
+				timezone=row[7]
 			)
 			results.append(reminder)
 
@@ -114,10 +117,12 @@ class _DatabaseReminders:
 		c = self.dbConn.cursor()
 		results = []
 		for row in c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
-			FROM reminders
-			WHERE User = ?
-			ORDER BY TargetDate ASC
+			SELECT rm.ID, rm.Source, rm.RequestedDate, rm.TargetDate, rm.Message, rm.User, rm.Defaulted, us.TimeZone
+			FROM reminders rm
+				LEFT JOIN user_settings us
+					ON us.User = rm.User
+			WHERE rm.User = ?
+			ORDER BY TargetDate
 			''', (username,)):
 			reminder = Reminder(
 				source=row[1],
@@ -126,7 +131,8 @@ class _DatabaseReminders:
 				user=row[5],
 				db_id=row[0],
 				requested_date=utils.parse_datetime_string(row[2]),
-				defaulted=row[6] == 1
+				defaulted=row[6] == 1,
+				timezone=row[7]
 			)
 			results.append(reminder)
 
@@ -137,9 +143,11 @@ class _DatabaseReminders:
 		log.debug(f"Fetching reminder by id: {reminder_id}")
 		c = self.dbConn.cursor()
 		c.execute('''
-			SELECT ID, Source, RequestedDate, TargetDate, Message, User, Defaulted
-			FROM reminders
-			WHERE ID = ?
+			SELECT rm.ID, rm.Source, rm.RequestedDate, rm.TargetDate, rm.Message, rm.User, rm.Defaulted, us.TimeZone
+			FROM reminders rm
+				LEFT JOIN user_settings us
+					ON us.User = rm.User
+			WHERE rm.ID = ?
 			''', (reminder_id,))
 
 		result = c.fetchone()
@@ -154,7 +162,8 @@ class _DatabaseReminders:
 			user=result[5],
 			db_id=result[0],
 			requested_date=utils.parse_datetime_string(result[2]),
-			defaulted=result[6] == 1
+			defaulted=result[6] == 1,
+			timezone=result[7]
 		)
 
 		return reminder

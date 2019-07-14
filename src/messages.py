@@ -58,7 +58,7 @@ def get_reminders_string(user, database, previous=False):
 			if reminder.message is not None:
 				bldr.append(reminder.message)
 			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date, user_settings.timezone))
+			bldr.append(utils.render_time(reminder.target_date, reminder.timezone))
 			bldr.append("|")
 			bldr.append("[Remove](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.db_id}"))
@@ -98,7 +98,8 @@ def process_remind_me(message, database):
 
 	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation(database.get_settings(message.author.name).timezone)
+	reminder.timezone = database.get_settings(message.author.name).timezone
+	return reminder.render_message_confirmation()
 
 
 def process_remove_reminder(message, database):
