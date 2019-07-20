@@ -57,8 +57,7 @@ def find_reminder_time(body):
 
 
 def parse_time(time_string, base_time, timezone_string):
-	if timezone_string is not None:
-		base_time = base_time.astimezone(pytz.timezone(timezone_string))
+	base_time = datetime_as_timezone(base_time, timezone_string)
 
 	try:
 		date_time = dateparser.parse(
@@ -84,8 +83,7 @@ def parse_time(time_string, base_time, timezone_string):
 		else:
 			date_time = datetime_force_utc(date_time)
 
-	if date_time.tzinfo != pytz.utc:
-		date_time = date_time.astimezone(pytz.utc)
+	date_time = datetime_as_utc(date_time)
 
 	return date_time
 

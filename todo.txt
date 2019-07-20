@@ -44,6 +44,6 @@ specify time zone
 
 delete reminders if the related user comes back as deleted
 track events in database
-apologize for being late in reminders
+apologize for being late in reminders and in message/comment parsing
 recurring reminders
 log warnings when behind

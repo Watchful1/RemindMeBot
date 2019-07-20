@@ -1,4 +1,5 @@
 from datetime import timedelta
+import pytz
 
 import messages
 import utils
@@ -404,3 +405,31 @@ def test_set_timezone(database, reddit):
 	assert "Reset your timezone to the default" in result
 	user_settings = database.get_settings(username)
 	assert user_settings.timezone is None
+
+
+def test_timezone_reminder_message(database, reddit):
+	timezone_string = "America/Los_Angeles"
+	database.save_settings(
+		UserSettings(
+			user="Watchful1",
+			timezone=timezone_string
+		)
+	)
+
+	created = utils.datetime_now()
+	target = created + timedelta(hours=24)
+	username = "Watchful1"
+	message = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! {utils.get_datetime_string(utils.datetime_as_timezone(target, timezone_string))}",
+		author=username,
+		created=created
+	)
+
+	messages.process_message(message, reddit, database)
+
+	reminders = database.get_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == utils.datetime_as_utc(
+		pytz.timezone(timezone_string).localize(target.replace(tzinfo=None))
+	)
