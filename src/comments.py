@@ -38,15 +38,13 @@ def parse_comment(comment, database, count_string):
 
 	message_text = utils.find_reminder_message(comment['body'])
 
-	timezone = database.get_settings(comment['author']).timezone
-
 	reminder = Reminder(
 		source=utils.reddit_link(comment['permalink']),
 		message=message_text,
 		user=comment['author'],
 		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
 		time_string=time,
-		timezone=timezone
+		timezone=database.get_settings(comment['author']).timezone
 	)
 	if not reminder.valid:
 		return None

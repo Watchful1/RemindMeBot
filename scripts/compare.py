@@ -39,7 +39,7 @@ while True:
 				old_date = "None"
 
 			try:
-				new_date = utils.get_datetime_string(utils.parse_time(time_string, current), format_string='%Y-%m-%d %H:%M:%S')
+				new_date = utils.get_datetime_string(utils.parse_time(time_string, current, None), format_string='%Y-%m-%d %H:%M:%S')
 			except Exception:
 				new_date = "None"
 

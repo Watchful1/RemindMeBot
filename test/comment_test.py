@@ -67,7 +67,6 @@ def test_process_comment_timezone(database, reddit):
 	result = comment.get_first_child().body
 
 	assert "Your default time zone is set to `America/Los_Angeles`" in result
-	assert "Your default time zone is set to `America/Los_Angeles`" in result
 
 	reminders = database.get_user_reminders(username)
 	assert reminders[0].target_date == created + timedelta(hours=24)

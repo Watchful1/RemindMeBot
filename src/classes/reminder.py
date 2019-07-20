@@ -38,7 +38,7 @@ class Reminder:
 		if target_date is not None:
 			self.target_date = target_date
 		elif time_string is not None:
-			self.target_date = utils.parse_time(time_string, requested_date)
+			self.target_date = utils.parse_time(time_string, requested_date, timezone)
 
 			if self.target_date is not None and self.target_date < self.requested_date:
 				self.result_message = f"This time, {time_string.strip()}, was interpreted as " \
@@ -55,7 +55,7 @@ class Reminder:
 				self.result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
 			log.info(self.result_message)
 			self.defaulted = True
-			self.target_date = utils.parse_time("1 day", requested_date)
+			self.target_date = utils.parse_time("1 day", requested_date, None)
 
 		self.db_id = db_id
 
@@ -109,7 +109,7 @@ class Reminder:
 			bldr.append("**Defaulted to one day.**\n\n")
 
 		if self.timezone is not None:
-			bldr.append("Your default time zone is set to `{}`. ")
+			bldr.append(f"Your default time zone is set to `{self.timezone}`. ")
 
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date, self.timezone))

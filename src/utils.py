@@ -56,22 +56,17 @@ def find_reminder_time(body):
 		return None
 
 
-def parse_time(time_string, base_time):
+def parse_time(time_string, base_time, timezone_string):
+	if timezone_string is not None:
+		base_time = base_time.astimezone(pytz.timezone(timezone_string))
+
 	try:
 		date_time = dateparser.parse(
 			time_string,
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	except Exception:
 		date_time = None
-	# if date_time is None:
-	# 	try:
-	# 		date_tuples = search_dates(
-	# 			time_string,
-	# 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
-	# 		if date_tuples and len(date_tuples):
-	# 			date_time = date_tuples[0][1]
-	# 	except Exception:
-	# 		date_time = None
+
 	if date_time is None:
 		try:
 			date_time, result_code = cal.parseDT(time_string, base_time)
@@ -82,8 +77,16 @@ def parse_time(time_string, base_time):
 
 	if date_time is None:
 		return None
+
 	if date_time.tzinfo is None:
-		date_time = datetime_force_utc(date_time)
+		if timezone_string is not None:
+			date_time = pytz.timezone(timezone_string).localize(date_time)
+		else:
+			date_time = datetime_force_utc(date_time)
+
+	if date_time.tzinfo != pytz.utc:
+		date_time = date_time.astimezone(pytz.utc)
+
 	return date_time
 
 
