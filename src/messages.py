@@ -53,7 +53,12 @@ def get_reminders_string(user, database, previous=False):
 
 		for reminder in reminders:
 			bldr.append("|")
-			bldr.append(reminder.source)
+			if "reddit.com" in reminder.source:
+				bldr.append("[Source](")
+				bldr.append(reminder.source)
+				bldr.append(")")
+			else:
+				bldr.append(reminder.source)
 			bldr.append("|")
 			if reminder.message is not None:
 				bldr.append(reminder.message)

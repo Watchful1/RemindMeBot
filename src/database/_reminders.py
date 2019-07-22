@@ -198,6 +198,32 @@ class _DatabaseReminders:
 
 		return c.rowcount
 
+	def get_all_reminders(self):
+		log.debug(f"Fetching all reminders")
+		c = self.dbConn.cursor()
+		results = []
+		for row in c.execute('''
+			SELECT rm.ID, rm.Source, rm.RequestedDate, rm.TargetDate, rm.Message, rm.User, rm.Defaulted, us.TimeZone
+			FROM reminders rm
+				LEFT JOIN user_settings us
+					ON us.User = rm.User
+			ORDER BY TargetDate
+			'''):
+			reminder = Reminder(
+				source=row[1],
+				target_date=utils.parse_datetime_string(row[3]),
+				message=row[4],
+				user=row[5],
+				db_id=row[0],
+				requested_date=utils.parse_datetime_string(row[2]),
+				defaulted=row[6] == 1,
+				timezone=row[7]
+			)
+			results.append(reminder)
+
+		log.debug(f"Found reminders: {len(results)}")
+		return results
+
 	def add_cakeday(self, cakeday):
 		if cakeday.db_id is not None:
 			log.warning(f"This cakeday already exists: {cakeday.db_id}")
