@@ -31,6 +31,7 @@ class Reddit:
 
 		self.processed_comments = Queue(100)
 		self.consecutive_timeouts = 0
+		self.timeout_warn_threshold = 1
 
 	def run_function(self, function, arguments):
 		output = None
@@ -156,9 +157,9 @@ class Reddit:
 
 		except requests.exceptions.ReadTimeout:
 			self.consecutive_timeouts += 1
-			if self.consecutive_timeouts >= 5:
-				log.warning(f"Five consecutive timeouts for search term: {keyword}")
-				self.consecutive_timeouts = 0
+			if self.consecutive_timeouts >= pow(self.timeout_warn_threshold, 2) * 5:
+				log.warning(f"{self.consecutive_timeouts} consecutive timeouts for search term: {keyword}")
+				self.timeout_warn_threshold += 1
 			return []
 
 		except Exception as err:
