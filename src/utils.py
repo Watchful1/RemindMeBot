@@ -1,6 +1,7 @@
 import re
 import discord_logging
 import dateparser
+from dateutil.relativedelta import relativedelta
 from dateparser.search import search_dates
 import parsedatetime
 import pytz
@@ -33,16 +34,20 @@ def fullname_type(fullname):
 
 
 def find_reminder_message(body):
-	line_messages = re.findall(
-		r'(?:{trigger}.*[\[\"“])(.*?)(?:[\]\"”])(?:[^(]|\n|$)'.format(trigger=static.TRIGGER_LOWER),
+	line_match = re.search(
+		r'(?:{trigger}.+)(?:(?:\[)([^\]]+?)(?:\])|(?:\")([^\"]+?)(?:\")|(?:“)([^”]*?)(?:”))(?:[^(]|\n|$)'.format(
+			trigger=static.TRIGGER_LOWER),
 		body,
 		flags=re.IGNORECASE)
-	if len(line_messages) > 0:
-		return line_messages[0]
+	if line_match:
+		return line_match.group(1) or line_match.group(2) or line_match.group(3)
 
-	messages = re.findall(r'(?:[\[\"“])(.*?)(?:[\]\"”])(?:[^(]|\n|$)', body, flags=re.IGNORECASE)
-	if len(messages) > 0:
-		return messages[0]
+	match = re.search(
+		r'(?:(?:\[)([^\]]+?)(?:\])|(?:\")([^\"]+?)(?:\")|(?:“)([^”]*?)(?:”))(?:[^(]|\n|$)',
+		body,
+		flags=re.IGNORECASE)
+	if match:
+		return match.group(1) or match.group(2) or match.group(3)
 	else:
 		return None
 
@@ -97,6 +102,24 @@ def render_time(date_time, timezone=None, format_string="%Y-%m-%d %H:%M:%S %Z"):
 	bldr.append(" To Local Time".replace(" ", "%20"))
 	bldr.append(")")
 	return ''.join(bldr)
+
+
+def render_time_diff(start_date, end_date):
+	delta = relativedelta(end_date, start_date)
+	if delta.years > 0:
+		return f"{delta.years} years"
+	elif delta.months > 0:
+		return f"{delta.months} months"
+	elif delta.days > 0:
+		return f"{delta.days} days"
+	elif delta.hours > 0:
+		return f"{delta.hours} hours"
+	elif delta.minutes > 0:
+		return f"{delta.minutes} minutes"
+	elif delta.seconds > 0:
+		return f"{delta.seconds} seconds"
+	else:
+		return ""
 
 
 def message_link(message_id, np=False):
@@ -211,7 +234,7 @@ def get_footer(bldr=None):
 	bldr.append("|[^(Feedback)](")
 	bldr.append(build_message_link(
 		static.OWNER,
-		"Feedback"
+		"RemindMeBot Feedback"
 	))
 	bldr.append(")")
 	bldr.append("|\n|-|-|-|-|")

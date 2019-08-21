@@ -31,9 +31,9 @@ for i, reminder in enumerate(reminders):
 			if match is not None:
 				comment = reddit.get_comment(match.group())
 				try:
-					count_comment_id += 1
 					permalink = f"https://www.reddit.com{comment.permalink}"
 					reminder.source = permalink
+					count_comment_id += 1
 					changed = True
 
 				except Exception:

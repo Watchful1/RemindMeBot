@@ -12,6 +12,7 @@ pytz = "*"
 discord-logging = {git = "https://github.com/Watchful1/DiscordLogging.git"}
 parsedatetime = "*"
 dateparser = {git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
+python-dateutil = "*"
 
 [requires]
 python_version = "3.7"

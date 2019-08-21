@@ -153,7 +153,11 @@ class Reddit:
 				return []
 			comments = json.json()['data']
 
+			if self.timeout_warn_threshold > 1:
+				log.warning(f"Recovered from timeouts after {self.consecutive_timeouts} attempts")
+
 			self.consecutive_timeouts = 0
+			self.timeout_warn_threshold = 1
 
 		except requests.exceptions.ReadTimeout:
 			self.consecutive_timeouts += 1

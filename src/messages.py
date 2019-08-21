@@ -37,7 +37,7 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append("`\n\n")
 
 		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
-		bldr.append("|Source|Message|Date|Remove|\n")
+		bldr.append("|Source|Message|Date|In|Remove|\n")
 		bldr.append("|-|-|-|:-:|\n")
 		if cakeday is not None:
 			bldr.append("||")
@@ -45,6 +45,8 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append("|")
 			bldr.append("Yearly on ")
 			bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
+			bldr.append("|")
+			bldr.append(utils.render_time_diff(utils.datetime_now(), cakeday.date_time))
 			bldr.append("|")
 			bldr.append("[Remove](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
@@ -61,9 +63,11 @@ def get_reminders_string(user, database, previous=False):
 				bldr.append(reminder.source)
 			bldr.append("|")
 			if reminder.message is not None:
-				bldr.append(reminder.message)
+				bldr.append(reminder.message.replace("|", "&#124;"))
 			bldr.append("|")
 			bldr.append(utils.render_time(reminder.target_date, reminder.timezone))
+			bldr.append("|")
+			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
 			bldr.append("|")
 			bldr.append("[Remove](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.db_id}"))
@@ -187,12 +191,12 @@ def process_delete_comment(message, reddit, database):
 		db_comment = database.get_comment_by_thread(ids[0])
 		if db_comment is not None:
 			if db_comment.user == message.author.name:
-				comment = reddit.get_comment(ids[0])
+				comment = reddit.get_comment(db_comment.comment_id)
 				if not reddit.delete_comment(comment) or not database.delete_comment(db_comment):
-					log.debug(f"Unable to delete comment: {ids[0]}")
+					log.debug(f"Unable to delete comment: {db_comment.comment_id}")
 					bldr.append("Something went wrong deleting the comment")
 				else:
-					log.debug(f"Deleted comment: {ids[0]}")
+					log.debug(f"Deleted comment: {db_comment.comment_id}")
 					bldr.append("Comment deleted.")
 			else:
 				log.debug(f"Bot wasn't replying to owner: {db_comment.user} : {message.author.name}")
@@ -282,7 +286,10 @@ def process_message(message, reddit, database, count_string=""):
 	bldr.extend(utils.get_footer())
 	result = reddit.reply_message(message, ''.join(bldr))
 	if result != ReturnType.SUCCESS:
-		raise ValueError(f"Error sending message: {result.name}")
+		if result == ReturnType.INVALID_USER:
+			log.info("User banned before reply could be sent")
+		else:
+			raise ValueError(f"Error sending message: {result.name}")
 
 
 def process_messages(reddit, database):

@@ -45,7 +45,7 @@ def test_date_parsing():
 	]
 
 	for time_string, expected_string in pairs:
-		result_date = utils.parse_time(time_string, base_time, "America/Los_Angeles")
+		result_date = utils.parse_time(time_string, base_time, "UTC")
 		expected_date = utils.datetime_force_utc(datetime.strptime(expected_string, "%Y-%m-%d %H:%M:%S"))
 		assert result_date == expected_date, f"`{time_string}` as `{result_date}` != `{expected_date}`"
 

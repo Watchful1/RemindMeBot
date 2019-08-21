@@ -145,6 +145,7 @@ def test_add_reminder_no_date(database, reddit):
 
 
 def test_get_reminders(database, reddit):
+	utils.debug_time = utils.parse_datetime_string("2019-01-01 12:00:00")
 	message = reddit_test.RedditObject(
 		body="MyReminders!",
 		author="Watchful1"
@@ -171,7 +172,7 @@ def test_get_reminders(database, reddit):
 	database.save_reminder(reminder2)
 	cakeday = Cakeday(
 		user="Watchful1",
-		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")
 	)
 	database.add_cakeday(cakeday)
 
@@ -288,6 +289,7 @@ def test_remove_cakeday(database, reddit):
 
 
 def test_remove_all_reminders(database, reddit):
+	utils.debug_time = utils.parse_datetime_string("2019-01-01 12:00:00")
 	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
 		author="Watchful1"
@@ -321,7 +323,7 @@ def test_remove_all_reminders(database, reddit):
 	database.save_reminder(reminder3)
 	cakeday = Cakeday(
 		user="Watchful1",
-		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
+		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")
 	)
 	database.add_cakeday(cakeday)
 
@@ -351,7 +353,7 @@ def test_delete_comment(database, reddit):
 	comment = reddit_test.RedditObject(
 		body="Click here for a reminder!",
 		author=static.ACCOUNT_NAME,
-		id="YYYYY"
+		id="ZZZZZ"
 	)
 	reddit.add_comment(comment, True)
 
@@ -375,6 +377,7 @@ def test_delete_comment(database, reddit):
 	)
 	messages.process_message(message, reddit, database)
 	assert "Comment deleted." in message.get_first_child().body
+	assert comment.id not in reddit.all_comments
 
 
 def test_set_timezone(database, reddit):
