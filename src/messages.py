@@ -38,7 +38,7 @@ def get_reminders_string(user, database, previous=False):
 
 		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
 		bldr.append("|Source|Message|Date|In|Remove|\n")
-		bldr.append("|-|-|-|:-:|\n")
+		bldr.append("|-|-|-|-|:-:|\n")
 		if cakeday is not None:
 			bldr.append("||")
 			bldr.append("Happy cakeday!")
