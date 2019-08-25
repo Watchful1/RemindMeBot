@@ -129,7 +129,8 @@ class Reminder:
 		bldr.append(utils.build_message_link(
 			static.ACCOUNT_NAME,
 			"Reminder",
-			f"[{self.source}]\n\n{static.TRIGGER}! {utils.get_datetime_string(self.target_date)}"
+			f"[{self.source}]\n\n{static.TRIGGER}! "
+			f"{utils.get_datetime_string(self.target_date, format_string='%Y-%m-%d %H:%M:%S %Z')}"
 		))
 		bldr.append(") to send a PM to also be reminded and to reduce spam.")
 
