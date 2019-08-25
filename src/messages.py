@@ -300,11 +300,16 @@ def process_messages(reddit, database):
 	for message in messages[::-1]:
 		i += 1
 		if reddit.is_message(message):
-			try:
-				process_message(message, reddit, database, f"{i}/{len(messages)}")
-			except Exception:
-				log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
-				log.warning(traceback.format_exc())
+			if message.author is None:
+				log.info(f"Message {message.id} is a system notification")
+			elif message.author.name == "reddit":
+				log.info(f"Message {message.id} is from reddit, skipping")
+			else:
+				try:
+					process_message(message, reddit, database, f"{i}/{len(messages)}")
+				except Exception:
+					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
+					log.warning(traceback.format_exc())
 		else:
 			log.info(f"Object not message, skipping: {message.id}")
 
