@@ -107,17 +107,17 @@ def render_time(date_time, timezone=None, format_string="%Y-%m-%d %H:%M:%S %Z"):
 def render_time_diff(start_date, end_date):
 	delta = relativedelta(end_date, start_date)
 	if delta.years > 0:
-		return f"{delta.years} years"
+		return f"{delta.years} year{('s' if delta.years > 1 else '')}"
 	elif delta.months > 0:
-		return f"{delta.months} months"
+		return f"{delta.months} month{('s' if delta.months > 1 else '')}"
 	elif delta.days > 0:
-		return f"{delta.days} days"
+		return f"{delta.days} day{('s' if delta.days > 1 else '')}"
 	elif delta.hours > 0:
-		return f"{delta.hours} hours"
+		return f"{delta.hours} hour{('s' if delta.hours > 1 else '')}"
 	elif delta.minutes > 0:
-		return f"{delta.minutes} minutes"
+		return f"{delta.minutes} minute{('s' if delta.minutes > 1 else '')}"
 	elif delta.seconds > 0:
-		return f"{delta.seconds} seconds"
+		return f"{delta.seconds} second{('s' if delta.seconds > 1 else '')}"
 	else:
 		return ""
 
