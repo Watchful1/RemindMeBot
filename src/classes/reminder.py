@@ -8,6 +8,13 @@ from classes.enums import ReturnType
 log = discord_logging.get_logger()
 
 
+other_bot = "There is currently another bot called u/kzreminderbot that is duplicating the functionality of this bot. " \
+			"Since it replies to the same RemindMe! trigger phrase, you may receive a second message from it with the " \
+			f"same reminder. If this is annoying to you, please click [this link](" \
+			f"{utils.build_message_link('kzreminderbot', 'Feedback! KZ Reminder Bot')}) to send feedback to that bot " \
+			f"author and ask him to use a different trigger."
+
+
 class Reminder:
 	def __init__(
 		self,
@@ -100,6 +107,9 @@ class Reminder:
 			elif comment_return == ReturnType.THREAD_REPLIED:
 				bldr.append("I've already replied to another comment in this thread.")
 
+		bldr.append("\n\n")
+		bldr.append(other_bot)
+
 		return bldr
 
 	def render_comment_confirmation(self):
@@ -144,6 +154,9 @@ class Reminder:
 			))
 			bldr.append(")")
 
+		bldr.append("\n\n")
+		bldr.append(other_bot)
+
 		return bldr
 
 	def render_notification(self):
@@ -177,5 +190,8 @@ class Reminder:
 		bldr.append(") and set the time after the ")
 		bldr.append(static.TRIGGER)
 		bldr.append(" command to be reminded of the original comment again.")
+
+		bldr.append("\n\n")
+		bldr.append(other_bot)
 
 		return bldr
