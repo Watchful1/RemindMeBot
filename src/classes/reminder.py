@@ -1,14 +1,29 @@
 import utils
 import discord_logging
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
+from sqlalchemy.orm import relationship
 
 import static
 from classes.enums import ReturnType
+from database import Base
 
 
 log = discord_logging.get_logger()
 
 
-class Reminder:
+class Reminder(Base):
+	__tablename__ = 'reminders'
+
+	id = Column(Integer, primary_key=True)
+	source = Column(String(400))
+	message = Column(String(500))
+	user = Column(String(80))
+	requested_date = Column(DateTime)
+	target_date = Column(DateTime)
+	defaulted = Column(Boolean)
+
+	comment = relationship("DbComment")
+
 	def __init__(
 		self,
 		source,

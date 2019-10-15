@@ -1,14 +1,38 @@
 from datetime import timedelta
 import pytz
+import discord_logging
+
+log = discord_logging.get_logger(init=True)
 
 import messages
 import utils
 import reddit_test
 import static
+from database import Database
 from classes.reminder import Reminder
 from classes.comment import DbComment
 from classes.cakeday import Cakeday
 from classes.user_settings import UserSettings
+
+
+def test_sandbox():
+	database = Database()
+
+	reminder = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user="Watchful1",
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
+	)
+
+	log.info(reminder.id)
+
+	database.add_reminder(reminder)
+
+	database.commit()
+
+	log.info(reminder.id)
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):

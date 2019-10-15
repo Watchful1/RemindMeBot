@@ -6,5 +6,5 @@ __pycache__/*
 *.ini
 src/__pycache__/
 src/classes/__pycache__/
-src/database/__pycache__/
+src/database_old/__pycache__/
 test/__pycache__/

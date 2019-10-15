@@ -18,7 +18,7 @@ def database_set_seen(database, comment_seen):
 def database_get_seen(database):
 	result = database.get_keystore("remindme_comment")
 	if result is None:
-		log.warning("Comment time not in database, returning now")
+		log.warning("Comment time not in database_old, returning now")
 		return utils.datetime_now()
 	return utils.parse_datetime_string(result)
 

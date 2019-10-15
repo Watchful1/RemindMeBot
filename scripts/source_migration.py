@@ -4,7 +4,7 @@ import re
 log = discord_logging.init_logging()
 
 import reddit_class
-from database import Database
+from database_old import Database
 
 reddit = reddit_class.Reddit("Watchful1BotTest", False)
 database = Database()

@@ -34,14 +34,14 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Reddit RemindMe bot")
 	parser.add_argument("user", help="The reddit user account to use")
 	parser.add_argument("--once", help="Only run the loop once", action='store_const', const=True, default=False)
-	parser.add_argument("--debug_db", help="Use the debug database", action='store_const', const=True, default=False)
+	parser.add_argument("--debug_db", help="Use the debug database_old", action='store_const', const=True, default=False)
 	parser.add_argument(
-		"--clone_db", help="Copy the primary database to the debug on", action='store_const', const=True, default=False)
+		"--clone_db", help="Copy the primary database_old to the debug on", action='store_const', const=True, default=False)
 	parser.add_argument(
 		"--no_post", help="Print out reddit actions instead of posting to reddit", action='store_const', const=True,
 		default=False)
 	parser.add_argument(
-		"--no_backup", help="Don't backup the database", action='store_const', const=True, default=False)
+		"--no_backup", help="Don't backup the database_old", action='store_const', const=True, default=False)
 	parser.add_argument(
 		"--reset_comment", help="Reset the last comment read timestamp", action='store_const', const=True,
 		default=False)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 				database.backup()
 				last_backup = utils.datetime_now()
 			except Exception as err:
-				log.warning(f"Error backing up database: {err}")
+				log.warning(f"Error backing up database_old: {err}")
 				log.warning(traceback.format_exc())
 				errors += 1
 
