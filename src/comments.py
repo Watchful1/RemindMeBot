@@ -27,6 +27,9 @@ def parse_comment(comment, database, count_string):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None
+	if comment['author'] == "kzreminderbot":
+		log.debug("Comment is from a bot")
+		return None
 	if comment['author'] == "[deleted]":
 		log.info("Author account is deleted")
 		return None
