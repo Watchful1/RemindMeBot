@@ -5,25 +5,31 @@ import os
 import discord_logging
 from shutil import copyfile
 
+Base = declarative_base()
+
 import static
 import utils
 from ._keystore import _DatabaseKeystore
+from ._reminders import _DatabaseReminders
+from ._comments import _DatabaseComments
+from ._subreddits import _DatabaseSubreddit
+from ._user_settings import _DatabaseUserSettings
 
 log = discord_logging.get_logger()
 
 
-Base = declarative_base()
-
-
-class Database(_DatabaseKeystore):
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUserSettings):
 	def __init__(self, debug=False, publish=False, clone=False):
 		log.info(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
 		self.debug = debug
-		self.dbConn = None
 		self.init(debug, publish, clone)
 		self.engine = None
 
+		_DatabaseReminders.__init__(self)
+		_DatabaseComments.__init__(self)
 		_DatabaseKeystore.__init__(self)
+		_DatabaseSubreddit.__init__(self)
+		_DatabaseUserSettings.__init__(self)
 
 	def init(self, debug, publish, clone):
 		if debug:
@@ -39,7 +45,6 @@ class Database(_DatabaseKeystore):
 		Session = sessionmaker(bind=self.engine)
 		self.session = Session()
 
-		c = self.dbConn.cursor()
 		if publish:
 			Base.metadata.drop_all(self.engine)
 
@@ -48,10 +53,11 @@ class Database(_DatabaseKeystore):
 		if self.get_keystore("remindme_comment") is None:
 			self.save_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
 
-		self.dbConn.commit()
+		self.commit()
 
 	def backup(self):
 		log.info("Backing up database")
+		self.commit()
 		self.engine.dispose()
 
 		if not os.path.exists(static.BACKUP_FOLDER_NAME):
@@ -61,3 +67,6 @@ class Database(_DatabaseKeystore):
 			static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
 
 		self.init(self.debug, False, False)
+
+	def commit(self):
+		self.session.commit()

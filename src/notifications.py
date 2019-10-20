@@ -1,5 +1,4 @@
 import discord_logging
-import praw
 
 import utils
 from classes.enums import ReturnType
@@ -19,7 +18,7 @@ def send_reminders(reddit, database):
 			i += 1
 			log.info(
 				f"{i}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user} : "
-				f"{reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
+				f"{reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 			bldr = utils.get_footer(reminder.render_notification())
 			result = reddit.send_message(reminder.user, "RemindMeBot Here!", ''.join(bldr))
 			if result in (ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST):

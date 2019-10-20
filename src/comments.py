@@ -18,7 +18,7 @@ def database_set_seen(database, comment_seen):
 def database_get_seen(database):
 	result = database.get_keystore("remindme_comment")
 	if result is None:
-		log.warning("Comment time not in database_old, returning now")
+		log.warning("Comment time not in database, returning now")
 		return utils.datetime_now()
 	return utils.parse_datetime_string(result)
 
@@ -103,7 +103,7 @@ def process_comment(comment, reddit, database, count_string=""):
 				reddit.quarantine_opt_in(comment['subreddit'])
 
 			log.info(
-				f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
+				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
 
 			database.save_reminder(reminder)
@@ -112,7 +112,7 @@ def process_comment(comment, reddit, database, count_string=""):
 				db_comment = DbComment(
 					thread_id=thread_id,
 					comment_id=result_id,
-					reminder_id=reminder.db_id,
+					reminder_id=reminder.id,
 					user=reminder.user,
 					source=reminder.source
 				)
@@ -121,7 +121,7 @@ def process_comment(comment, reddit, database, count_string=""):
 
 	if not commented:
 		log.info(
-			f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}, "
+			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
 		bldr = utils.get_footer(reminder.render_message_confirmation(comment_result))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))

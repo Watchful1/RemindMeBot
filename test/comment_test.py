@@ -37,7 +37,7 @@ def test_process_comment(database, reddit):
 	assert reminders[0].source == utils.reddit_link(comment.permalink)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
-	assert reminders[0].db_id is not None
+	assert reminders[0].id is not None
 
 
 def test_process_comment_timezone(database, reddit):

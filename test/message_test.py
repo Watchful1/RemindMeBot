@@ -67,7 +67,7 @@ def test_add_reminder(database, reddit):
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
-	assert reminders[0].db_id is not None
+	assert reminders[0].id is not None
 
 
 def test_add_cakeday(database, reddit):
@@ -138,7 +138,7 @@ def test_add_reminder_no_message(database, reddit):
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
-	assert reminders[0].db_id is not None
+	assert reminders[0].id is not None
 
 
 def test_add_reminder_no_date(database, reddit):
@@ -165,7 +165,7 @@ def test_add_reminder_no_date(database, reddit):
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
-	assert reminders[0].db_id is not None
+	assert reminders[0].id is not None
 
 
 def test_get_reminders(database, reddit):
@@ -266,14 +266,14 @@ def test_remove_reminder(database, reddit):
 	assert "I couldn't find a reminder id to remove." in message.get_first_child().body
 
 	message = reddit_test.RedditObject(
-		body=f"Remove! {reminder1.db_id}",
+		body=f"Remove! {reminder1.id}",
 		author="Watchful2"
 	)
 	messages.process_message(message, reddit, database)
 	assert "It looks like you don't own this reminder or it doesn't exist." in message.get_first_child().body
 
 	message = reddit_test.RedditObject(
-		body=f"Remove! {reminder1.db_id}",
+		body=f"Remove! {reminder1.id}",
 		author="Watchful1"
 	)
 	messages.process_message(message, reddit, database)

@@ -7,11 +7,11 @@ log = discord_logging.init_logging()
 
 from classes.reminder import Reminder
 import utils
-from database_old import Database
+from database_old import DatabaseOld
 
 
 old_database = "databaseOld.db"
-new_database = "database_old.db"
+new_database = "database.db"
 
 log.info(f"Importing from {old_database} to {new_database}")
 
@@ -19,7 +19,7 @@ old_db_conn = sqlite3.connect(old_database)
 old_c = old_db_conn.cursor()
 
 if os.path.exists(new_database):
-	log.info("Deleting existing database_old")
+	log.info("Deleting existing database")
 	os.remove(new_database)
 new_db_conn = sqlite3.connect(new_database)
 new_c = new_db_conn.cursor()

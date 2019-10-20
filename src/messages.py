@@ -70,7 +70,7 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
 			bldr.append("|")
 			bldr.append("[Remove](")
-			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.db_id}"))
+			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.id}"))
 			bldr.append(")")
 			bldr.append("|\n")
 
@@ -106,7 +106,7 @@ def process_remind_me(message, database):
 		log.info("Something went wrong saving the reminder")
 		return ["Something went wrong saving the reminder"]
 
-	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
+	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
 	return reminder.render_message_confirmation()
 
@@ -291,6 +291,8 @@ def process_message(message, reddit, database, count_string=""):
 		else:
 			raise ValueError(f"Error sending message: {result.name}")
 
+	database.commit()
+
 
 def process_messages(reddit, database):
 	messages = reddit.get_messages()
@@ -310,6 +312,8 @@ def process_messages(reddit, database):
 				except Exception:
 					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 					log.warning(traceback.format_exc())
+				finally:
+					database.commit()
 		else:
 			log.info(f"Object not message, skipping: {message.id}")
 

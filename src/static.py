@@ -1,7 +1,7 @@
 LOG_FOLDER_NAME = "logs"
 USER_AGENT = "RemindMeBot (by /u/Watchful1)"
 OWNER = "Watchful1"
-DATABASE_NAME = "database_old.db"
+DATABASE_NAME = "database.db"
 DATABASE_DEBUG_NAME = "database_debug.db"
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "Watchful1BotTest"

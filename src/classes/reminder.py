@@ -1,11 +1,12 @@
 import utils
 import discord_logging
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 import static
 from classes.enums import ReturnType
 from database import Base
+from database.UtcDateTime import UtcDateTime
 
 
 log = discord_logging.get_logger()
@@ -22,14 +23,14 @@ class Reminder(Base):
 	__tablename__ = 'reminders'
 
 	id = Column(Integer, primary_key=True)
-	source = Column(String(400))
+	source = Column(String(400), nullable=False)
 	message = Column(String(500))
-	user = Column(String(80))
-	requested_date = Column(DateTime)
-	target_date = Column(DateTime)
-	defaulted = Column(Boolean)
+	user = Column(String(80), nullable=False)
+	requested_date = Column(UtcDateTime, nullable=False)
+	target_date = Column(UtcDateTime, nullable=False)
+	defaulted = Column(Boolean, nullable=False)
 
-	comment = relationship("DbComment")
+	comment = relationship("DbComment", cascade="all")
 
 	def __init__(
 		self,
@@ -38,7 +39,6 @@ class Reminder(Base):
 		user,
 		requested_date,
 		target_date=None,
-		db_id=None,
 		time_string=None,
 		count_duplicates=0,
 		thread_id=None,
@@ -78,8 +78,6 @@ class Reminder(Base):
 			log.info(self.result_message)
 			self.defaulted = True
 			self.target_date = utils.parse_time("1 day", requested_date, None)
-
-		self.db_id = db_id
 
 	def __str__(self):
 		return f"{utils.get_datetime_string(self.requested_date)} " \

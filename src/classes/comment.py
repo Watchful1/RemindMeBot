@@ -1,17 +1,17 @@
 from sqlalchemy import Column, ForeignKey, Integer, String
-from database_new import Base
+from database import Base
 
 
 class DbComment(Base):
 	__tablename__ = 'comments'
 
 	id = Column(Integer, primary_key=True)
-	thread_id = Column(String(12))
-	comment_id = Column(String(12))
-	reminder_id = Column(Integer, ForeignKey('reminders.id'))
-	user = Column(String(80))
-	source = Column(String(400))
-	current_count = Column(Integer)
+	thread_id = Column(String(12), nullable=False)
+	comment_id = Column(String(12), nullable=False)
+	reminder_id = Column(Integer, ForeignKey('reminders.id'), nullable=False)
+	user = Column(String(80), nullable=False)
+	source = Column(String(400), nullable=False)
+	current_count = Column(Integer, nullable=False)
 
 	def __init__(
 		self,
@@ -20,8 +20,7 @@ class DbComment(Base):
 		reminder_id,
 		user,
 		source,
-		current_count=0,
-		db_id=None
+		current_count=0
 	):
 		self.thread_id = thread_id
 		self.comment_id = comment_id
@@ -29,4 +28,3 @@ class DbComment(Base):
 		self.user = user
 		self.source = source
 		self.current_count = current_count
-		self.db_id = db_id

@@ -15,7 +15,7 @@ class _DatabaseKeystore:
 
 	def get_keystore(self, key):
 		log.debug(f"Fetching keystore: {key}")
-		key_value = self.session.query(KeyValue).filter(key=key).first()
+		key_value = self.session.query(KeyValue).filter_by(key=key).first()
 
 		if key_value is None:
 			log.debug("Key not found")

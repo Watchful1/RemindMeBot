@@ -6,7 +6,7 @@ log = discord_logging.init_logging(debug=True)
 
 sys.path.append("src")
 
-from database_old import Database
+from database import Database
 import reddit_test
 
 
