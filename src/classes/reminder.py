@@ -31,6 +31,7 @@ class Reminder(Base):
 	defaulted = Column(Boolean, nullable=False)
 
 	comment = relationship("DbComment", cascade="all")
+	user_settings = relationship("UserSettings")
 
 	def __init__(
 		self,
@@ -40,18 +41,14 @@ class Reminder(Base):
 		requested_date,
 		target_date=None,
 		time_string=None,
-		count_duplicates=0,
 		thread_id=None,
-		defaulted=False,
-		timezone=None
+		defaulted=False
 	):
 		self.source = source
 		self.message = message
 		self.user = user
 		self.requested_date = requested_date
-		self.count_duplicates = count_duplicates
 		self.thread_id = thread_id
-		self.timezone = timezone
 
 		self.result_message = None
 		self.valid = True
@@ -60,7 +57,7 @@ class Reminder(Base):
 		if target_date is not None:
 			self.target_date = target_date
 		elif time_string is not None:
-			self.target_date = utils.parse_time(time_string, requested_date, timezone)
+			self.target_date = utils.parse_time(time_string, requested_date, None)
 
 			if self.target_date is not None and self.target_date < self.requested_date:
 				self.result_message = f"This time, {time_string.strip()}, was interpreted as " \
@@ -90,7 +87,7 @@ class Reminder(Base):
 			bldr.append(self.result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date, self.timezone))
+		bldr.append(utils.render_time(self.target_date, self.user_settings.timezone))
 		bldr.append(" to remind you")
 		if self.message is None:
 			bldr.append(" of [**this link**](")
@@ -125,17 +122,17 @@ class Reminder(Base):
 
 		return bldr
 
-	def render_comment_confirmation(self):
+	def render_comment_confirmation(self, count_duplicates=0):
 		bldr = utils.str_bldr()
 
 		if self.defaulted:
 			bldr.append("**Defaulted to one day.**\n\n")
 
-		if self.timezone is not None:
-			bldr.append(f"Your default time zone is set to `{self.timezone}`. ")
+		if self.user_settings.timezone is not None:
+			bldr.append(f"Your default time zone is set to `{self.user_settings.timezone}`. ")
 
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date, self.timezone))
+		bldr.append(utils.render_time(self.target_date, self.user_settings.timezone))
 		bldr.append(" to remind you of [**this link**](")
 		bldr.append(utils.replace_np(self.source))
 		bldr.append(")")
@@ -143,8 +140,8 @@ class Reminder(Base):
 		bldr.append("\n\n")
 
 		bldr.append("[**")
-		if self.count_duplicates > 0:
-			bldr.append(str(self.count_duplicates))
+		if count_duplicates > 0:
+			bldr.append(str(count_duplicates))
 			bldr.append(" OTHERS CLICKED")
 		else:
 			bldr.append("CLICK")
@@ -191,7 +188,7 @@ class Reminder(Base):
 			bldr.append("This reminder was created before I started saving the creation date of reminders.")
 		else:
 			bldr.append("You requested this reminder on: ")
-			bldr.append(utils.render_time(self.requested_date, self.timezone))
+			bldr.append(utils.render_time(self.requested_date, self.user_settings.timezone))
 		bldr.append("\n\n")
 
 		bldr.append("[Click here](")

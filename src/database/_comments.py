@@ -1,6 +1,9 @@
 import discord_logging
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import func
 
 from classes.comment import DbComment
+from classes.reminder import Reminder
 
 log = discord_logging.get_logger()
 
@@ -10,15 +13,8 @@ class _DatabaseComments:
 		self.session = self.session  # for pycharm linting
 
 	def save_comment(self, db_comment):
-		if db_comment.id is None:
-			log.debug("Saving new comment")
-		else:
-			log.debug(f"Updating comment: {db_comment.id}")
-		try:
-			self.session.merge(db_comment)
-		except:
-			return False
-		return True
+		log.debug("Saving new comment")
+		self.session.add(db_comment)
 
 	def get_comment_by_thread(self, thread_id):
 		log.debug(f"Fetching comment for thread: {thread_id}")
@@ -31,10 +27,38 @@ class _DatabaseComments:
 
 	def get_pending_incorrect_comments(self):
 		log.debug("Fetching count of incorrect comments")
-		log.debug(f"Incorrect comments: {0}")
-		return None
+
+		Reminder1 = aliased(Reminder)
+		Reminder2 = aliased(Reminder)
+		subquery = self.session.query(Reminder1.id, func.count('*').label("new_count"))\
+			.join(Reminder2, Reminder1.source == Reminder2.message)\
+			.group_by(Reminder1.id)\
+			.subquery()
+		count = self.session.query(DbComment)\
+			.join(subquery, DbComment.reminder_id == subquery.c.id)\
+			.filter(subquery.c.new_count != DbComment.current_count)\
+			.count()
+		log.debug(f"Incorrect comments: {count}")
+		return count
 
 	def get_incorrect_comments(self, count):
 		log.debug(f"Fetching incorrect comments")
-		log.debug(f"Found incorrect comments: {0}")
-		return []
+
+		Reminder1 = aliased(Reminder)
+		Reminder2 = aliased(Reminder)
+
+		subquery = self.session.query(Reminder1, func.count('*').label("new_count"))\
+			.join(Reminder2, Reminder1.source == Reminder2.message)\
+			.group_by(Reminder1.id)\
+			.subquery()
+
+		Reminder3 = aliased(Reminder, subquery)
+
+		results = self.session.query(DbComment, Reminder3, subquery.c.new_count)\
+			.join(subquery, DbComment.reminder_id == subquery.c.id)\
+			.filter(subquery.c.new_count != DbComment.current_count)\
+			.limit(count)\
+			.all()
+
+		log.debug(f"Found incorrect comments: {len(results)}")
+		return results

@@ -17,8 +17,8 @@ def get_reminders_string(user, database, previous=False):
 	bldr = utils.str_bldr()
 
 	reminders = database.get_user_reminders(user)
-	cakeday = database.get_cakeday(user)
-	if len(reminders) or cakeday is not None:
+	#cakeday = database.get_cakeday(user)
+	if len(reminders):# or cakeday is not None:
 		if previous:
 			bldr.append("Your previous reminders:")
 		else:
@@ -36,22 +36,22 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append(user_settings.timezone)
 			bldr.append("`\n\n")
 
-		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
+		log.debug(f"Building list with {len(reminders)} reminders")
 		bldr.append("|Source|Message|Date|In|Remove|\n")
 		bldr.append("|-|-|-|-|:-:|\n")
-		if cakeday is not None:
-			bldr.append("||")
-			bldr.append("Happy cakeday!")
-			bldr.append("|")
-			bldr.append("Yearly on ")
-			bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
-			bldr.append("|")
-			bldr.append(utils.render_time_diff(utils.datetime_now(), cakeday.date_time))
-			bldr.append("|")
-			bldr.append("[Remove](")
-			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
-			bldr.append(")")
-			bldr.append("|\n")
+		# if cakeday is not None:
+		# 	bldr.append("||")
+		# 	bldr.append("Happy cakeday!")
+		# 	bldr.append("|")
+		# 	bldr.append("Yearly on ")
+		# 	bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
+		# 	bldr.append("|")
+		# 	bldr.append(utils.render_time_diff(utils.datetime_now(), cakeday.date_time))
+		# 	bldr.append("|")
+		# 	bldr.append("[Remove](")
+		# 	bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
+		# 	bldr.append(")")
+		# 	bldr.append("|\n")
 
 		for reminder in reminders:
 			bldr.append("|")
@@ -102,9 +102,7 @@ def process_remind_me(message, database):
 		log.debug("Reminder not valid, returning")
 		return [reminder.result_message]
 
-	if not database.save_reminder(reminder):
-		log.info("Something went wrong saving the reminder")
-		return ["Something went wrong saving the reminder"]
+	database.save_reminder(reminder)
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 

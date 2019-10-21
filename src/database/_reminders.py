@@ -10,15 +10,8 @@ class _DatabaseReminders:
 		self.session = self.session  # for pycharm linting
 
 	def save_reminder(self, reminder):
-		if reminder.id is None:
-			log.debug("Saving new reminder")
-		else:
-			log.debug(f"Updating reminder: {reminder.id}")
-		try:
-			self.session.merge(reminder)
-		except:
-			return False
-		return True
+		log.debug("Saving new reminder")
+		self.session.add(reminder)
 
 	def get_count_pending_reminders(self, timestamp):
 		log.debug("Fetching count of pending reminders")
@@ -31,7 +24,7 @@ class _DatabaseReminders:
 	def get_pending_reminders(self, count, timestamp):
 		log.debug("Fetching pending reminders")
 
-		reminders = self.session.query(Reminder).filter(Reminder.target_date < timestamp)[:count + 1].all()
+		reminders = self.session.query(Reminder).filter(Reminder.target_date < timestamp).limit(count).all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders

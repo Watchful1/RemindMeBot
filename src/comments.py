@@ -55,10 +55,7 @@ def parse_comment(comment, database, count_string):
 	if not reminder.valid:
 		return None
 
-	if not database.save_reminder(reminder):
-		reminder.result_message = "Something went wrong saving the reminder"
-		reminder.valid = False
-		log.warning(reminder.result_message)
+	database.save_reminder(reminder)
 
 	return reminder
 
@@ -106,8 +103,6 @@ def process_comment(comment, reddit, database, count_string=""):
 				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
 
-			database.save_reminder(reminder)
-
 			if comment_result != ReturnType.QUARANTINED:
 				db_comment = DbComment(
 					thread_id=thread_id,
@@ -154,16 +149,15 @@ def update_comments(reddit, database):
 	incorrect_items = database.get_incorrect_comments(utils.requests_available(count_incorrect))
 	if len(incorrect_items):
 		i = 0
-		for db_comment, reminder in incorrect_items:
+		for db_comment, reminder, new_count in incorrect_items:
 			i += 1
 			log.info(
 				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
 				f"{db_comment.comment_id} : {db_comment.current_count}/{reminder.count_duplicates}")
 
-			bldr = utils.get_footer(reminder.render_comment_confirmation())
+			bldr = utils.get_footer(reminder.render_comment_confirmation(new_count))
 			reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
 			db_comment.current_count = reminder.count_duplicates
-			database.save_comment(db_comment)
 
 	else:
 		log.debug("No incorrect comments")
