@@ -27,11 +27,8 @@ def parse_comment(comment, database, count_string):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None
-	if comment['author'] == "kzreminderbot":
-		log.debug("Comment is from a bot")
-		return None
-	if comment['author'] == "[deleted]":
-		log.info("Author account is deleted")
+	if comment['author'] in static.BLACKLISTED_ACCOUNTS:
+		log.debug("Comment is from a blacklisted account")
 		return None
 
 	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
@@ -44,26 +41,26 @@ def parse_comment(comment, database, count_string):
 
 	message_text = utils.find_reminder_message(comment['body'])
 
-	reminder = Reminder(
+	reminder, result_message = Reminder.build_reminder(
 		source=utils.reddit_link(comment['permalink']),
 		message=message_text,
 		user=comment['author'],
 		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
 		time_string=time,
-		timezone=database.get_settings(comment['author']).timezone
+		user_settings=database.get_settings(comment['author'])
 	)
-	if not reminder.valid:
+	if reminder is None:
 		return None
 
-	database.save_reminder(reminder)
+	database.add_reminder(reminder)
 
-	return reminder
+	return reminder, result_message
 
 
 def process_comment(comment, reddit, database, count_string=""):
-	reminder = parse_comment(comment, database, count_string)
+	reminder, result_message = parse_comment(comment, database, count_string)
 
-	if reminder is None or not reminder.valid:
+	if reminder is None:
 		log.debug("Not replying")
 		return
 
@@ -77,7 +74,7 @@ def process_comment(comment, reddit, database, count_string=""):
 	if comment_result is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
-		bldr = utils.get_footer(reminder.render_comment_confirmation())
+		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id))
 
 		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
@@ -118,7 +115,7 @@ def process_comment(comment, reddit, database, count_string=""):
 		log.info(
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
-		bldr = utils.get_footer(reminder.render_message_confirmation(comment_result))
+		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")
@@ -155,7 +152,7 @@ def update_comments(reddit, database):
 				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
 				f"{db_comment.comment_id} : {db_comment.current_count}/{reminder.count_duplicates}")
 
-			bldr = utils.get_footer(reminder.render_comment_confirmation(new_count))
+			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count))
 			reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
 			db_comment.current_count = reminder.count_duplicates
 

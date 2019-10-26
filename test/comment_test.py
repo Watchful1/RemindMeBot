@@ -188,7 +188,7 @@ def test_update_incorrect_comments(database, reddit):
 		)
 	]
 	for reminder in reminders:
-		database.save_reminder(reminder)
+		database.add_reminder(reminder)
 
 	comments.update_comments(reddit, database)
 

@@ -65,7 +65,7 @@ def get_reminders_string(user, database, previous=False):
 			if reminder.message is not None:
 				bldr.append(reminder.message.replace("|", "&#124;"))
 			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date, reminder.timezone))
+			bldr.append(utils.render_time(reminder.target_date, reminder.user_settings.timezone))
 			bldr.append("|")
 			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
 			bldr.append("|")
@@ -90,23 +90,23 @@ def process_remind_me(message, database):
 
 	message_text = utils.find_reminder_message(message.body)
 
-	reminder = Reminder(
+	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),
 		message=message_text,
 		user=message.author.name,
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		time_string=time,
-		timezone=database.get_settings(message.author.name).timezone
+		user_settings=database.get_settings(message.author.name)
 	)
-	if not reminder.valid:
+	if reminder is None:
 		log.debug("Reminder not valid, returning")
-		return [reminder.result_message]
+		return [result_message]
 
-	database.save_reminder(reminder)
+	database.add_reminder(reminder)
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation()
+	return reminder.render_message_confirmation(result_message)
 
 
 def process_remove_reminder(message, database):

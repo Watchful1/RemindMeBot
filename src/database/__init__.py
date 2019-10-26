@@ -19,10 +19,10 @@ log = discord_logging.get_logger()
 
 
 class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUserSettings):
-	def __init__(self, debug=False, publish=False, clone=False):
-		log.info(f"Initializing database class: debug={debug} publish={publish} clone={clone}")
+	def __init__(self, debug=False, publish=False):
+		log.info(f"Initializing database class: debug={debug} publish={publish}")
 		self.debug = debug
-		self.init(debug, publish, clone)
+		self.init(debug, publish)
 		self.engine = None
 
 		_DatabaseReminders.__init__(self)
@@ -31,14 +31,9 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		_DatabaseSubreddit.__init__(self)
 		_DatabaseUserSettings.__init__(self)
 
-	def init(self, debug, publish, clone):
+	def init(self, debug, publish):
 		if debug:
-			if clone:
-				if os.path.exists(static.DATABASE_DEBUG_NAME):
-					os.remove(static.DATABASE_DEBUG_NAME)
-				copyfile(static.DATABASE_NAME, static.DATABASE_DEBUG_NAME)
-
-			self.engine = create_engine(f'sqlite:///{static.DATABASE_DEBUG_NAME}')
+			self.engine = create_engine(f'sqlite:///:memory:')
 		else:
 			self.engine = create_engine(f'sqlite:///{static.DATABASE_NAME}')
 
@@ -66,7 +61,7 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 			static.DATABASE_NAME,
 			static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
 
-		self.init(self.debug, False, False)
+		self.init(self.debug, False)
 
 	def commit(self):
 		self.session.commit()

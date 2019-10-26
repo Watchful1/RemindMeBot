@@ -8,31 +8,10 @@ import messages
 import utils
 import reddit_test
 import static
-from database import Database
 from classes.reminder import Reminder
 from classes.comment import DbComment
 from classes.cakeday import Cakeday
 from classes.user_settings import UserSettings
-
-
-def test_sandbox():
-	database = Database()
-
-	reminder = Reminder(
-		source="https://www.reddit.com/message/messages/XXXXX",
-		message="KKKKK",
-		user="Watchful1",
-		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
-		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
-	)
-
-	log.info(reminder.id)
-
-	database.add_reminder(reminder)
-
-	database.commit()
-
-	log.info(reminder.id)
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -192,8 +171,8 @@ def test_get_reminders(database, reddit):
 		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
-	database.save_reminder(reminder1)
-	database.save_reminder(reminder2)
+	database.add_reminder(reminder1)
+	database.add_reminder(reminder2)
 	cakeday = Cakeday(
 		user="Watchful1",
 		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")
@@ -254,9 +233,9 @@ def test_remove_reminder(database, reddit):
 		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
-	database.save_reminder(reminder1)
-	database.save_reminder(reminder2)
-	database.save_reminder(reminder3)
+	database.add_reminder(reminder1)
+	database.add_reminder(reminder2)
+	database.add_reminder(reminder3)
 
 	message = reddit_test.RedditObject(
 		body=f"Remove! test",
@@ -342,9 +321,9 @@ def test_remove_all_reminders(database, reddit):
 		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
-	database.save_reminder(reminder1)
-	database.save_reminder(reminder2)
-	database.save_reminder(reminder3)
+	database.add_reminder(reminder1)
+	database.add_reminder(reminder2)
+	database.add_reminder(reminder3)
 	cakeday = Cakeday(
 		user="Watchful1",
 		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")

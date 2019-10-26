@@ -43,7 +43,7 @@ for i, reminder in enumerate(reminders):
 				count_comment_else += 1
 
 		if changed:
-			database.save_reminder(reminder)
+			database.add_reminder(reminder)
 			count_reminders_updated += 1
 
 log.info(f"{len(reminders)}/{len(reminders)}: {count_no_source} : {count_comment_id} : {count_comment_missing} : {count_comment_else}")

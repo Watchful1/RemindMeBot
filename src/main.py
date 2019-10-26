@@ -36,8 +36,6 @@ if __name__ == "__main__":
 	parser.add_argument("--once", help="Only run the loop once", action='store_const', const=True, default=False)
 	parser.add_argument("--debug_db", help="Use the debug database", action='store_const', const=True, default=False)
 	parser.add_argument(
-		"--clone_db", help="Copy the primary database to the debug on", action='store_const', const=True, default=False)
-	parser.add_argument(
 		"--no_post", help="Print out reddit actions instead of posting to reddit", action='store_const', const=True,
 		default=False)
 	parser.add_argument(
@@ -53,7 +51,7 @@ if __name__ == "__main__":
 
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
 	reddit = reddit_class.Reddit(args.user, args.no_post)
-	database = Database(debug=args.debug_db, clone=args.clone_db)
+	database = Database(debug=args.debug_db)
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")
 		database.save_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))

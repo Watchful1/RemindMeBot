@@ -31,7 +31,6 @@ class Reminder(Base):
 	defaulted = Column(Boolean, nullable=False)
 
 	comment = relationship("DbComment", cascade="all")
-	user_settings = relationship("UserSettings")
 
 	def __init__(
 		self,
@@ -39,52 +38,70 @@ class Reminder(Base):
 		message,
 		user,
 		requested_date,
-		target_date=None,
-		time_string=None,
-		thread_id=None,
-		defaulted=False
+		target_date,
+		defaulted=False,
+		user_settings=None
 	):
 		self.source = source
 		self.message = message
 		self.user = user
 		self.requested_date = requested_date
-		self.thread_id = thread_id
-
-		self.result_message = None
-		self.valid = True
+		self.target_date = target_date
 		self.defaulted = defaulted
+		self.user_settings = user_settings
 
-		if target_date is not None:
-			self.target_date = target_date
-		elif time_string is not None:
-			self.target_date = utils.parse_time(time_string, requested_date, None)
+	@staticmethod
+	def build_reminder(
+		source,
+		message,
+		user,
+		requested_date,
+		time_string,
+		user_settings
+	):
+		result_message = None
+		defaulted = False
+		if time_string is not None:
+			target_date = utils.parse_time(time_string, requested_date, user_settings.timezone)
 
-			if self.target_date is not None and self.target_date < self.requested_date:
-				self.result_message = f"This time, {time_string.strip()}, was interpreted as " \
-					f"{utils.get_datetime_string(self.target_date)}, which is in the past"
-				log.info(self.result_message)
-				self.valid = False
+			if target_date is None:
+				result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
+				log.info(result_message)
+				target_date = utils.parse_time("1 day", requested_date, None)
+
+			elif target_date < requested_date:
+				result_message = f"This time, {time_string.strip()}, was interpreted as " \
+					f"{utils.get_datetime_string(target_date)}, which is in the past"
+				log.info(result_message)
+				return None, result_message
+
 		else:
-			self.target_date = None
+			result_message = "Could not find a time in message, defaulting to one day"
+			log.info(result_message)
+			defaulted = True
+			target_date = utils.parse_time("1 day", requested_date, None)
 
-		if self.target_date is None:
-			if time_string is None:
-				self.result_message = "Could not find a time in message, defaulting to one day"
-			else:
-				self.result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
-			log.info(self.result_message)
-			self.defaulted = True
-			self.target_date = utils.parse_time("1 day", requested_date, None)
+		reminder = Reminder(
+			source=source,
+			message=message,
+			user=user,
+			requested_date=requested_date,
+			target_date=target_date,
+			defaulted=defaulted,
+			user_settings=user_settings
+		)
+
+		return reminder, result_message
 
 	def __str__(self):
 		return f"{utils.get_datetime_string(self.requested_date)} " \
 			f": {utils.get_datetime_string(self.target_date)} : {self.user} " \
 			f": {self.source} : {self.message}"
 
-	def render_message_confirmation(self, comment_return=None):
+	def render_message_confirmation(self, result_message, comment_return=None):
 		bldr = utils.str_bldr()
-		if self.result_message is not None:
-			bldr.append(self.result_message)
+		if result_message is not None:
+			bldr.append(result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
 		bldr.append(utils.render_time(self.target_date, self.user_settings.timezone))
@@ -122,7 +139,7 @@ class Reminder(Base):
 
 		return bldr
 
-	def render_comment_confirmation(self, count_duplicates=0):
+	def render_comment_confirmation(self, thread_id, count_duplicates=0):
 		bldr = utils.str_bldr()
 
 		if self.defaulted:
@@ -154,13 +171,13 @@ class Reminder(Base):
 		))
 		bldr.append(") to send a PM to also be reminded and to reduce spam.")
 
-		if self.thread_id is not None:
+		if thread_id is not None:
 			bldr.append("\n\n")
 			bldr.append("^(Parent commenter can ) [^(delete this message to hide from others.)](")
 			bldr.append(utils.build_message_link(
 				static.ACCOUNT_NAME,
 				"Delete Comment",
-				f"Delete! {self.thread_id}"
+				f"Delete! {thread_id}"
 			))
 			bldr.append(")")
 

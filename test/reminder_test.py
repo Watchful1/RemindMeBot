@@ -12,7 +12,7 @@ def test_send_reminder(database, reddit):
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-05 05:00:00")
 		)
-	database.save_reminder(reminder)
+	database.add_reminder(reminder)
 
 	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
 	notifications.send_reminders(reddit, database)
@@ -65,7 +65,7 @@ def test_send_reminders(database, reddit):
 		)
 	]
 	for reminder in reminders:
-		database.save_reminder(reminder)
+		database.add_reminder(reminder)
 
 	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
 	notifications.send_reminders(reddit, database)
