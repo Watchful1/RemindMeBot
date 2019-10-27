@@ -5,7 +5,6 @@ import utils
 import reddit_test
 import static
 from classes.reminder import Reminder
-from classes.user import User
 
 
 def test_process_comment(database, reddit):
@@ -32,7 +31,7 @@ def test_process_comment(database, reddit):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user.name == username
 	assert reminders[0].message is None
 	assert reminders[0].source == utils.reddit_link(comment.permalink)
 	assert reminders[0].requested_date == created
@@ -150,35 +149,35 @@ def test_update_incorrect_comments(database, reddit):
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-05 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-06 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-07 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment2.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-08 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment2.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-09 05:00:00")
 		)

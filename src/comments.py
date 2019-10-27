@@ -149,11 +149,11 @@ def update_comments(reddit, database):
 			i += 1
 			log.info(
 				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
-				f"{db_comment.comment_id} : {db_comment.current_count}/{reminder.count_duplicates}")
+				f"{db_comment.comment_id} : {db_comment.current_count}/{new_count}")
 
 			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count))
 			reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
-			db_comment.current_count = reminder.count_duplicates
+			db_comment.current_count = new_count
 
 	else:
 		log.debug("No incorrect comments")

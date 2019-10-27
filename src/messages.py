@@ -182,10 +182,11 @@ def process_delete_comment(message, reddit, database):
 		if db_comment is not None:
 			if db_comment.user == message.author.name:
 				comment = reddit.get_comment(db_comment.comment_id)
-				if not reddit.delete_comment(comment) or not database.delete_comment(db_comment):
+				if not reddit.delete_comment(comment):
 					log.debug(f"Unable to delete comment: {db_comment.comment_id}")
 					bldr.append("Something went wrong deleting the comment")
 				else:
+					database.delete_comment(db_comment)
 					log.debug(f"Deleted comment: {db_comment.comment_id}")
 					bldr.append("Comment deleted.")
 			else:

@@ -385,15 +385,15 @@ def test_set_timezone(database, reddit):
 	messages.process_message(message, reddit, database)
 	result = message.get_last_child().body
 	assert "Updated your timezone to America/Los_Angeles" in result
-	user_settings = database.get_settings(username)
-	assert user_settings.timezone == "America/Los_Angeles"
+	user = database.get_or_add_user(username)
+	assert user.timezone == "America/Los_Angeles"
 
 	message.body = "Timezone! UTC"
 	messages.process_message(message, reddit, database)
 	result = message.get_last_child().body
 	assert "Reset your timezone to the default" in result
-	user_settings = database.get_settings(username)
-	assert user_settings.timezone is None
+	user = database.get_or_add_user(username)
+	assert user.timezone is None
 
 
 def test_timezone_reminder_message(database, reddit):
