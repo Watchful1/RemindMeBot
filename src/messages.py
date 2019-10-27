@@ -13,10 +13,10 @@ from classes.enums import ReturnType
 log = discord_logging.get_logger()
 
 
-def get_reminders_string(user, database, previous=False):
+def get_reminders_string(user_name, database, previous=False):
 	bldr = utils.str_bldr()
 
-	reminders = database.get_user_reminders(user)
+	reminders = database.get_user_reminders(user_name)
 	#cakeday = database.get_cakeday(user)
 	if len(reminders):# or cakeday is not None:
 		if previous:
@@ -30,10 +30,10 @@ def get_reminders_string(user, database, previous=False):
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove All", "RemoveAll!"))
 			bldr.append(")\n\n")
 
-		user_settings = database.get_settings(user)
-		if user_settings.timezone is not None:
+		user = database.get_or_add_user(user_name)
+		if user.timezone is not None:
 			bldr.append("Your timezone is currently set to: `")
-			bldr.append(user_settings.timezone)
+			bldr.append(user.timezone)
 			bldr.append("`\n\n")
 
 		log.debug(f"Building list with {len(reminders)} reminders")
@@ -65,7 +65,7 @@ def get_reminders_string(user, database, previous=False):
 			if reminder.message is not None:
 				bldr.append(reminder.message.replace("|", "&#124;"))
 			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date, reminder.user_settings.timezone))
+			bldr.append(utils.render_time(reminder.target_date, reminder.user.timezone))
 			bldr.append("|")
 			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
 			bldr.append("|")
@@ -93,10 +93,9 @@ def process_remind_me(message, database):
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),
 		message=message_text,
-		user=message.author.name,
+		user=database.get_or_add_user(message.author.name),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
-		time_string=time,
-		user_settings=database.get_settings(message.author.name)
+		time_string=time
 	)
 	if reminder is None:
 		log.debug("Reminder not valid, returning")
@@ -127,13 +126,11 @@ def process_remove_reminder(message, database):
 			bldr.append("I couldn't find a reminder id to remove.")
 	else:
 		reminder = database.get_reminder(ids[0])
-		if reminder is None or reminder.user != message.author.name:
+		if reminder is None or reminder.user.name != message.author.name:
 			bldr.append("It looks like you don't own this reminder or it doesn't exist.")
 		else:
-			if database.delete_reminder(reminder):
-				bldr.append("Reminder deleted.")
-			else:
-				bldr.append("Something went wrong, reminder not deleted.")
+			database.delete_reminder(reminder)
+			bldr.append("Reminder deleted.")
 
 	bldr.append("\n\n")
 	bldr.append("*****")
@@ -157,11 +154,6 @@ def process_remove_all_reminders(message, database):
 		bldr.append("Deleted **")
 		bldr.append(str(reminders_deleted))
 		bldr.append("** reminders.\n\n")
-
-	cakeday = database.get_cakeday(message.author.name)
-	if cakeday is not None:
-		database.delete_cakeday(cakeday)
-		bldr.append("Deleted cakeday reminder.\n\n")
 
 	bldr.append("\n\n")
 	bldr.append("*****")
@@ -241,14 +233,13 @@ def process_timezone_message(message, database):
 		bldr.append(f"{timezones[0]} is not a valid timezone.")
 
 	else:
-		user_settings = database.get_settings(message.author.name)
+		user = database.get_or_add_user(message.author.name)
 		if timezones[0] == "UTC":
-			user_settings.timezone = None
+			user.timezone = None
 			bldr.append(f"Reset your timezone to the default")
 		else:
-			user_settings.timezone = timezones[0]
+			user.timezone = timezones[0]
 			bldr.append(f"Updated your timezone to {timezones[0]}")
-		database.save_settings(user_settings)
 
 		log.info(f"u/{message.author.name} timezone updated to {timezones[0]}")
 

@@ -11,7 +11,7 @@ import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
 from classes.cakeday import Cakeday
-from classes.user_settings import UserSettings
+from classes.user import User
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
@@ -41,7 +41,7 @@ def test_add_reminder(database, reddit):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user.name == username
 	assert reminders[0].message == keyword
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
@@ -66,7 +66,7 @@ def test_add_cakeday(database, reddit):
 
 	cakeday = database.get_cakeday(username)
 	assert cakeday is not None
-	assert cakeday.user == username
+	assert cakeday.user.name == username
 	assert cakeday.date_time == utils.parse_datetime_string("2019-05-05 15:25:17")
 	assert cakeday.db_id is not None
 
@@ -112,7 +112,7 @@ def test_add_reminder_no_message(database, reddit):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user.name == username
 	assert reminders[0].message is None
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
@@ -139,7 +139,7 @@ def test_add_reminder_no_date(database, reddit):
 
 	reminders = database.get_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user.name == username
 	assert reminders[0].message == "error test"
 	assert reminders[0].source == utils.message_link(id)
 	assert reminders[0].requested_date == created
@@ -160,24 +160,19 @@ def test_get_reminders(database, reddit):
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	database.add_reminder(reminder1)
 	database.add_reminder(reminder2)
-	cakeday = Cakeday(
-		user="Watchful1",
-		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")
-	)
-	database.add_cakeday(cakeday)
 
 	message = reddit_test.RedditObject(
 		body="MyReminders!",
@@ -188,8 +183,6 @@ def test_get_reminders(database, reddit):
 
 	assert "Click here to delete all your reminders" in result
 
-	assert "Happy cakeday!" in result
-
 	assert reminder1.source in result
 	assert reminder1.message in result
 	assert "01-04 05" in result
@@ -198,12 +191,8 @@ def test_get_reminders(database, reddit):
 	assert reminder2.message in result
 	assert "02-05 07" in result
 
-	database.save_settings(
-		UserSettings(
-			user="Watchful1",
-			timezone="America/Los_Angeles"
-		)
-	)
+	user = database.get_or_add_user(user_name="Watchful1")
+	user.timezone = "America/Los_Angeles"
 	messages.process_message(message, reddit, database)
 	result = message.get_last_child().body
 	assert "Your timezone is currently set to: `America/Los_Angeles`" in result
@@ -215,21 +204,21 @@ def test_remove_reminder(database, reddit):
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	reminder3 = Reminder(
 		source="https://www.reddit.com/message/messages/ZZZZZ",
 		message="JJJJJ",
-		user="Watchful2",
+		user=database.get_or_add_user("Watchful2"),
 		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
@@ -303,32 +292,27 @@ def test_remove_all_reminders(database, reddit):
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
 		message="KKKKK",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
 	)
 	reminder2 = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
 		message="FFFFF",
-		user="Watchful1",
+		user=database.get_or_add_user("Watchful1"),
 		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
 	)
 	reminder3 = Reminder(
 		source="https://www.reddit.com/message/messages/ZZZZZ",
 		message="JJJJJ",
-		user="Watchful2",
+		user=database.get_or_add_user("Watchful2"),
 		requested_date=utils.parse_datetime_string("2019-03-02 06:00:00"),
 		target_date=utils.parse_datetime_string("2019-03-05 07:00:00")
 	)
 	database.add_reminder(reminder1)
 	database.add_reminder(reminder2)
 	database.add_reminder(reminder3)
-	cakeday = Cakeday(
-		user="Watchful1",
-		date_time=utils.parse_datetime_string("2019-05-05 15:25:17")
-	)
-	database.add_cakeday(cakeday)
 
 	message = reddit_test.RedditObject(
 		body=f"RemoveAll!",
@@ -337,7 +321,6 @@ def test_remove_all_reminders(database, reddit):
 	messages.process_message(message, reddit, database)
 	body = message.get_first_child().body
 	assert "Deleted **2** reminders." in body
-	assert "Deleted cakeday reminder." in body
 
 	assert len(database.get_user_reminders("Watchful1")) == 0
 	assert len(database.get_user_reminders("Watchful2")) == 1
@@ -414,19 +397,14 @@ def test_set_timezone(database, reddit):
 
 
 def test_timezone_reminder_message(database, reddit):
-	timezone_string = "America/Los_Angeles"
-	database.save_settings(
-		UserSettings(
-			user="Watchful1",
-			timezone=timezone_string
-		)
-	)
+	user = database.get_or_add_user(user_name="Watchful1")
+	user.timezone = "America/Los_Angeles"
 
 	created = utils.datetime_now()
 	target = created + timedelta(hours=24)
 	username = "Watchful1"
 	message = reddit_test.RedditObject(
-		body=f"{static.TRIGGER}! {utils.get_datetime_string(utils.datetime_as_timezone(target, timezone_string))}",
+		body=f"{static.TRIGGER}! {utils.get_datetime_string(utils.datetime_as_timezone(target, user.timezone))}",
 		author=username,
 		created=created
 	)
@@ -437,5 +415,5 @@ def test_timezone_reminder_message(database, reddit):
 	assert len(reminders) == 1
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == utils.datetime_as_utc(
-		pytz.timezone(timezone_string).localize(target.replace(tzinfo=None))
+		pytz.timezone(user.timezone).localize(target.replace(tzinfo=None))
 	)

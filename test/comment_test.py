@@ -5,7 +5,7 @@ import utils
 import reddit_test
 import static
 from classes.reminder import Reminder
-from classes.user_settings import UserSettings
+from classes.user import User
 
 
 def test_process_comment(database, reddit):
@@ -41,12 +41,8 @@ def test_process_comment(database, reddit):
 
 
 def test_process_comment_timezone(database, reddit):
-	database.save_settings(
-		UserSettings(
-			user="Watchful1",
-			timezone="America/Los_Angeles"
-		)
-	)
+	user = database.get_or_add_user(user_name="Watchful1")
+	user.timezone = "America/Los_Angeles"
 
 	username = "Watchful1"
 	comment_id = utils.random_id()

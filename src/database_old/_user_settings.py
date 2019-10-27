@@ -1,5 +1,5 @@
 import discord_logging
-from classes.user_settings import UserSettings
+from classes.user import User
 
 
 log = discord_logging.get_logger()
@@ -33,13 +33,13 @@ class _DatabaseUserSettings:
 		result = c.fetchone()
 		if result is None or len(result) == 0:
 			log.debug("User not found")
-			user_settings = UserSettings(
+			user_settings = User(
 				user=user
 			)
 
 		else:
 			log.debug(f"User found")
-			user_settings = UserSettings(
+			user_settings = User(
 				user=user,
 				timezone=result[0]
 			)

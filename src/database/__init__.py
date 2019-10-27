@@ -13,12 +13,12 @@ from ._keystore import _DatabaseKeystore
 from ._reminders import _DatabaseReminders
 from ._comments import _DatabaseComments
 from ._subreddits import _DatabaseSubreddit
-from ._user_settings import _DatabaseUserSettings
+from ._users import _DatabaseUsers
 
 log = discord_logging.get_logger()
 
 
-class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUserSettings):
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUsers):
 	def __init__(self, debug=False, publish=False):
 		log.info(f"Initializing database class: debug={debug} publish={publish}")
 		self.debug = debug
@@ -29,7 +29,7 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		_DatabaseComments.__init__(self)
 		_DatabaseKeystore.__init__(self)
 		_DatabaseSubreddit.__init__(self)
-		_DatabaseUserSettings.__init__(self)
+		_DatabaseUsers.__init__(self)
 
 	def init(self, debug, publish):
 		if debug:

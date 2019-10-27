@@ -1,6 +1,6 @@
 import utils
 import discord_logging
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 import static
@@ -25,12 +25,14 @@ class Reminder(Base):
 	id = Column(Integer, primary_key=True)
 	source = Column(String(400), nullable=False)
 	message = Column(String(500))
-	user = Column(String(80), nullable=False)
+	user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 	requested_date = Column(UtcDateTime, nullable=False)
 	target_date = Column(UtcDateTime, nullable=False)
+	recurrence = Column(String(500))
 	defaulted = Column(Boolean, nullable=False)
 
 	comment = relationship("DbComment", cascade="all")
+	user = relationship("User")
 
 	def __init__(
 		self,
@@ -39,8 +41,7 @@ class Reminder(Base):
 		user,
 		requested_date,
 		target_date,
-		defaulted=False,
-		user_settings=None
+		defaulted=False
 	):
 		self.source = source
 		self.message = message
@@ -48,7 +49,6 @@ class Reminder(Base):
 		self.requested_date = requested_date
 		self.target_date = target_date
 		self.defaulted = defaulted
-		self.user_settings = user_settings
 
 	@staticmethod
 	def build_reminder(
@@ -56,13 +56,12 @@ class Reminder(Base):
 		message,
 		user,
 		requested_date,
-		time_string,
-		user_settings
+		time_string
 	):
 		result_message = None
 		defaulted = False
 		if time_string is not None:
-			target_date = utils.parse_time(time_string, requested_date, user_settings.timezone)
+			target_date = utils.parse_time(time_string, requested_date, user.timezone)
 
 			if target_date is None:
 				result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
@@ -87,15 +86,14 @@ class Reminder(Base):
 			user=user,
 			requested_date=requested_date,
 			target_date=target_date,
-			defaulted=defaulted,
-			user_settings=user_settings
+			defaulted=defaulted
 		)
 
 		return reminder, result_message
 
 	def __str__(self):
 		return f"{utils.get_datetime_string(self.requested_date)} " \
-			f": {utils.get_datetime_string(self.target_date)} : {self.user} " \
+			f": {utils.get_datetime_string(self.target_date)} : {self.user.name} " \
 			f": {self.source} : {self.message}"
 
 	def render_message_confirmation(self, result_message, comment_return=None):
@@ -104,7 +102,7 @@ class Reminder(Base):
 			bldr.append(result_message)
 			bldr.append("\n\n")
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date, self.user_settings.timezone))
+		bldr.append(utils.render_time(self.target_date, self.user.timezone))
 		bldr.append(" to remind you")
 		if self.message is None:
 			bldr.append(" of [**this link**](")
@@ -145,11 +143,11 @@ class Reminder(Base):
 		if self.defaulted:
 			bldr.append("**Defaulted to one day.**\n\n")
 
-		if self.user_settings.timezone is not None:
-			bldr.append(f"Your default time zone is set to `{self.user_settings.timezone}`. ")
+		if self.user.timezone is not None:
+			bldr.append(f"Your default time zone is set to `{self.user.timezone}`. ")
 
 		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date, self.user_settings.timezone))
+		bldr.append(utils.render_time(self.target_date, self.user.timezone))
 		bldr.append(" to remind you of [**this link**](")
 		bldr.append(utils.replace_np(self.source))
 		bldr.append(")")
@@ -205,7 +203,7 @@ class Reminder(Base):
 			bldr.append("This reminder was created before I started saving the creation date of reminders.")
 		else:
 			bldr.append("You requested this reminder on: ")
-			bldr.append(utils.render_time(self.requested_date, self.user_settings.timezone))
+			bldr.append(utils.render_time(self.requested_date, self.user.timezone))
 		bldr.append("\n\n")
 
 		bldr.append("[Click here](")

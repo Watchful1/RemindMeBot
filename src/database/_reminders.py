@@ -1,7 +1,8 @@
 import discord_logging
+from sqlalchemy.orm import joinedload
 
 from classes.reminder import Reminder
-from classes.user_settings import UserSettings
+from classes.user import User
 
 log = discord_logging.get_logger()
 
@@ -25,17 +26,22 @@ class _DatabaseReminders:
 	def get_pending_reminders(self, count, timestamp):
 		log.debug("Fetching pending reminders")
 
-		reminders = self.session.query(Reminder).filter(Reminder.target_date < timestamp).limit(count).all()
-		self.add_user_settings_to_reminders(reminders)
+		reminders = self.session.query(Reminder)\
+			.options(joinedload(Reminder.user))\
+			.filter(Reminder.target_date < timestamp)\
+			.limit(count)\
+			.all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
 
-	def get_user_reminders(self, user):
-		log.debug(f"Fetching reminders for u/{user}")
+	def get_user_reminders(self, user_name):
+		log.debug(f"Fetching reminders for u/{user_name}")
 
-		reminders = self.session.query(Reminder).filter_by(user=user).all()
-		self.add_user_settings_to_reminders(reminders)
+		reminders = self.session.query(Reminder)\
+			.join(User)\
+			.filter(User.name == user_name)\
+			.all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
@@ -43,8 +49,10 @@ class _DatabaseReminders:
 	def get_reminder(self, reminder_id):
 		log.debug(f"Fetching reminder by id: {reminder_id}")
 
-		reminder = self.session.query(Reminder).filter_by(id=reminder_id).first()
-		self.add_user_setting_to_reminder(reminder)
+		reminder = self.session.query(Reminder)\
+			.options(joinedload(Reminder.user))\
+			.filter_by(id=reminder_id)\
+			.first()
 
 		return reminder
 
@@ -52,31 +60,22 @@ class _DatabaseReminders:
 		log.debug(f"Deleting reminder by id: {reminder.id}")
 		self.session.delete(reminder)
 
-	def delete_user_reminders(self, user):
-		log.debug(f"Deleting all reminders for u/{user}")
+	def delete_user_reminders(self, user_name):
+		log.debug(f"Deleting all reminders for u/{user_name}")
 
-		return self.session.query(Reminder).filter_by(user=user).delete()
+		user_id = self.session.query(User.id).\
+			filter_by(name=user_name)
+
+		return self.session.query(Reminder).\
+			filter(Reminder.user_id.in_(user_id.subquery())).\
+			delete(synchronize_session=False)
 
 	def get_all_reminders(self):
 		log.debug(f"Fetching all reminders")
 
-		reminders = self.session.query(Reminder).all()
+		reminders = self.session.query(Reminder)\
+			.options(joinedload(Reminder.user))\
+			.all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
-
-	def add_user_settings_to_reminders(self, reminders):
-		user_settings_list = self.session.query(UserSettings).filter(UserSettings.user.in_([r.user for r in reminders])).all()
-		user_settings_dict = {s.user: s for s in user_settings_list}
-		for reminder in reminders:
-			if reminder.user in user_settings_dict:
-				reminder.user_settings = user_settings_dict[reminder.user]
-			else:
-				reminder.user_settings = UserSettings(reminder.user)
-
-	def add_user_setting_to_reminder(self, reminder):
-		user_setting = self.session.query(UserSettings).filter(UserSettings.user == reminder.user).first()
-		if user_setting is None:
-			reminder.user_settings = UserSettings(reminder.user)
-		else:
-			reminder.user_settings = user_setting

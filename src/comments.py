@@ -44,10 +44,9 @@ def parse_comment(comment, database, count_string):
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.reddit_link(comment['permalink']),
 		message=message_text,
-		user=comment['author'],
+		user=database.get_or_add_user(comment['author']),
 		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
-		time_string=time,
-		user_settings=database.get_settings(comment['author'])
+		time_string=time
 	)
 	if reminder is None:
 		return None
@@ -105,7 +104,7 @@ def process_comment(comment, reddit, database, count_string=""):
 					thread_id=thread_id,
 					comment_id=result_id,
 					reminder_id=reminder.id,
-					user=reminder.user,
+					user=reminder.user.name,
 					source=reminder.source
 				)
 				database.save_comment(db_comment)

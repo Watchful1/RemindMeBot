@@ -16,15 +16,15 @@ log = discord_logging.get_logger()
 
 
 class Reddit:
-	def __init__(self, user, no_post):
-		log.info(f"Initializing reddit class: user={user} no_post={no_post}")
+	def __init__(self, user_name, no_post):
+		log.info(f"Initializing reddit class: user={user_name} no_post={no_post}")
 		self.no_post = no_post
 		try:
 			self.reddit = praw.Reddit(
-				user,
+				user_name,
 				user_agent=static.USER_AGENT)
 		except configparser.NoSectionError:
-			log.error("User "+user+" not in praw.ini, aborting")
+			log.error("User "+user_name+" not in praw.ini, aborting")
 			raise ValueError
 		static.ACCOUNT_NAME = self.reddit.user.me().name
 		log.info("Logged into reddit as /u/" + static.ACCOUNT_NAME)
@@ -90,13 +90,13 @@ class Reddit:
 			else:
 				return None, result
 
-	def send_message(self, username, subject, body):
-		log.debug(f"Sending message to u/{username}")
+	def send_message(self, user_name, subject, body):
+		log.debug(f"Sending message to u/{user_name}")
 		if self.no_post:
 			log.info(body)
 			return ReturnType.SUCCESS
 		else:
-			redditor = self.reddit.redditor(username)
+			redditor = self.reddit.redditor(user_name)
 			output, result = self.run_function(redditor.message, [subject, body])
 			return result
 
