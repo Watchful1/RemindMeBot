@@ -40,10 +40,24 @@ specify time zone
     time zone list
     link to time zone list in comment replies that use it
 -database backup downloading
+recurring reminders
+    -message parsing
+    comment parsing
+    cakeday parsing
+    cakeday comment parsing
+    reminder list
+    sending reminders
+    user level timeouts
+    tests
+show context on comment links
+parse_dates
+12/24 hour setting
+apologize when late responding to comments because pushshift is behind
+migration script
+
 
 
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders and in message/comment parsing
-recurring reminders
 log warnings when behind

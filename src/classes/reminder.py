@@ -41,6 +41,7 @@ class Reminder(Base):
 		user,
 		requested_date,
 		target_date,
+		recurrence=None,
 		defaulted=False
 	):
 		self.source = source
@@ -48,6 +49,7 @@ class Reminder(Base):
 		self.user = user
 		self.requested_date = requested_date
 		self.target_date = target_date
+		self.recurrence = recurrence
 		self.defaulted = defaulted
 
 	@staticmethod
@@ -56,20 +58,24 @@ class Reminder(Base):
 		message,
 		user,
 		requested_date,
-		time_string
+		time_string,
+		recurring=False
 	):
 		result_message = None
 		defaulted = False
+		time_string = time_string.strip()
 		if time_string is not None:
 			target_date = utils.parse_time(time_string, requested_date, user.timezone)
+			log.debug(f"Target date: {utils.get_datetime_string(target_date)}")
 
 			if target_date is None:
-				result_message = f"Could not parse date: \"{time_string.strip()}\", defaulting to one day"
+				result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
 				log.info(result_message)
+				defaulted = True
 				target_date = utils.parse_time("1 day", requested_date, None)
 
 			elif target_date < requested_date:
-				result_message = f"This time, {time_string.strip()}, was interpreted as " \
+				result_message = f"This time, {time_string}, was interpreted as " \
 					f"{utils.get_datetime_string(target_date)}, which is in the past"
 				log.info(result_message)
 				return None, result_message
@@ -80,12 +86,34 @@ class Reminder(Base):
 			defaulted = True
 			target_date = utils.parse_time("1 day", requested_date, None)
 
+		if recurring:
+			if defaulted:
+				second_result_message = "Can't use a default for a recurring reminder"
+				log.info(second_result_message)
+				return None, result_message + "\n\n" + second_result_message
+
+			else:
+				second_target_date = utils.parse_time(time_string, target_date, user.timezone)
+				log.debug(f"Second target date: {utils.get_datetime_string(second_target_date)}")
+				if second_target_date == target_date:
+					result_message = f"I've got {utils.get_datetime_string(target_date)} for your first date, but when" \
+						f" I applied '{time_string}', I got the same date rather than one after it."
+					log.info(result_message)
+					return None, result_message
+
+				elif second_target_date < target_date:
+					result_message = f"I've got {utils.get_datetime_string(target_date)} for your first date, but when" \
+						f" I applied '{time_string}', I got a date before that rather than one after it."
+					log.info(result_message)
+					return None, result_message
+
 		reminder = Reminder(
 			source=source,
 			message=message,
 			user=user,
 			requested_date=requested_date,
 			target_date=target_date,
+			recurrence=time_string,
 			defaulted=defaulted
 		)
 

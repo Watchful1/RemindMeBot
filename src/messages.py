@@ -84,7 +84,7 @@ def get_reminders_string(user_name, database, previous=False):
 	return bldr
 
 
-def process_remind_me(message, database):
+def process_remind_me(message, database, recurring):
 	log.info("Processing RemindMe message")
 	time = utils.find_reminder_time(message.body)
 
@@ -95,7 +95,8 @@ def process_remind_me(message, database):
 		message=message_text,
 		user=database.get_or_add_user(message.author.name),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
-		time_string=time
+		time_string=time,
+		recurring=recurring
 	)
 	if reminder is None:
 		log.debug("Reminder not valid, returning")
@@ -255,8 +256,10 @@ def process_message(message, reddit, database, count_string=""):
 	body = message.body.lower()
 
 	bldr = None
-	if static.TRIGGER_LOWER in body:
-		bldr = process_remind_me(message, database)
+	if static.TRIGGER_RECURRING_LOWER in body:
+		bldr = process_remind_me(message, database, True)
+	elif static.TRIGGER_LOWER in body:
+		bldr = process_remind_me(message, database, False)
 	elif "myreminders!" in body:
 		bldr = process_get_reminders(message, database)
 	elif "remove!" in body:

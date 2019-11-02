@@ -11,12 +11,12 @@ from classes.enums import ReturnType
 log = discord_logging.get_logger()
 
 
-def database_set_seen(database, comment_seen):
-	database.save_keystore("remindme_comment", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
+def database_set_seen(database, comment_seen, word):
+	database.save_keystore(f"{word}_comment", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
 
 
-def database_get_seen(database):
-	result = database.get_keystore("remindme_comment")
+def database_get_seen(database, word):
+	result = database.get_keystore(f"{word}_comment")
 	if result is None:
 		log.warning("Comment time not in database, returning now")
 		return utils.datetime_now()
@@ -121,7 +121,7 @@ def process_comment(comment, reddit, database, count_string=""):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database))
+	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database, static.TRIGGER_LOWER))
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0
@@ -134,7 +134,7 @@ def process_comments(reddit, database):
 			log.warning(traceback.format_exc())
 
 		reddit.mark_keyword_comment_processed(comment['id'])
-		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
+		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']), static.TRIGGER_LOWER)
 
 	return len(comments)
 
