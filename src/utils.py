@@ -162,6 +162,17 @@ def add_years(date_time, years):
 		return date_time + (datetime(date_time.year + years, 3, 1) - datetime(date_time.year, 3, 1))
 
 
+def get_next_anniversary(account_created_utc):
+	account_created = datetime_from_timestamp(account_created_utc)
+	next_anniversary = add_years(account_created, datetime_now().year - account_created.year)
+	if next_anniversary < datetime_now():
+		next_anniversary = add_years(next_anniversary, 1)
+
+	log.debug(
+		f"Account created {get_datetime_string(account_created)}, anniversary {get_datetime_string(next_anniversary)}")
+	return next_anniversary
+
+
 def datetime_now():
 	if debug_time is None:
 		return datetime_force_utc(datetime.utcnow().replace(microsecond=0))

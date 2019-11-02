@@ -203,22 +203,27 @@ def process_delete_comment(message, reddit, database):
 def process_cakeday_message(message, database):
 	log.info("Processing cakeday")
 
-	if database.get_cakeday(message.author.name) is not None:
+	if database.user_has_cakeday_reminder(message.author.name):
 		log.info("Cakeday already exists")
 		return ["It looks like you already have a cakeday reminder set."]
 
-	account_created = utils.datetime_from_timestamp(message.author.created_utc)
-	next_anniversary = utils.add_years(account_created, utils.datetime_now().year - account_created.year)
-	if next_anniversary < utils.datetime_now():
-		next_anniversary = utils.add_years(next_anniversary, 1)
-	log.debug(
-		f"u/{message.author.name} created {utils.get_datetime_string(account_created)}, "
-		f"anniversary {utils.get_datetime_string(next_anniversary)}")
+	next_anniversary = utils.get_next_anniversary(message.author.created_utc)
 
-	cakeday = Cakeday(message.author.name, next_anniversary)
-	database.add_cakeday(cakeday)
+	reminder = Reminder(
+		source=utils.message_link(message.id),
+		message=static.CAKEDAY_MESSAGE,
+		user=database.get_or_add_user(message.author.name),
+		requested_date=utils.datetime_from_timestamp(message.created_utc),
+		target_date=next_anniversary,
+		recurrence="one year",
+		defaulted=False
+	)
 
-	return cakeday.render_confirmation(database.get_settings(message.author.name).timezone)
+	database.add_reminder(reminder)
+
+	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
+
+	return reminder.render_message_confirmation(None)
 
 
 def process_timezone_message(message, database):

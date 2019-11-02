@@ -23,6 +23,10 @@ def database_get_seen(database, word):
 	return utils.parse_datetime_string(result)
 
 
+def trigger_in_text(body, trigger):
+	return f"{trigger}!" in body or f"!{trigger}" in body
+
+
 def parse_comment(comment, database, count_string):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
@@ -33,9 +37,38 @@ def parse_comment(comment, database, count_string):
 
 	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
 	body = comment['body'].lower()
-	if f"{static.TRIGGER_LOWER}!" not in body and f"!{static.TRIGGER_LOWER}" not in body:
+	recurring = False
+	cakeday = False
+	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
+		log.debug("Recurring reminder comment")
+		recurring = True
+	elif trigger_in_text(body, static.TRIGGER_LOWER):
+		log.debug("Regular comment")
+	elif trigger_in_text(body, static.TRIGGER_CAKEDAY_LOWER):
+		log.debug("Cakeday comment")
+		cakeday = True
+	else:
 		log.debug("Command not in comment")
 		return None
+
+	if cakeday:
+		if database.user_has_cakeday_reminder(comment['author']):
+			log.info("Cakeday already exists")
+			return None
+
+		next_anniversary = utils.get_next_anniversary()
+
+
+
+		reminder = Reminder(
+			source=utils.reddit_link(comment['permalink']),
+			message=static.CAKEDAY_MESSAGE,
+			user=database.get_or_add_user(message.author.name),
+			requested_date=utils.datetime_from_timestamp(message.created_utc),
+			target_date=next_anniversary,
+			recurrence="one year",
+			defaulted=False
+		)
 
 	time = utils.find_reminder_time(comment['body'])
 

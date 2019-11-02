@@ -124,21 +124,32 @@ class Reminder(Base):
 			f": {utils.get_datetime_string(self.target_date)} : {self.user.name} " \
 			f": {self.source} : {self.message}"
 
+	def is_cakeday(self):
+		return self.message is not None and self.message == static.CAKEDAY_MESSAGE and \
+			self.recurrence is not None and self.recurrence == "one year"
+
 	def render_message_confirmation(self, result_message, comment_return=None):
 		bldr = utils.str_bldr()
 		if result_message is not None:
 			bldr.append(result_message)
 			bldr.append("\n\n")
-		bldr.append("I will be messaging you on ")
-		bldr.append(utils.render_time(self.target_date, self.user.timezone))
-		bldr.append(" to remind you")
-		if self.message is None:
-			bldr.append(" of [**this link**](")
-			bldr.append(self.source)
-			bldr.append(")")
+
+		if self.is_cakeday():
+			bldr.append("I will message you every year at ")
+			bldr.append(utils.render_time(self.target_date, self.user.timezone, "%m-%d %H:%M:%S %Z"))
+			bldr.append(" to remind you of your cakeday.")
+
 		else:
-			bldr.append(": ")
-			bldr.append(self.message)
+			bldr.append("I will be messaging you on ")
+			bldr.append(utils.render_time(self.target_date, self.user.timezone))
+			bldr.append(" to remind you")
+			if self.message is None:
+				bldr.append(" of [**this link**](")
+				bldr.append(self.source)
+				bldr.append(")")
+			else:
+				bldr.append(": ")
+				bldr.append(self.message)
 
 		if comment_return is not None and comment_return in (
 			ReturnType.FORBIDDEN,
@@ -214,7 +225,6 @@ class Reminder(Base):
 
 	def render_notification(self):
 		bldr = utils.str_bldr()
-
 		bldr.append("RemindMeBot reminder here!")
 		bldr.append("\n\n")
 
@@ -234,15 +244,35 @@ class Reminder(Base):
 			bldr.append(utils.render_time(self.requested_date, self.user.timezone))
 		bldr.append("\n\n")
 
-		bldr.append("[Click here](")
-		bldr.append(utils.build_message_link(
-			static.ACCOUNT_NAME,
-			"Reminder",
-			f"[{self.message}]\n\n{static.TRIGGER}! "
-		))
-		bldr.append(") and set the time after the ")
-		bldr.append(static.TRIGGER)
-		bldr.append(" command to be reminded of the original comment again.")
+		if self.recurrence is not None:
+			if self.is_cakeday():
+				bldr.append("I will message you every year at ")
+				bldr.append(utils.render_time(self.target_date, self.user.timezone, "%m-%d %H:%M:%S %Z"))
+				bldr.append(" to remind you of your cakeday.")
+
+			else:
+				bldr.append("This is a repeating reminder. I'll message you again in `")
+				bldr.append(self.recurrence)
+				bldr.append("`, which is ")
+				bldr.append(utils.render_time(utils.parse_time(self.recurrence, self.target_date, self.user.timezone), self.user.timezone))
+				bldr.append(".")
+
+			bldr.append("\n\n")
+
+			bldr.append("[Click here](")
+			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {self.id}"))
+			bldr.append(") to delete this reminder.")
+
+		else:
+			bldr.append("[Click here](")
+			bldr.append(utils.build_message_link(
+				static.ACCOUNT_NAME,
+				"Reminder",
+				f"[{self.message}]\n\n{static.TRIGGER}! "
+			))
+			bldr.append(") and set the time after the ")
+			bldr.append(static.TRIGGER)
+			bldr.append(" command to be reminded of the original comment again.")
 
 		bldr.append("\n\n")
 		bldr.append(other_bot)

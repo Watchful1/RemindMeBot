@@ -1,6 +1,7 @@
 import discord_logging
 from sqlalchemy.orm import joinedload
 
+import static
 from classes.reminder import Reminder
 from classes.user import User
 
@@ -55,6 +56,18 @@ class _DatabaseReminders:
 			.first()
 
 		return reminder
+
+	def user_has_cakeday_reminder(self, user_name):
+		log.debug(f"Checking if user has cakeday reminder: {user_name}")
+
+		reminder = self.session.query(Reminder)\
+			.join(User)\
+			.filter(User.name == user_name)\
+			.filter(Reminder.recurrence == "one year")\
+			.filter(Reminder.message == static.CAKEDAY_MESSAGE)\
+			.first()
+
+		return reminder is not None
 
 	def delete_reminder(self, reminder):
 		log.debug(f"Deleting reminder by id: {reminder.id}")
