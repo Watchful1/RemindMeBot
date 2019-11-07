@@ -47,44 +47,40 @@ def parse_comment(comment, database, count_string):
 	elif trigger_in_text(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
 		cakeday = True
+		recurring = True
 	else:
 		log.debug("Command not in comment")
 		return None
 
+	target_date = None
 	if cakeday:
 		if database.user_has_cakeday_reminder(comment['author']):
 			log.info("Cakeday already exists")
 			return None
 
-		next_anniversary = utils.get_next_anniversary()
+		target_date = utils.get_next_anniversary()
+		message_text = static.CAKEDAY_MESSAGE
+		time = "one year"
 
-
-
-		reminder = Reminder(
-			source=utils.reddit_link(comment['permalink']),
-			message=static.CAKEDAY_MESSAGE,
-			user=database.get_or_add_user(message.author.name),
-			requested_date=utils.datetime_from_timestamp(message.created_utc),
-			target_date=next_anniversary,
-			recurrence="one year",
-			defaulted=False
-		)
-
-	time = utils.find_reminder_time(comment['body'])
-
-	message_text = utils.find_reminder_message(comment['body'])
+	else:
+		time = utils.find_reminder_time(comment['body'])
+		message_text = utils.find_reminder_message(comment['body'])
 
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.reddit_link(comment['permalink']),
 		message=message_text,
 		user=database.get_or_add_user(comment['author']),
 		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
-		time_string=time
+		time_string=time,
+		recurring=recurring,
+		target_date=target_date
 	)
 	if reminder is None:
 		return None
 
 	database.add_reminder(reminder)
+
+	reminder.user.recurring_sent = 0
 
 	return reminder, result_message
 

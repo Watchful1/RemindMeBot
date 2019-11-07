@@ -6,6 +6,7 @@ MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "Watchful1BotTest"
 BACKUP_FOLDER_NAME = "backup"
 BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot']
+RECURRING_LIMIT = 30
 
 TRIGGER = "RemindMe"
 TRIGGER_LOWER = TRIGGER.lower()

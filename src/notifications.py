@@ -1,6 +1,7 @@
 import discord_logging
 
 import utils
+import static
 from classes.enums import ReturnType
 
 
@@ -11,22 +12,36 @@ def send_reminders(reddit, database):
 	timestamp = utils.datetime_now()
 	count_reminders = database.get_count_pending_reminders(timestamp)
 
-	reminders = database.get_pending_reminders(utils.requests_available(count_reminders), timestamp)
-	if len(reminders) > 0:
-		i = 0
+	reminders_sent = 0
+	if count_reminders > 0:
+		reminders = database.get_pending_reminders(utils.requests_available(count_reminders), timestamp)
 		for reminder in reminders:
-			i += 1
+			reminders_sent += 1
 			log.info(
-				f"{i}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user.name} : "
+				f"{reminders_sent}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user.name} : "
 				f"{reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 			bldr = utils.get_footer(reminder.render_notification())
 			result = reddit.send_message(reminder.user.name, "RemindMeBot Here!", ''.join(bldr))
 			if result in (ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST):
 				log.info(f"User doesn't exist: u/{reminder.user.name}")
 
-			database.delete_reminder(reminder)
+			if reminder.recurrence is not None:
+				if reminder.user.recurring_sent > static.RECURRING_LIMIT:
+					log.info(f"User u/{reminder.user.name} hit their recurring limit, deleting reminder {reminder.id}")
+					database.delete_reminder(reminder)
+				else:
+					new_target_date = utils.parse_time(reminder.recurrence, reminder.target_date, reminder.user.timezone)
+					log.info(f"{reminder.id} recurring from {utils.render_time(reminder.target_date)} to "
+							 f"{utils.render_time(new_target_date)}")
+					reminder.target_date = new_target_date
+					reminder.user.recurring_sent += 1
+			else:
+				log.debug(f"{reminder.id} deleted")
+				database.delete_reminder(reminder)
+
+		database.commit()
 
 	else:
 		log.debug("No reminders to send")
 
-	return len(reminders)
+	return reminders_sent

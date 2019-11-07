@@ -42,12 +42,12 @@ specify time zone
 -database backup downloading
 recurring reminders
     -message parsing
-    comment parsing
-    cakeday parsing
+    -comment parsing
+    -cakeday parsing
     cakeday comment parsing
-    reminder list
-    sending reminders
-    user level timeouts
+    -reminder list
+    -sending reminders
+    -user level timeouts
     tests
 show context on comment links
 parse_dates

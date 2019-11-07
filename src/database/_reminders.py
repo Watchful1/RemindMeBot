@@ -36,16 +36,37 @@ class _DatabaseReminders:
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
 
-	def get_user_reminders(self, user_name):
-		log.debug(f"Fetching reminders for u/{user_name}")
+	def get_all_user_reminders(self, user_name):
+		log.debug(f"Fetching all reminders for u/{user_name}")
 
 		reminders = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
+			.order_by(Reminder.target_date.desc())\
 			.all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
+
+	def get_user_reminders(self, user_name):
+		log.debug(f"Fetching reminders for u/{user_name}")
+
+		regular_reminders = self.session.query(Reminder)\
+			.join(User)\
+			.filter(User.name == user_name)\
+			.filter(Reminder.recurrence is None)\
+			.order_by(Reminder.target_date.desc())\
+			.all()
+
+		recurring_reminders = self.session.query(Reminder)\
+			.join(User)\
+			.filter(User.name == user_name)\
+			.filter(Reminder.recurrence is not None)\
+			.order_by(Reminder.target_date.desc())\
+			.all()
+
+		log.debug(f"Found reminders: {len(regular_reminders)} : {len(recurring_reminders)}")
+		return regular_reminders, recurring_reminders
 
 	def get_reminder(self, reminder_id):
 		log.debug(f"Fetching reminder by id: {reminder_id}")

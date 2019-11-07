@@ -81,7 +81,6 @@ if __name__ == "__main__":
 
 		try:
 			actions += notifications.send_reminders(reddit, database)
-			actions += notifications.send_cakeday_notifications(reddit, database)
 		except Exception as err:
 			log.warning(f"Error sending notifications: {err}")
 			log.warning(traceback.format_exc())

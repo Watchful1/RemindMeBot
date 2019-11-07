@@ -59,32 +59,34 @@ class Reminder(Base):
 		user,
 		requested_date,
 		time_string,
-		recurring=False
+		recurring=False,
+		target_date=None
 	):
 		result_message = None
 		defaulted = False
 		time_string = time_string.strip()
-		if time_string is not None:
-			target_date = utils.parse_time(time_string, requested_date, user.timezone)
-			log.debug(f"Target date: {utils.get_datetime_string(target_date)}")
+		if target_date is None:
+			if time_string is not None:
+				target_date = utils.parse_time(time_string, requested_date, user.timezone)
+				log.debug(f"Target date: {utils.get_datetime_string(target_date)}")
 
-			if target_date is None:
-				result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
+				if target_date is None:
+					result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
+					log.info(result_message)
+					defaulted = True
+					target_date = utils.parse_time("1 day", requested_date, None)
+
+				elif target_date < requested_date:
+					result_message = f"This time, {time_string}, was interpreted as " \
+						f"{utils.get_datetime_string(target_date)}, which is in the past"
+					log.info(result_message)
+					return None, result_message
+
+			else:
+				result_message = "Could not find a time in message, defaulting to one day"
 				log.info(result_message)
 				defaulted = True
 				target_date = utils.parse_time("1 day", requested_date, None)
-
-			elif target_date < requested_date:
-				result_message = f"This time, {time_string}, was interpreted as " \
-					f"{utils.get_datetime_string(target_date)}, which is in the past"
-				log.info(result_message)
-				return None, result_message
-
-		else:
-			result_message = "Could not find a time in message, defaulting to one day"
-			log.info(result_message)
-			defaulted = True
-			target_date = utils.parse_time("1 day", requested_date, None)
 
 		if recurring:
 			if defaulted:
@@ -245,17 +247,29 @@ class Reminder(Base):
 		bldr.append("\n\n")
 
 		if self.recurrence is not None:
-			if self.is_cakeday():
-				bldr.append("I will message you every year at ")
-				bldr.append(utils.render_time(self.target_date, self.user.timezone, "%m-%d %H:%M:%S %Z"))
-				bldr.append(" to remind you of your cakeday.")
-
+			if self.user.recurring_sent > static.RECURRING_LIMIT:
+				bldr.append("I've sent you at least ")
+				bldr.append(str(static.RECURRING_LIMIT))
+				bldr.append(" recurring reminders since I last heard from you, so I'm automatically canceling this reminder. ")
+				bldr.append("[Click here](")
+				bldr.append(utils.build_message_link(
+					static.ACCOUNT_NAME,
+					"ReminderRepeat",
+					f"[{self.message}]\n\n{static.TRIGGER_RECURRING}! {self.recurrence}"
+				))
+				bldr.append(") to recreate it.")
 			else:
-				bldr.append("This is a repeating reminder. I'll message you again in `")
-				bldr.append(self.recurrence)
-				bldr.append("`, which is ")
-				bldr.append(utils.render_time(utils.parse_time(self.recurrence, self.target_date, self.user.timezone), self.user.timezone))
-				bldr.append(".")
+				if self.is_cakeday():
+					bldr.append("I will message you every year at ")
+					bldr.append(utils.render_time(self.target_date, self.user.timezone, "%m-%d %H:%M:%S %Z"))
+					bldr.append(" to remind you of your cakeday.")
+
+				else:
+					bldr.append("This is a repeating reminder. I'll message you again in `")
+					bldr.append(self.recurrence)
+					bldr.append("`, which is ")
+					bldr.append(utils.render_time(utils.parse_time(self.recurrence, self.target_date, self.user.timezone), self.user.timezone))
+					bldr.append(".")
 
 			bldr.append("\n\n")
 

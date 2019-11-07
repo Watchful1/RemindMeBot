@@ -6,7 +6,6 @@ import pytz
 import utils
 import static
 from classes.reminder import Reminder
-from classes.cakeday import Cakeday
 from classes.enums import ReturnType
 
 
@@ -16,16 +15,15 @@ log = discord_logging.get_logger()
 def get_reminders_string(user_name, database, previous=False):
 	bldr = utils.str_bldr()
 
-	reminders = database.get_user_reminders(user_name)
-	#cakeday = database.get_cakeday(user)
-	if len(reminders):# or cakeday is not None:
+	regular_reminders, recurring_reminders = database.get_user_reminders(user_name)
+	if len(regular_reminders) or len(recurring_reminders):
 		if previous:
 			bldr.append("Your previous reminders:")
 		else:
 			bldr.append("Your current reminders:")
 		bldr.append("\n\n")
 
-		if len(reminders) > 1:
+		if len(regular_reminders) + len(recurring_reminders) > 1:
 			bldr.append("[Click here to delete all your reminders](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove All", "RemoveAll!"))
 			bldr.append(")\n\n")
@@ -36,48 +34,45 @@ def get_reminders_string(user_name, database, previous=False):
 			bldr.append(user.timezone)
 			bldr.append("`\n\n")
 
-		log.debug(f"Building list with {len(reminders)} reminders")
-		bldr.append("|Source|Message|Date|In|Remove|\n")
-		bldr.append("|-|-|-|-|:-:|\n")
-		# if cakeday is not None:
-		# 	bldr.append("||")
-		# 	bldr.append("Happy cakeday!")
-		# 	bldr.append("|")
-		# 	bldr.append("Yearly on ")
-		# 	bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
-		# 	bldr.append("|")
-		# 	bldr.append(utils.render_time_diff(utils.datetime_now(), cakeday.date_time))
-		# 	bldr.append("|")
-		# 	bldr.append("[Remove](")
-		# 	bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
-		# 	bldr.append(")")
-		# 	bldr.append("|\n")
+		for reminders in [recurring_reminders, regular_reminders]:
+			if len(reminders):
+				log.debug(f"Building list with {len(reminders)} reminders")
+				if reminders[0].recurrence is not None:
+					bldr.append("|Source|Message|Date|In|Repeat|Remove|\n")
+					bldr.append("|-|-|-|-|-|:-:|\n")
+				else:
+					bldr.append("|Source|Message|Date|In|Remove|\n")
+					bldr.append("|-|-|-|-|:-:|\n")
 
-		for reminder in reminders:
-			bldr.append("|")
-			if "reddit.com" in reminder.source:
-				bldr.append("[Source](")
-				bldr.append(reminder.source)
-				bldr.append(")")
-			else:
-				bldr.append(reminder.source)
-			bldr.append("|")
-			if reminder.message is not None:
-				bldr.append(reminder.message.replace("|", "&#124;"))
-			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date, reminder.user.timezone))
-			bldr.append("|")
-			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
-			bldr.append("|")
-			bldr.append("[Remove](")
-			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.id}"))
-			bldr.append(")")
-			bldr.append("|\n")
+				for reminder in reminders:
+					bldr.append("|")
+					if "reddit.com" in reminder.source:
+						bldr.append("[Source](")
+						bldr.append(reminder.source)
+						bldr.append(")")
+					else:
+						bldr.append(reminder.source)
+					bldr.append("|")
+					if reminder.message is not None:
+						bldr.append(reminder.message.replace("|", "&#124;"))
+					bldr.append("|")
+					bldr.append(utils.render_time(reminder.target_date, reminder.user.timezone))
+					bldr.append("|")
+					bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
+					if reminder.recurrence is not None:
+						bldr.append("|")
+						bldr.append(reminder.recurrence)
+					bldr.append("|")
+					bldr.append("[Remove](")
+					bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.id}"))
+					bldr.append(")")
+					bldr.append("|\n")
 
-			if utils.bldr_length(bldr) > 9000:
-				log.debug("Message length too long, returning early")
-				bldr.append("\nToo many reminders to display.")
-				break
+					if utils.bldr_length(bldr) > 9000:
+						log.warning(f"Too many reminders for u/{user_name}: {len(regular_reminders)} : {len(recurring_reminders)}")
+						bldr.append("\nToo many reminders to display.")
+						break
+
 	else:
 		bldr.append("You don't have any reminders.")
 
@@ -258,6 +253,8 @@ def process_message(message, reddit, database, count_string=""):
 		log.info(f"Subreddit message, skipping : {message.id}")
 		return
 	log.info(f"{count_string}: Message u/{message.author.name} : {message.id}")
+	user = database.get_or_add_user(message.author.name)
+	user.recurring_sent = 0
 	body = message.body.lower()
 
 	bldr = None
