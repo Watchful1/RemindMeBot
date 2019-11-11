@@ -391,3 +391,39 @@ def test_timezone_reminder_message(database, reddit):
 	assert reminders[0].target_date == utils.datetime_as_utc(
 		pytz.timezone(user.timezone).localize(target.replace(tzinfo=None))
 	)
+
+
+def test_add_recurring_reminder(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	keyword = "reminderstring"
+	id = utils.random_id()
+	message = reddit_test.RedditObject(
+		body=f"[{keyword}]\n{static.TRIGGER_RECURRING}! 1 day",
+		author=username,
+		created=created,
+		id=id
+	)
+
+	messages.process_message(message, reddit, database)
+	result = message.get_first_child().body
+
+	assert "reminderstring" in result
+	assert "and then every `1 day`" in result
+
+	assert "This time has already passed" not in result
+	assert "Could not find a time in message" not in result
+	assert "Could not parse date" not in result
+	assert "Can't use a default for a recurring reminder" not in result
+	assert "I got the same date rather than one after it" not in result
+	assert "I got a date before that rather than one after it" not in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message == keyword
+	assert reminders[0].source == utils.message_link(id)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence == "1 day"

@@ -67,7 +67,7 @@ def parse_comment(comment, database, count_string):
 		time = "one year"
 
 	else:
-		time = utils.find_reminder_time(comment['body'])
+		time = utils.find_reminder_time(comment['body'], recurring)
 		message_text = utils.find_reminder_message(comment['body'])
 
 	reminder, result_message = Reminder.build_reminder(

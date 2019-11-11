@@ -52,8 +52,9 @@ def find_reminder_message(body):
 		return None
 
 
-def find_reminder_time(body):
-	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|$)'.format(trigger=static.TRIGGER_LOWER)
+def find_reminder_time(body, recurring):
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|$)'.format(
+		trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
 		return times[0]

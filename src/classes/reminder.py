@@ -144,6 +144,10 @@ class Reminder(Base):
 		else:
 			bldr.append("I will be messaging you on ")
 			bldr.append(utils.render_time(self.target_date, self.user.timezone))
+			if self.recurrence is not None:
+				bldr.append(" and then every `")
+				bldr.append(self.recurrence)
+				bldr.append("`")
 			bldr.append(" to remind you")
 			if self.message is None:
 				bldr.append(" of [**this link**](")
