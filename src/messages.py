@@ -83,7 +83,7 @@ def process_remind_me(message, database, recurring):
 	log.info("Processing RemindMe message")
 	time = utils.find_reminder_time(message.body, recurring)
 
-	message_text = utils.find_reminder_message(message.body)
+	message_text = utils.find_reminder_message(message.body, recurring)
 
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),

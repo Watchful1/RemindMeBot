@@ -33,10 +33,10 @@ def fullname_type(fullname):
 		return None
 
 
-def find_reminder_message(body):
+def find_reminder_message(body, recurring):
 	line_match = re.search(
 		r'(?:{trigger}.+)(?:(?:\[)([^\]]+?)(?:\])|(?:\")([^\"]+?)(?:\")|(?:“)([^”]*?)(?:”))(?:[^(]|\n|$)'.format(
-			trigger=static.TRIGGER_LOWER),
+			trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER),
 		body,
 		flags=re.IGNORECASE)
 	if line_match:
@@ -164,6 +164,9 @@ def add_years(date_time, years):
 
 
 def get_next_anniversary(account_created_utc):
+	if account_created_utc is None:
+		log.info("Account creation date is none")
+		return datetime_now()
 	account_created = datetime_from_timestamp(account_created_utc)
 	next_anniversary = add_years(account_created, datetime_now().year - account_created.year)
 	if next_anniversary < datetime_now():
