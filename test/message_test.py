@@ -65,11 +65,13 @@ def test_add_cakeday(database, reddit):
 
 	assert "to remind you of your cakeday" in result
 
-	cakeday = database.get_cakeday(username)
-	assert cakeday is not None
-	assert cakeday.user.name == username
-	assert cakeday.date_time == utils.parse_datetime_string("2019-05-05 15:25:17")
-	assert cakeday.db_id is not None
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].target_date == utils.parse_datetime_string("2019-05-05 15:25:17")
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence == "one year"
+	assert reminders[0].message == "Happy Cakeday!"
 
 
 def test_add_cakeday_exists(database, reddit):
@@ -250,35 +252,6 @@ def test_remove_reminder(database, reddit):
 
 	assert len(database.get_all_user_reminders("Watchful1")) == 1
 	assert len(database.get_all_user_reminders("Watchful2")) == 1
-
-
-def test_remove_cakeday(database, reddit):
-	cakeday1 = Cakeday(
-		user="Watchful1",
-		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
-	)
-	cakeday2 = Cakeday(
-		user="Watchful2",
-		date_time=utils.parse_datetime_string("2015-05-05 15:25:17")
-	)
-	database.add_cakeday(cakeday1)
-	database.add_cakeday(cakeday2)
-
-	message = reddit_test.RedditObject(
-		body=f"Remove! cakeday",
-		author="Watchful3"
-	)
-	messages.process_message(message, reddit, database)
-	assert "You don't have a cakeday reminder set." in message.get_first_child().body
-
-	message = reddit_test.RedditObject(
-		body=f"Remove! cakeday",
-		author="Watchful1"
-	)
-	messages.process_message(message, reddit, database)
-	assert "Cakeday reminder deleted." in message.get_first_child().body
-	assert database.get_cakeday("Watchful1") is None
-	assert database.get_cakeday("Watchful2") is not None
 
 
 def test_remove_all_reminders(database, reddit):
