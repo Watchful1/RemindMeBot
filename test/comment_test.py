@@ -29,7 +29,7 @@ def test_process_comment(database, reddit):
 
 	assert "CLICK THIS LINK" in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
 	assert reminders[0].user.name == username
 	assert reminders[0].message is None
@@ -37,6 +37,7 @@ def test_process_comment(database, reddit):
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
 
 
 def test_process_comment_timezone(database, reddit):
@@ -63,7 +64,7 @@ def test_process_comment_timezone(database, reddit):
 
 	assert "Your default time zone is set to `America/Los_Angeles`" in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert reminders[0].target_date == created + timedelta(hours=24)
 
 

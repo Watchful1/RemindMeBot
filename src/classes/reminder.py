@@ -64,7 +64,7 @@ class Reminder(Base):
 	):
 		result_message = None
 		defaulted = False
-		time_string = time_string.strip()
+		time_string = time_string.strip() if time_string is not None else None
 		if target_date is None:
 			if time_string is not None:
 				target_date = utils.parse_time(time_string, requested_date, user.timezone)
@@ -115,7 +115,7 @@ class Reminder(Base):
 			user=user,
 			requested_date=requested_date,
 			target_date=target_date,
-			recurrence=time_string,
+			recurrence=time_string if recurring else None,
 			defaulted=defaulted
 		)
 

@@ -69,9 +69,9 @@ def test_send_reminders(database, reddit):
 	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
 	notifications.send_reminders(reddit, database)
 
-	assert len(database.get_user_reminders("Watchful1")) == 4
+	assert len(database.get_all_user_reminders("Watchful1")) == 4
 
 	utils.debug_time = utils.parse_datetime_string("2019-01-08 12:00:00")
 	notifications.send_reminders(reddit, database)
 
-	assert len(database.get_user_reminders("Watchful1")) == 1
+	assert len(database.get_all_user_reminders("Watchful1")) == 1

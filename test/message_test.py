@@ -39,7 +39,7 @@ def test_add_reminder(database, reddit):
 	assert "Could not find a time in message" not in result
 	assert "Could not parse date" not in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
 	assert reminders[0].user.name == username
 	assert reminders[0].message == keyword
@@ -47,6 +47,7 @@ def test_add_reminder(database, reddit):
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
 
 
 def test_add_cakeday(database, reddit):
@@ -110,7 +111,7 @@ def test_add_reminder_no_message(database, reddit):
 	assert "Could not find a time in message" not in result
 	assert "Could not parse date" not in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
 	assert reminders[0].user.name == username
 	assert reminders[0].message is None
@@ -137,7 +138,7 @@ def test_add_reminder_no_date(database, reddit):
 	assert "This time has already passed" not in result
 	assert "Could not find a time in message, defaulting to one day" in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
 	assert reminders[0].user.name == username
 	assert reminders[0].message == "error test"
@@ -247,8 +248,8 @@ def test_remove_reminder(database, reddit):
 	messages.process_message(message, reddit, database)
 	assert "Reminder deleted." in message.get_first_child().body
 
-	assert len(database.get_user_reminders("Watchful1")) == 1
-	assert len(database.get_user_reminders("Watchful2")) == 1
+	assert len(database.get_all_user_reminders("Watchful1")) == 1
+	assert len(database.get_all_user_reminders("Watchful2")) == 1
 
 
 def test_remove_cakeday(database, reddit):
@@ -322,8 +323,8 @@ def test_remove_all_reminders(database, reddit):
 	body = message.get_first_child().body
 	assert "Deleted **2** reminders." in body
 
-	assert len(database.get_user_reminders("Watchful1")) == 0
-	assert len(database.get_user_reminders("Watchful2")) == 1
+	assert len(database.get_all_user_reminders("Watchful1")) == 0
+	assert len(database.get_all_user_reminders("Watchful2")) == 1
 
 
 def test_delete_comment(database, reddit):
@@ -411,7 +412,7 @@ def test_timezone_reminder_message(database, reddit):
 
 	messages.process_message(message, reddit, database)
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == utils.datetime_as_utc(
