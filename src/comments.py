@@ -23,6 +23,10 @@ def database_get_seen(database, word):
 	return utils.parse_datetime_string(result)
 
 
+def trigger_start_of_text(body, trigger):
+	return body.startswith(f"{trigger}!") or body.startswith(f"!{trigger}")
+
+
 def trigger_in_text(body, trigger):
 	return f"{trigger}!" in body or f"!{trigger}" in body
 
@@ -44,7 +48,7 @@ def parse_comment(comment, database, count_string):
 		recurring = True
 	elif trigger_in_text(body, static.TRIGGER_LOWER):
 		log.debug("Regular comment")
-	elif trigger_in_text(body, static.TRIGGER_CAKEDAY_LOWER):
+	elif trigger_start_of_text(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
 		cakeday = True
 		recurring = True
@@ -150,7 +154,7 @@ def process_comment(comment, reddit, database, count_string=""):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments(static.TRIGGER_LOWER, database_get_seen(database, static.TRIGGER_LOWER))
+	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database, static.TRIGGER_COMBINED))
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0
@@ -163,7 +167,7 @@ def process_comments(reddit, database):
 			log.warning(traceback.format_exc())
 
 		reddit.mark_keyword_comment_processed(comment['id'])
-		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']), static.TRIGGER_LOWER)
+		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']), static.TRIGGER_COMBINED)
 
 	return len(comments)
 

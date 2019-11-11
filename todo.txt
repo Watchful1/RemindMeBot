@@ -44,7 +44,7 @@ recurring reminders
     -message parsing
     -comment parsing
     -cakeday parsing
-    cakeday comment parsing
+    -cakeday comment parsing
     -reminder list
     -sending reminders
     -user level timeouts
