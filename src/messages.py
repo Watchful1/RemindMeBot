@@ -112,16 +112,7 @@ def process_remove_reminder(message, database):
 
 	ids = re.findall(r'remove!\s(\d+)', message.body, flags=re.IGNORECASE)
 	if len(ids) == 0:
-		cakeday_string = re.findall(r'remove!\s(cakeday)', message.body, flags=re.IGNORECASE)
-		if len(cakeday_string):
-			cakeday = database.get_cakeday(message.author.name)
-			if cakeday is None:
-				bldr.append("You don't have a cakeday reminder set.")
-			else:
-				database.delete_cakeday(cakeday)
-				bldr.append("Cakeday reminder deleted.")
-		else:
-			bldr.append("I couldn't find a reminder id to remove.")
+		bldr.append("I couldn't find a reminder id to remove.")
 	else:
 		reminder = database.get_reminder(ids[0])
 		if reminder is None or reminder.user.name != message.author.name:

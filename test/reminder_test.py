@@ -1,6 +1,8 @@
 import utils
 import notifications
 import static
+import reddit_test
+import messages
 from datetime import timedelta
 from classes.reminder import Reminder
 
@@ -138,3 +140,27 @@ def test_send_recurring_reminder_limit(database, reddit):
 	assert len(reminders) == 0
 
 	static.RECURRING_LIMIT = old_limit
+
+
+def test_reset_recurring_reminder_limit(database, reddit):
+	reminder = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user=database.get_or_add_user("Watchful1"),
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-05 05:00:00"),
+		recurrence="one day"
+	)
+	database.add_reminder(reminder)
+
+	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
+	notifications.send_reminders(reddit, database)
+	assert database.get_or_add_user("Watchful1").recurring_sent == 1
+
+	message = reddit_test.RedditObject(
+		body="MyReminders!",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+
+	assert database.get_or_add_user("Watchful1").recurring_sent == 0

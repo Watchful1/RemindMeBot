@@ -10,8 +10,6 @@ import reddit_test
 import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
-from classes.cakeday import Cakeday
-from classes.user import User
 
 
 def assert_date_with_tolerance(source, target, tolerance_minutes):
