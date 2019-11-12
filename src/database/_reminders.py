@@ -54,14 +54,14 @@ class _DatabaseReminders:
 		regular_reminders = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
-			.filter(Reminder.recurrence is None)\
+			.filter(Reminder.recurrence == None)\
 			.order_by(Reminder.target_date.desc())\
 			.all()
 
 		recurring_reminders = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
-			.filter(Reminder.recurrence is not None)\
+			.filter(Reminder.recurrence != None)\
 			.order_by(Reminder.target_date.desc())\
 			.all()
 

@@ -160,22 +160,32 @@ def test_get_reminders(database, reddit):
 	result = message.get_first_child().body
 	assert "You don't have any reminders." in result
 
-	reminder1 = Reminder(
-		source="https://www.reddit.com/message/messages/XXXXX",
-		message="KKKKK",
-		user=database.get_or_add_user("Watchful1"),
-		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
-		target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
-	)
-	reminder2 = Reminder(
-		source="https://www.reddit.com/message/messages/YYYYY",
-		message="FFFFF",
-		user=database.get_or_add_user("Watchful1"),
-		requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
-		target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
-	)
-	database.add_reminder(reminder1)
-	database.add_reminder(reminder2)
+	reminders = [
+		Reminder(
+			source="https://www.reddit.com/message/messages/XXXXX",
+			message="KKKKK",
+			user=database.get_or_add_user("Watchful1"),
+			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+			target_date=utils.parse_datetime_string("2019-01-04 05:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/YYYYY",
+			message="FFFFF",
+			user=database.get_or_add_user("Watchful1"),
+			requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
+			target_date=utils.parse_datetime_string("2019-02-05 07:00:00")
+		),
+		Reminder(
+			source="https://www.reddit.com/message/messages/ZZZZZ",
+			message="GGGGG",
+			user=database.get_or_add_user("Watchful1"),
+			requested_date=utils.parse_datetime_string("2019-02-02 06:00:00"),
+			target_date=utils.parse_datetime_string("2019-02-05 07:00:00"),
+			recurrence="one day"
+		)
+	]
+	for reminder in reminders:
+		database.add_reminder(reminder)
 
 	message = reddit_test.RedditObject(
 		body="MyReminders!",
@@ -185,14 +195,18 @@ def test_get_reminders(database, reddit):
 	result = message.get_first_child().body
 
 	assert "Click here to delete all your reminders" in result
+	assert "|Source|Message|Date|In|Repeat|Remove|" in result
+	assert "|Source|Message|Date|In|Remove|" in result
 
-	assert reminder1.source in result
-	assert reminder1.message in result
+	assert reminders[0].source in result
+	assert reminders[0].message in result
 	assert "01-04 05" in result
 
-	assert reminder2.source in result
-	assert reminder2.message in result
+	assert reminders[1].source in result
+	assert reminders[1].message in result
 	assert "02-05 07" in result
+
+	assert reminders[2].recurrence in result
 
 	user = database.get_or_add_user(user_name="Watchful1")
 	user.timezone = "America/Los_Angeles"

@@ -73,6 +73,8 @@ def get_reminders_string(user_name, database, previous=False):
 						bldr.append("\nToo many reminders to display.")
 						break
 
+				bldr.append("\n")
+
 	else:
 		bldr.append("You don't have any reminders.")
 
