@@ -31,8 +31,8 @@ def send_reminders(reddit, database):
 					database.delete_reminder(reminder)
 				else:
 					new_target_date = utils.parse_time(reminder.recurrence, reminder.target_date, reminder.user.timezone)
-					log.info(f"{reminder.id} recurring from {utils.render_time(reminder.target_date)} to "
-							 f"{utils.render_time(new_target_date)}")
+					log.info(f"{reminder.id} recurring from {utils.get_datetime_string(reminder.target_date)} to "
+							 f"{utils.get_datetime_string(new_target_date)}")
 					reminder.target_date = new_target_date
 					reminder.user.recurring_sent += 1
 			else:

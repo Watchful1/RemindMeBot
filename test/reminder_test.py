@@ -1,5 +1,7 @@
 import utils
 import notifications
+import static
+from datetime import timedelta
 from classes.reminder import Reminder
 
 
@@ -107,3 +109,32 @@ def test_send_recurring_reminder(database, reddit):
 	reminders = database.get_all_user_reminders("Watchful1")
 	assert len(reminders) == 1
 	assert reminders[0].target_date == utils.parse_datetime_string("2019-01-06 05:00:00")
+
+
+def test_send_recurring_reminder_limit(database, reddit):
+	old_limit = static.RECURRING_LIMIT
+	static.RECURRING_LIMIT = 3
+	reminder = Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message="KKKKK",
+		user=database.get_or_add_user("Watchful1"),
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string("2019-01-05 05:00:00"),
+		recurrence="one day"
+	)
+	database.add_reminder(reminder)
+
+	utils.debug_time = utils.parse_datetime_string("2019-01-04 12:00:00")
+	for i in range(static.RECURRING_LIMIT + 1):
+		utils.debug_time = utils.debug_time + timedelta(days=1)
+		notifications.send_reminders(reddit, database)
+		assert "I've sent you at least" not in reddit.sent_messages[-1].body
+		assert i+1 == database.get_or_add_user("Watchful1").recurring_sent
+
+	utils.debug_time = utils.debug_time + timedelta(days=1)
+	notifications.send_reminders(reddit, database)
+	assert "I've sent you at least" in reddit.sent_messages[-1].body
+	reminders = database.get_all_user_reminders("Watchful1")
+	assert len(reminders) == 0
+
+	static.RECURRING_LIMIT = old_limit
