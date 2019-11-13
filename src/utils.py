@@ -275,3 +275,10 @@ def requests_available(requests_pending):
 		return 30
 	else:
 		return min(1000, int(requests_pending / 5))
+
+
+def check_append_context_to_link(link):
+	if re.search(r"reddit\.com/r/\w+/comments/(\w+/){3}", link):
+		return link + "?context=3"
+	else:
+		return link

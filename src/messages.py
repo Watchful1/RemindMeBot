@@ -48,7 +48,7 @@ def get_reminders_string(user_name, database, previous=False):
 					bldr.append("|")
 					if "reddit.com" in reminder.source:
 						bldr.append("[Source](")
-						bldr.append(reminder.source)
+						bldr.append(utils.check_append_context_to_link(reminder.source))
 						bldr.append(")")
 					else:
 						bldr.append(reminder.source)

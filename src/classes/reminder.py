@@ -151,7 +151,7 @@ class Reminder(Base):
 			bldr.append(" to remind you")
 			if self.message is None:
 				bldr.append(" of [**this link**](")
-				bldr.append(self.source)
+				bldr.append(utils.check_append_context_to_link(self.source))
 				bldr.append(")")
 			else:
 				bldr.append(": ")
@@ -204,7 +204,7 @@ class Reminder(Base):
 				bldr.append(self.recurrence)
 				bldr.append("`")
 			bldr.append(" to remind you of [**this link**](")
-			bldr.append(utils.replace_np(self.source))
+			bldr.append(utils.replace_np(utils.check_append_context_to_link(self.source)))
 			bldr.append(")")
 
 		bldr.append("\n\n")
@@ -250,7 +250,7 @@ class Reminder(Base):
 			bldr.append("\n\n")
 
 		bldr.append("The source comment or message:\n\n>")
-		bldr.append(self.source)
+		bldr.append(utils.check_append_context_to_link(self.source))
 		bldr.append("\n\n")
 
 		if self.requested_date is None:
