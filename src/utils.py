@@ -112,7 +112,15 @@ def parse_time(time_string, base_time, timezone_string):
 	return date_time
 
 
-def render_time(date_time, timezone=None, format_string="%Y-%m-%d %H:%M:%S %Z"):
+def render_time(date_time, user=None, format_string=None):
+	timezone = user.timezone if user is not None else None
+	time_format = user.time_format if user is not None else None
+	if format_string is None:
+		if time_format == "12":
+			format_string = "%Y-%m-%d %I:%M:%S %p %Z"
+		else:
+			format_string = "%Y-%m-%d %H:%M:%S %Z"
+
 	bldr = str_bldr()
 	bldr.append("[**")
 	bldr.append(datetime_as_timezone(date_time, timezone).strftime(format_string))

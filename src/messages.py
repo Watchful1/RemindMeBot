@@ -56,7 +56,7 @@ def get_reminders_string(user_name, database, previous=False):
 					if reminder.message is not None:
 						bldr.append(reminder.message.replace("|", "&#124;"))
 					bldr.append("|")
-					bldr.append(utils.render_time(reminder.target_date, reminder.user.timezone))
+					bldr.append(utils.render_time(reminder.target_date, reminder.user))
 					bldr.append("|")
 					bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
 					if reminder.recurrence is not None:
@@ -219,7 +219,7 @@ def process_timezone_message(message, database):
 	bldr = utils.str_bldr()
 
 	timezones = re.findall(r'(?:timezone!? )([\w/]{1,50})', message.body, flags=re.IGNORECASE)
-	if len(timezones) == 0:
+	if not len(timezones):
 		log.debug("Couldn't find a timezone in your message")
 		bldr.append("I couldn't find a timezone in your message.")
 
@@ -237,6 +237,33 @@ def process_timezone_message(message, database):
 			bldr.append(f"Updated your timezone to {timezones[0]}")
 
 		log.info(f"u/{message.author.name} timezone updated to {timezones[0]}")
+
+	return bldr
+
+
+def process_clock_message(message, database):
+	log.info("Processing clock")
+	bldr = utils.str_bldr()
+
+	clocks = re.findall(r'(?:clock!? +)([\d]{2})', message.body, flags=re.IGNORECASE)
+	if not len(clocks):
+		log.debug("Couldn't find a clock type in your message")
+		bldr.append("I couldn't find a clock type in your message.")
+
+	else:
+		user = database.get_or_add_user(message.author.name)
+		if clocks[0] == "24":
+			user.time_format = None
+			bldr.append(f"Reset your clock type to the default 24 hour clock")
+		elif clocks[0] == "12":
+			user.time_format = "12"
+			bldr.append(f"Updated your clock type to a 12 hour clock")
+		else:
+			log.debug(f"Invalid clock type: {clocks[0]}")
+			bldr.append(f"{clocks[0]} is not a valid clock type.")
+			return bldr
+
+		log.info(f"u/{message.author.name} clock type updated to {clocks[0]}")
 
 	return bldr
 
@@ -267,6 +294,8 @@ def process_message(message, reddit, database, count_string=""):
 		bldr = process_cakeday_message(message, database)
 	elif "timezone!" in body:
 		bldr = process_timezone_message(message, database)
+	elif "clock!" in body:
+		bldr = process_clock_message(message, database)
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]
