@@ -439,3 +439,33 @@ def test_add_recurring_reminder(database, reddit):
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].id is not None
 	assert reminders[0].recurrence == "1 day"
+
+
+def test_set_clock(database, reddit):
+	username = "Watchful1"
+	message = reddit_test.RedditObject(
+		body="Clock! ",
+		author=username
+	)
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "I couldn't find a clock type in your message." in result
+
+	message.body = "Clock! 22"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "22 is not a valid clock type." in result
+
+	message.body = "Clock! 12"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "Updated your clock type to a 12 hour clock" in result
+	user = database.get_or_add_user(username)
+	assert user.time_format == "12"
+
+	message.body = "Clock! 24"
+	messages.process_message(message, reddit, database)
+	result = message.get_last_child().body
+	assert "Reset your clock type to the default 24 hour clock" in result
+	user = database.get_or_add_user(username)
+	assert user.time_format is None
