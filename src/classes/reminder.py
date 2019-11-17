@@ -130,8 +130,19 @@ class Reminder(Base):
 		return self.message is not None and self.message == static.CAKEDAY_MESSAGE and \
 			self.recurrence is not None and self.recurrence == "one year"
 
-	def render_message_confirmation(self, result_message, comment_return=None):
+	def render_message_confirmation(self, result_message, comment_return=None, pushshift_minutes=0):
 		bldr = utils.str_bldr()
+		if pushshift_minutes > 15:
+			bldr.append("There is a ")
+			if pushshift_minutes > 60:
+				bldr.append(str(round(pushshift_minutes / 60, 1)))
+				bldr.append(" hour")
+			else:
+				bldr.append(str(pushshift_minutes))
+				bldr.append(" minute")
+			bldr.append(" delay fetching comments.")
+			bldr.append("\n\n")
+
 		if result_message is not None:
 			bldr.append(result_message)
 			bldr.append("\n\n")
@@ -142,7 +153,9 @@ class Reminder(Base):
 			bldr.append(" to remind you of your cakeday.")
 
 		else:
-			bldr.append("I will be messaging you on ")
+			bldr.append("I will be messaging you in ")
+			bldr.append(utils.render_time_diff(utils.datetime_now(), self.target_date))
+			bldr.append(" on ")
 			bldr.append(utils.render_time(self.target_date, self.user))
 			if self.recurrence is not None:
 				bldr.append(" and then every `")
@@ -182,8 +195,18 @@ class Reminder(Base):
 
 		return bldr
 
-	def render_comment_confirmation(self, thread_id, count_duplicates=0):
+	def render_comment_confirmation(self, thread_id, count_duplicates=0, pushshift_minutes=0):
 		bldr = utils.str_bldr()
+		if pushshift_minutes > 15:
+			bldr.append("There is a ")
+			if pushshift_minutes > 60:
+				bldr.append(str(round(pushshift_minutes / 60, 1)))
+				bldr.append(" hour")
+			else:
+				bldr.append(str(pushshift_minutes))
+				bldr.append(" minute")
+			bldr.append(" delay fetching comments.")
+			bldr.append("\n\n")
 
 		if self.defaulted:
 			bldr.append("**Defaulted to one day.**\n\n")
@@ -197,7 +220,12 @@ class Reminder(Base):
 			bldr.append(" to remind you of your cakeday.")
 
 		else:
-			bldr.append("I will be messaging you on ")
+			if self.defaulted:
+				bldr.append("I will be messaging you on ")
+			else:
+				bldr.append("I will be messaging you in ")
+				bldr.append(utils.render_time_diff(utils.datetime_now(), self.target_date))
+				bldr.append(" on ")
 			bldr.append(utils.render_time(self.target_date, self.user))
 			if self.recurrence is not None:
 				bldr.append(" and then every `")

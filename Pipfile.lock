@@ -36,7 +36,7 @@
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",
-            "ref": "15068fe346c37b45ffc7b06dd91c5aec1c7a4eb5"
+            "ref": "25306834745c982cbf325f98f0a3816f8860e20e"
         },
         "future": {
             "hashes": [

@@ -106,7 +106,7 @@ def process_comment(comment, reddit, database, count_string=""):
 	if comment_result is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
-		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id))
+		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, pushshift_minutes=reddit.pushshift_lag))
 
 		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
@@ -147,7 +147,7 @@ def process_comment(comment, reddit, database, count_string=""):
 		log.info(
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
-		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result))
+		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, pushshift_minutes=reddit.pushshift_lag))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")

@@ -50,16 +50,16 @@ specify time zone
     -user level timeouts
     -tests
 -show context on comment links
-search_dates
+-search_dates
     -update library
     -force english
     changes
         times like "tomorrow" and "next tuesday" return 0 utc rather than 9:00 utc
         edge cases like "2 hours after noon" don't work anymore. Use "2 pm" instead
-12/24 hour setting
-apologize when late responding to comments because pushshift is behind
+-12/24 hour setting
+-apologize when late responding to comments because pushshift is behind
 migration script
-say how long from now in confirmations
+-say how long from now in confirmations
 
 
 

@@ -89,6 +89,7 @@ class Reddit:
 		self.users = {}
 		self.banned_subreddits = set()
 		self.locked_threads = set()
+		self.pushshift_lag = 0
 
 	def add_comment(self, comment, self_comment=False):
 		self.all_comments[comment.id] = comment

@@ -32,6 +32,8 @@ class Reddit:
 		self.processed_comments = Queue(100)
 		self.consecutive_timeouts = 0
 		self.timeout_warn_threshold = 1
+		self.pushshift_lag = 0
+		self.pushshift_lag_checked = None
 
 	def run_function(self, function, arguments):
 		output = None
@@ -153,12 +155,21 @@ class Reddit:
 
 		log.debug(f"Fetching comments for keyword: {keyword} : {utils.get_datetime_string(last_seen)}")
 		url = f"https://api.pushshift.io/reddit/comment/search?q={keyword}&limit=100&sort=desc"
+		lag_url = "https://api.pushshift.io/reddit/comment/search?limit=1&sort=desc"
 		try:
 			json = requests.get(url, headers={'User-Agent': static.USER_AGENT}, timeout=10)
 			if json.status_code != 200:
 				log.warning(f"Could not parse data for search term: {keyword} status: {str(json.status_code)}")
 				return []
 			comments = json.json()['data']
+
+			if self.pushshift_lag_checked is None or \
+					utils.datetime_now() - timedelta(minutes=10) > self.pushshift_lag_checked:
+				log.debug("Updating pushshift comment lag")
+				json = requests.get(lag_url, headers={'User-Agent': static.USER_AGENT}, timeout=10)
+				if json.status_code == 200:
+					comment_created = utils.datetime_from_timestamp(json.json()['data']['created_utc'])
+					self.pushshift_lag = round((utils.datetime_now() - comment_created).seconds / 60, 0)
 
 			if self.timeout_warn_threshold > 1:
 				log.warning(f"Recovered from timeouts after {self.consecutive_timeouts} attempts")

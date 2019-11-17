@@ -81,7 +81,7 @@ def get_reminders_string(user_name, database, previous=False):
 	return bldr
 
 
-def process_remind_me(message, database, recurring):
+def process_remind_me(message, reddit, database, recurring):
 	log.info("Processing RemindMe message")
 	time = utils.find_reminder_time(message.body, recurring)
 
@@ -103,7 +103,7 @@ def process_remind_me(message, database, recurring):
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation(result_message)
+	return reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.pushshift_lag)
 
 
 def process_remove_reminder(message, database):
@@ -188,7 +188,7 @@ def process_delete_comment(message, reddit, database):
 	return bldr
 
 
-def process_cakeday_message(message, database):
+def process_cakeday_message(message, reddit, database):
 	log.info("Processing cakeday")
 
 	if database.user_has_cakeday_reminder(message.author.name):
@@ -211,7 +211,7 @@ def process_cakeday_message(message, database):
 
 	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation(None)
+	return reminder.render_message_confirmation(None, pushshift_minutes=reddit.pushshift_lag)
 
 
 def process_timezone_message(message, database):
@@ -279,9 +279,9 @@ def process_message(message, reddit, database, count_string=""):
 
 	bldr = None
 	if static.TRIGGER_RECURRING_LOWER in body:
-		bldr = process_remind_me(message, database, True)
+		bldr = process_remind_me(message, reddit, database, True)
 	elif static.TRIGGER_LOWER in body:
-		bldr = process_remind_me(message, database, False)
+		bldr = process_remind_me(message, reddit, database, False)
 	elif "myreminders!" in body:
 		bldr = process_get_reminders(message, database)
 	elif "remove!" in body:
@@ -291,7 +291,7 @@ def process_message(message, reddit, database, count_string=""):
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
 	elif "cakeday!" in body:
-		bldr = process_cakeday_message(message, database)
+		bldr = process_cakeday_message(message, reddit, database)
 	elif "timezone!" in body:
 		bldr = process_timezone_message(message, database)
 	elif "clock!" in body:
