@@ -59,9 +59,9 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 			os.makedirs(static.BACKUP_FOLDER_NAME)
 
 		backup_con = sqlite3.connect(static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
-		self.engine.raw_connection().backup(backup_con)
+		with self.engine.connect() as con:
+			con.backup(backup_con)
 		backup_con.close()
-
 
 	def commit(self):
 		self.session.commit()
