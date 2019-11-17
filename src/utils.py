@@ -53,7 +53,7 @@ def find_reminder_message(body, recurring):
 
 
 def find_reminder_time(body, recurring):
-	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|$)'.format(
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(
 		trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
@@ -71,6 +71,24 @@ def parse_time(time_string, base_time, timezone_string):
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	except Exception:
 		date_time = None
+
+	if date_time is None:
+		try:
+			results = search_dates(
+				time_string,
+				languages=['en'],
+				settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+			if results is not None:
+				temp_time = results[0][1]
+				if temp_time.tzinfo is None:
+					temp_time = datetime_force_utc(temp_time)
+
+				if temp_time > base_time:
+					date_time = results[0][1]
+			else:
+				date_time = None
+		except Exception:
+			date_time = None
 
 	if date_time is None:
 		try:

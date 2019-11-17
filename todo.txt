@@ -50,10 +50,17 @@ specify time zone
     -user level timeouts
     -tests
 -show context on comment links
-parse_dates
+search_dates
+    update library
+    force english
+    only when a timezone is returned
+    truncate date string
+    changes
+        times like "tomorrow" and "next tuesday" return 0 utc rather than 9:00 utc
 12/24 hour setting
 apologize when late responding to comments because pushshift is behind
 migration script
+say how long from now in confirmations
 
 
 
