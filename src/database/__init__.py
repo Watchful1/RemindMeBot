@@ -23,8 +23,8 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 	def __init__(self, debug=False, publish=False):
 		log.info(f"Initializing database class: debug={debug} publish={publish}")
 		self.debug = debug
-		self.init(debug, publish)
 		self.engine = None
+		self.init(debug, publish)
 
 		_DatabaseReminders.__init__(self)
 		_DatabaseComments.__init__(self)
@@ -65,3 +65,6 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 
 	def commit(self):
 		self.session.commit()
+
+	def close(self):
+		self.engine.dispose()
