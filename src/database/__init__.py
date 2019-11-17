@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 import discord_logging
 from shutil import copyfile
+import sqlite3
 
 Base = declarative_base()
 
@@ -53,15 +54,14 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 	def backup(self):
 		log.info("Backing up database")
 		self.commit()
-		self.engine.dispose()
 
 		if not os.path.exists(static.BACKUP_FOLDER_NAME):
 			os.makedirs(static.BACKUP_FOLDER_NAME)
-		copyfile(
-			static.DATABASE_NAME,
-			static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
 
-		self.init(self.debug, False)
+		backup_con = sqlite3.connect(static.BACKUP_FOLDER_NAME + "/" + utils.datetime_now().strftime("%Y-%m-%d_%H-%M") + ".db")
+		self.engine.raw_connection().backup(backup_con)
+		backup_con.close()
+
 
 	def commit(self):
 		self.session.commit()
