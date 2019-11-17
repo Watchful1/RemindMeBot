@@ -170,6 +170,7 @@ class Reddit:
 				if json.status_code == 200:
 					comment_created = utils.datetime_from_timestamp(json.json()['data'][0]['created_utc'])
 					self.pushshift_lag = round((utils.datetime_now() - comment_created).seconds / 60, 0)
+					self.pushshift_lag_checked = utils.datetime_now()
 
 			if self.timeout_warn_threshold > 1:
 				log.warning(f"Recovered from timeouts after {self.consecutive_timeouts} attempts")

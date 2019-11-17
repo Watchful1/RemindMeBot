@@ -19,7 +19,9 @@ def database_get_seen(database, word):
 	result = database.get_keystore(f"{word}_comment")
 	if result is None:
 		log.warning("Comment time not in database, returning now")
-		return utils.datetime_now()
+		now = utils.datetime_now()
+		database_set_seen(database, now, word)
+		return now
 	return utils.parse_datetime_string(result)
 
 
