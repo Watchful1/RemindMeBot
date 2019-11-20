@@ -12,8 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = "!remindme 15 years just in case one happens to exist 15 years from now"
-base_time_string = "2018-11-15 14:05:37 -0800"
+input_string = "RemindMe! one Year"
+base_time_string = "2019-11-15 14:05:37 -0800"
 timezone_string = None
 
 if base_time_string:

@@ -67,3 +67,4 @@ delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders and in message/comment parsing
 log warnings when behind
+get message from remaining string after date was parsed

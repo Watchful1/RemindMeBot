@@ -32,17 +32,11 @@
         },
         "dateparser": {
             "git": "https://github.com/Watchful1/dateparser.git",
-            "ref": "ddd64627663d90ba02b7e274f7542d4633eeba09"
+            "ref": "24335954df2f33c39327974304621446c36a66bf"
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",
             "ref": "25306834745c982cbf325f98f0a3816f8860e20e"
-        },
-        "future": {
-            "hashes": [
-                "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"
-            ],
-            "version": "==0.18.2"
         },
         "idna": {
             "hashes": [
@@ -53,11 +47,11 @@
         },
         "parsedatetime": {
             "hashes": [
-                "sha256:3d817c58fb9570d1eec1dd46fa9448cd644eeed4fb612684b02dfda3a79cb84b",
-                "sha256:9ee3529454bf35c40a77115f5a596771e59e1aee8c53306f346c461b8e913094"
+                "sha256:3b835fc54e472c17ef447be37458b400e3fefdf14bb1ffdedb5d2c853acf4ba1",
+                "sha256:d2e9ddb1e463de871d32088a3f3cea3dc8282b1b2800e081bd0ef86900451667"
             ],
             "index": "pypi",
-            "version": "==2.4"
+            "version": "==2.5"
         },
         "praw": {
             "hashes": [
@@ -139,6 +133,7 @@
                 "sha256:03472c30eb2c5d1ba9227e4c2ca66ab8287fbfbbda3888aa93dc2e28fc6811b4",
                 "sha256:75a9445bac02d8d058d5e1fe689654ba5a6556a1dfd8ce6ec55a0ed79866cfa6"
             ],
+            "markers": "sys_platform == 'win32'",
             "version": "==1.3.0"
         },
         "attrs": {
@@ -201,11 +196,11 @@
         },
         "pytest": {
             "hashes": [
-                "sha256:8e256fe71eb74e14a4d20a5987bb5e1488f0511ee800680aaedc62b9358714e8",
-                "sha256:ff0090819f669aaa0284d0f4aad1a6d9d67a6efdc6dd4eb4ac56b704f890a0d6"
+                "sha256:1897d74f60a5d8be02e06d708b41bf2445da2ee777066bd68edf14474fc201eb",
+                "sha256:f6a567e20c04259d41adce9a360bd8991e6aa29dd9695c5e6bd25a9779272673"
             ],
             "index": "pypi",
-            "version": "==5.2.4"
+            "version": "==5.3.0"
         },
         "six": {
             "hashes": [
