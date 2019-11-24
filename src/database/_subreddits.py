@@ -13,7 +13,7 @@ class _DatabaseSubreddit:
 
 	def ban_subreddit(self, subreddit):
 		log.debug(f"Banning subreddit: {subreddit}")
-		self.session.merge(Subreddit(subreddit, True))
+		self.session.merge(Subreddit(subreddit, True, utils.datetime_now()))
 
 	def get_subreddit_banned(self, subreddit):
 		log.debug(f"Getting subreddit ban: {subreddit}")

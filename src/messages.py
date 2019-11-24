@@ -203,7 +203,7 @@ def process_cakeday_message(message, reddit, database):
 		user=database.get_or_add_user(message.author.name),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		target_date=next_anniversary,
-		recurrence="one year",
+		recurrence="1 year",
 		defaulted=False
 	)
 

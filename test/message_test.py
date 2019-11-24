@@ -68,7 +68,7 @@ def test_add_cakeday(database, reddit):
 	assert reminders[0].user.name == username
 	assert reminders[0].target_date == utils.parse_datetime_string("2019-05-05 15:25:17")
 	assert reminders[0].id is not None
-	assert reminders[0].recurrence == "one year"
+	assert reminders[0].recurrence == "1 year"
 	assert reminders[0].message == "Happy Cakeday!"
 
 

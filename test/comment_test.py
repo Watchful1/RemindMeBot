@@ -299,7 +299,7 @@ def test_process_cakeday_comment(database, reddit):
 	comment_id = utils.random_id()
 	thread_id = utils.random_id()
 	comment = reddit_test.RedditObject(
-		body=f"Cakeday!",
+		body=f"{static.TRIGGER_CAKEDAY}!",
 		author=username,
 		created=created,
 		id=comment_id,
@@ -323,5 +323,5 @@ def test_process_cakeday_comment(database, reddit):
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == utils.parse_datetime_string("2019-05-05 15:25:17")
 	assert reminders[0].id is not None
-	assert reminders[0].recurrence == "one year"
+	assert reminders[0].recurrence == "1 year"
 	assert reminders[0].message == "Happy Cakeday!"

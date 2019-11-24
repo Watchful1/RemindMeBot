@@ -84,7 +84,7 @@ class _DatabaseReminders:
 		reminder = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
-			.filter(Reminder.recurrence == "one year")\
+			.filter(Reminder.recurrence == "1 year")\
 			.filter(Reminder.message == static.CAKEDAY_MESSAGE)\
 			.first()
 

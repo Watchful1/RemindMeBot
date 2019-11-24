@@ -45,9 +45,6 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 
 		Base.metadata.create_all(self.engine)
 
-		if self.get_keystore("remindme_comment") is None:
-			self.save_keystore("remindme_comment", utils.get_datetime_string(utils.datetime_now()))
-
 		self.commit()
 
 	def backup(self):

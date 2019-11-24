@@ -36,10 +36,10 @@ def trigger_in_text(body, trigger):
 def parse_comment(comment, database, count_string, reddit):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
-		return None
+		return None, None
 	if comment['author'] in static.BLACKLISTED_ACCOUNTS:
 		log.debug("Comment is from a blacklisted account")
-		return None
+		return None, None
 
 	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
 	body = comment['body'].lower()
@@ -56,17 +56,17 @@ def parse_comment(comment, database, count_string, reddit):
 		recurring = True
 	else:
 		log.debug("Command not in comment")
-		return None
+		return None, None
 
 	target_date = None
 	if cakeday:
 		if database.user_has_cakeday_reminder(comment['author']):
 			log.info("Cakeday already exists")
-			return None
+			return None, None
 
 		target_date = utils.get_next_anniversary(reddit.get_user_creation_date(comment['author']))
 		message_text = static.CAKEDAY_MESSAGE
-		time = "one year"
+		time = "1 year"
 
 	else:
 		time = utils.find_reminder_time(comment['body'], recurring)
@@ -82,7 +82,7 @@ def parse_comment(comment, database, count_string, reddit):
 		target_date=target_date
 	)
 	if reminder is None:
-		return None
+		return None, None
 
 	database.add_reminder(reminder)
 

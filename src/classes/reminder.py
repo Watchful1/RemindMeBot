@@ -121,7 +121,7 @@ class Reminder(Base):
 
 	def is_cakeday(self):
 		return self.message is not None and self.message == static.CAKEDAY_MESSAGE and \
-			self.recurrence is not None and self.recurrence == "one year"
+			self.recurrence is not None and self.recurrence == "1 year"
 
 	def render_message_confirmation(self, result_message, comment_return=None, pushshift_minutes=0):
 		bldr = utils.str_bldr()
