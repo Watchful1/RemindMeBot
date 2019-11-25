@@ -8,12 +8,17 @@ BACKUP_FOLDER_NAME = "backup"
 BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot']
 RECURRING_LIMIT = 30
 
-TRIGGER = "ReminderTest"
+TRIGGER = "RemindMe"
 TRIGGER_LOWER = TRIGGER.lower()
-TRIGGER_RECURRING = "ReminderTestRepeat"
+TRIGGER_RECURRING = "RemindMe"
 TRIGGER_RECURRING_LOWER = TRIGGER_RECURRING.lower()
-TRIGGER_CAKEDAY = "CakedayTest"
+TRIGGER_CAKEDAY = "Cakeday"
 TRIGGER_CAKEDAY_LOWER = TRIGGER_CAKEDAY.lower()
 TRIGGER_COMBINED = f"{TRIGGER_LOWER}|{TRIGGER_CAKEDAY_LOWER}"
 
 CAKEDAY_MESSAGE = "Happy Cakeday!"
+
+INFO_POST = "https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/"
+INFO_POST_REPEAT = "https://www.reddit.com/r/RemindMeBot/comments/e1a9rt/remindmerepeat_info_post/"
+INFO_POST_CAKEDAY = "https://www.reddit.com/r/RemindMeBot/comments/e0tgoj/cakeday_info_post/"
+INFO_POST_SETTINGS = "https://www.reddit.com/r/RemindMeBot/comments/e1asdu/timezone_and_clock_info_post/"

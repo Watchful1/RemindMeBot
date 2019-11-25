@@ -60,18 +60,15 @@ specify time zone
 -apologize when late responding to comments because pushshift is behind
 -migration script
 -say how long from now in confirmations
-info pages for recurring reminders, cakedays, timezones and 12 hour clock
+-info pages for recurring reminders, cakedays, timezones and 12 hour clock
+-change test triggers back
+
+
+
 don't log stack traces on known errors
 delete comment objects after either 6 months or when the associated reminder is sent
-change test triggers back
-
-
-
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders and in message/comment parsing
 log warnings when behind
 get message from remaining string after date was parsed
-
-
-https://www.reddit.com/r/RemindMeBot/comments/e0tgoj/cakeday_info_post/

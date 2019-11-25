@@ -257,8 +257,9 @@ def get_footer(bldr=None):
 	bldr.append("*****")
 	bldr.append("\n\n")
 
-	bldr.append("|[^(Info)](https://np.reddit.com/r/RemindMeBot/comments/c5l9ie/remindmebot_info_v20/)")
-	bldr.append("|[^(Custom)](")
+	bldr.append("|[^(Info)](")
+	bldr.append(replace_np(static.INFO_POST))
+	bldr.append(")|[^(Custom)](")
 	bldr.append(build_message_link(
 		static.ACCOUNT_NAME,
 		"Reminder",

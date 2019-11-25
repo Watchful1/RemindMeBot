@@ -205,10 +205,16 @@ class Reminder(Base):
 			bldr.append("**Defaulted to one day.**\n\n")
 
 		if self.user.timezone is not None:
-			bldr.append(f"Your default time zone is set to `{self.user.timezone}`. ")
+			bldr.append("Your [default time zone](")
+			bldr.append(static.INFO_POST_SETTINGS)
+			bldr.append(") is set to `")
+			bldr.append(self.user.timezone)
+			bldr.append("`. ")
 
 		if self.is_cakeday():
-			bldr.append("I will message you every year at ")
+			bldr.append("I will [message you every year](")
+			bldr.append(static.INFO_POST_CAKEDAY)
+			bldr.append(") at ")
 			bldr.append(utils.render_time(self.target_date, self.user, "%m-%d %H:%M:%S %Z"))
 			bldr.append(" to remind you of your cakeday.")
 
@@ -221,7 +227,9 @@ class Reminder(Base):
 				bldr.append(" on ")
 			bldr.append(utils.render_time(self.target_date, self.user))
 			if self.recurrence is not None:
-				bldr.append(" and then every `")
+				bldr.append(" [and then every](")
+				bldr.append(static.INFO_POST_REPEAT)
+				bldr.append(") `")
 				bldr.append(self.recurrence)
 				bldr.append("`")
 			bldr.append(" to remind you of [**this link**](")
