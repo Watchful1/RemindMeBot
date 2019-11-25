@@ -12,8 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = "RemindMe! 31st of the month"
-base_time_string = "2019-11-15 14:05:37 -0800"
+input_string = "RemindMe! 1 day"
+base_time_string = "2019-11-24 14:05:37 -0800"
 timezone_string = None
 
 if base_time_string:

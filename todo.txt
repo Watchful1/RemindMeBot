@@ -58,7 +58,7 @@ specify time zone
         edge cases like "2 hours after noon" don't work anymore. Use "2 pm" instead
 -12/24 hour setting
 -apologize when late responding to comments because pushshift is behind
-migration script
+-migration script
 -say how long from now in confirmations
 info pages for recurring reminders, cakedays, timezones and 12 hour clock
 don't log stack traces on known errors
