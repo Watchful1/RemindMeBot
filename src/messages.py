@@ -100,6 +100,7 @@ def process_remind_me(message, reddit, database, recurring):
 		return [result_message]
 
 	database.add_reminder(reminder)
+	database.commit()
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
@@ -208,6 +209,7 @@ def process_cakeday_message(message, reddit, database):
 	)
 
 	database.add_reminder(reminder)
+	database.commit()
 
 	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
