@@ -42,7 +42,7 @@ class _DatabaseReminders:
 		reminders = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
-			.order_by(Reminder.target_date.desc())\
+			.order_by(Reminder.target_date.asc())\
 			.all()
 
 		log.debug(f"Found reminders: {len(reminders)}")
@@ -55,14 +55,14 @@ class _DatabaseReminders:
 			.join(User)\
 			.filter(User.name == user_name)\
 			.filter(Reminder.recurrence == None)\
-			.order_by(Reminder.target_date.desc())\
+			.order_by(Reminder.target_date.asc())\
 			.all()
 
 		recurring_reminders = self.session.query(Reminder)\
 			.join(User)\
 			.filter(User.name == user_name)\
 			.filter(Reminder.recurrence != None)\
-			.order_by(Reminder.target_date.desc())\
+			.order_by(Reminder.target_date.asc())\
 			.all()
 
 		log.debug(f"Found reminders: {len(regular_reminders)} : {len(recurring_reminders)}")
