@@ -33,10 +33,10 @@ def fullname_type(fullname):
 		return None
 
 
-def find_reminder_message(body):
+def find_reminder_message(body, recurring):
 	line_match = re.search(
 		r'(?:{trigger}.+)(?:(?:\[)([^\]]+?)(?:\])|(?:\")([^\"]+?)(?:\")|(?:“)([^”]*?)(?:”))(?:[^(]|\n|$)'.format(
-			trigger=static.TRIGGER_LOWER),
+			trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER),
 		body,
 		flags=re.IGNORECASE)
 	if line_match:
@@ -52,8 +52,9 @@ def find_reminder_message(body):
 		return None
 
 
-def find_reminder_time(body):
-	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|$)'.format(trigger=static.TRIGGER_LOWER)
+def find_reminder_time(body, recurring):
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(
+		trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
 		return times[0]
@@ -70,6 +71,24 @@ def parse_time(time_string, base_time, timezone_string):
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	except Exception:
 		date_time = None
+
+	if date_time is None:
+		try:
+			results = search_dates(
+				time_string,
+				languages=['en'],
+				settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+			if results is not None:
+				temp_time = results[0][1]
+				if temp_time.tzinfo is None:
+					temp_time = datetime_force_utc(temp_time)
+
+				if temp_time > base_time:
+					date_time = results[0][1]
+			else:
+				date_time = None
+		except Exception:
+			date_time = None
 
 	if date_time is None:
 		try:
@@ -93,7 +112,15 @@ def parse_time(time_string, base_time, timezone_string):
 	return date_time
 
 
-def render_time(date_time, timezone=None, format_string="%Y-%m-%d %H:%M:%S %Z"):
+def render_time(date_time, user=None, format_string=None):
+	timezone = user.timezone if user is not None else None
+	time_format = user.time_format if user is not None else None
+	if format_string is None:
+		if time_format == "12":
+			format_string = "%Y-%m-%d %I:%M:%S %p %Z"
+		else:
+			format_string = "%Y-%m-%d %H:%M:%S %Z"
+
 	bldr = str_bldr()
 	bldr.append("[**")
 	bldr.append(datetime_as_timezone(date_time, timezone).strftime(format_string))
@@ -162,6 +189,20 @@ def add_years(date_time, years):
 		return date_time + (datetime(date_time.year + years, 3, 1) - datetime(date_time.year, 3, 1))
 
 
+def get_next_anniversary(account_created_utc):
+	if account_created_utc is None:
+		log.info("Account creation date is none")
+		return datetime_now()
+	account_created = datetime_from_timestamp(account_created_utc)
+	next_anniversary = add_years(account_created, datetime_now().year - account_created.year)
+	if next_anniversary < datetime_now():
+		next_anniversary = add_years(next_anniversary, 1)
+
+	log.debug(
+		f"Account created {get_datetime_string(account_created)}, anniversary {get_datetime_string(next_anniversary)}")
+	return next_anniversary
+
+
 def datetime_now():
 	if debug_time is None:
 		return datetime_force_utc(datetime.utcnow().replace(microsecond=0))
@@ -216,8 +257,9 @@ def get_footer(bldr=None):
 	bldr.append("*****")
 	bldr.append("\n\n")
 
-	bldr.append("|[^(Info)](https://np.reddit.com/r/RemindMeBot/comments/c5l9ie/remindmebot_info_v20/)")
-	bldr.append("|[^(Custom)](")
+	bldr.append("|[^(Info)](")
+	bldr.append(replace_np(static.INFO_POST))
+	bldr.append(")|[^(Custom)](")
 	bldr.append(build_message_link(
 		static.ACCOUNT_NAME,
 		"Reminder",
@@ -260,3 +302,10 @@ def requests_available(requests_pending):
 		return 30
 	else:
 		return min(1000, int(requests_pending / 5))
+
+
+def check_append_context_to_link(link):
+	if re.search(r"reddit\.com/r/\w+/comments/(\w+/){3}", link):
+		return link + "?context=3"
+	else:
+		return link

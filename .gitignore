@@ -8,3 +8,4 @@ src/__pycache__/
 src/classes/__pycache__/
 src/database/__pycache__/
 test/__pycache__/
+migration_3.py

@@ -6,109 +6,104 @@ import pytz
 import utils
 import static
 from classes.reminder import Reminder
-from classes.cakeday import Cakeday
 from classes.enums import ReturnType
 
 
 log = discord_logging.get_logger()
 
 
-def get_reminders_string(user, database, previous=False):
+def get_reminders_string(user_name, database, previous=False):
 	bldr = utils.str_bldr()
 
-	reminders = database.get_user_reminders(user)
-	cakeday = database.get_cakeday(user)
-	if len(reminders) or cakeday is not None:
+	regular_reminders, recurring_reminders = database.get_user_reminders(user_name)
+	if len(regular_reminders) or len(recurring_reminders):
 		if previous:
 			bldr.append("Your previous reminders:")
 		else:
 			bldr.append("Your current reminders:")
 		bldr.append("\n\n")
 
-		if len(reminders) > 1:
+		if len(regular_reminders) + len(recurring_reminders) > 1:
 			bldr.append("[Click here to delete all your reminders](")
 			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove All", "RemoveAll!"))
 			bldr.append(")\n\n")
 
-		user_settings = database.get_settings(user)
-		if user_settings.timezone is not None:
+		user = database.get_or_add_user(user_name)
+		if user.timezone is not None:
 			bldr.append("Your timezone is currently set to: `")
-			bldr.append(user_settings.timezone)
+			bldr.append(user.timezone)
 			bldr.append("`\n\n")
 
-		log.debug(f"Building list with {len(reminders)} reminders and {(0 if cakeday is None else 1)} cakeday")
-		bldr.append("|Source|Message|Date|In|Remove|\n")
-		bldr.append("|-|-|-|-|:-:|\n")
-		if cakeday is not None:
-			bldr.append("||")
-			bldr.append("Happy cakeday!")
-			bldr.append("|")
-			bldr.append("Yearly on ")
-			bldr.append(utils.render_time(cakeday.date_time, user_settings.timezone, "%m-%d %H:%M:%S %Z"))
-			bldr.append("|")
-			bldr.append(utils.render_time_diff(utils.datetime_now(), cakeday.date_time))
-			bldr.append("|")
-			bldr.append("[Remove](")
-			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove Cakeday Reminder", "Remove! cakeday"))
-			bldr.append(")")
-			bldr.append("|\n")
+		for reminders in [recurring_reminders, regular_reminders]:
+			if len(reminders):
+				log.debug(f"Building list with {len(reminders)} reminders")
+				if reminders[0].recurrence is not None:
+					bldr.append("|Source|Message|Date|In|Repeat|Remove|\n")
+					bldr.append("|-|-|-|-|-|:-:|\n")
+				else:
+					bldr.append("|Source|Message|Date|In|Remove|\n")
+					bldr.append("|-|-|-|-|:-:|\n")
 
-		for reminder in reminders:
-			bldr.append("|")
-			if "reddit.com" in reminder.source:
-				bldr.append("[Source](")
-				bldr.append(reminder.source)
-				bldr.append(")")
-			else:
-				bldr.append(reminder.source)
-			bldr.append("|")
-			if reminder.message is not None:
-				bldr.append(reminder.message.replace("|", "&#124;"))
-			bldr.append("|")
-			bldr.append(utils.render_time(reminder.target_date, reminder.timezone))
-			bldr.append("|")
-			bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
-			bldr.append("|")
-			bldr.append("[Remove](")
-			bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.db_id}"))
-			bldr.append(")")
-			bldr.append("|\n")
+				for reminder in reminders:
+					bldr.append("|")
+					if "reddit.com" in reminder.source:
+						bldr.append("[Source](")
+						bldr.append(utils.check_append_context_to_link(reminder.source))
+						bldr.append(")")
+					else:
+						bldr.append(reminder.source)
+					bldr.append("|")
+					if reminder.message is not None:
+						bldr.append(reminder.message.replace("|", "&#124;"))
+					bldr.append("|")
+					bldr.append(utils.render_time(reminder.target_date, reminder.user))
+					bldr.append("|")
+					bldr.append(utils.render_time_diff(utils.datetime_now(), reminder.target_date))
+					if reminder.recurrence is not None:
+						bldr.append("|")
+						bldr.append(reminder.recurrence)
+					bldr.append("|")
+					bldr.append("[Remove](")
+					bldr.append(utils.build_message_link(static.ACCOUNT_NAME, "Remove", f"Remove! {reminder.id}"))
+					bldr.append(")")
+					bldr.append("|\n")
 
-			if utils.bldr_length(bldr) > 9000:
-				log.debug("Message length too long, returning early")
-				bldr.append("\nToo many reminders to display.")
-				break
+					if utils.bldr_length(bldr) > 9000:
+						log.warning(f"Too many reminders for u/{user_name}: {len(regular_reminders)} : {len(recurring_reminders)}")
+						bldr.append("\nToo many reminders to display.")
+						break
+
+				bldr.append("\n")
+
 	else:
 		bldr.append("You don't have any reminders.")
 
 	return bldr
 
 
-def process_remind_me(message, database):
+def process_remind_me(message, reddit, database, recurring):
 	log.info("Processing RemindMe message")
-	time = utils.find_reminder_time(message.body)
+	time = utils.find_reminder_time(message.body, recurring)
 
-	message_text = utils.find_reminder_message(message.body)
+	message_text = utils.find_reminder_message(message.body, recurring)
 
-	reminder = Reminder(
+	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),
 		message=message_text,
-		user=message.author.name,
+		user=database.get_or_add_user(message.author.name),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		time_string=time,
-		timezone=database.get_settings(message.author.name).timezone
+		recurring=recurring
 	)
-	if not reminder.valid:
+	if reminder is None:
 		log.debug("Reminder not valid, returning")
-		return [reminder.result_message]
+		return [result_message]
 
-	if not database.save_reminder(reminder):
-		log.info("Something went wrong saving the reminder")
-		return ["Something went wrong saving the reminder"]
+	database.add_reminder(reminder)
 
-	log.info(f"Reminder created: {reminder.db_id} : {utils.get_datetime_string(reminder.target_date)}")
+	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation()
+	return reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.pushshift_lag)
 
 
 def process_remove_reminder(message, database):
@@ -117,25 +112,14 @@ def process_remove_reminder(message, database):
 
 	ids = re.findall(r'remove!\s(\d+)', message.body, flags=re.IGNORECASE)
 	if len(ids) == 0:
-		cakeday_string = re.findall(r'remove!\s(cakeday)', message.body, flags=re.IGNORECASE)
-		if len(cakeday_string):
-			cakeday = database.get_cakeday(message.author.name)
-			if cakeday is None:
-				bldr.append("You don't have a cakeday reminder set.")
-			else:
-				database.delete_cakeday(cakeday)
-				bldr.append("Cakeday reminder deleted.")
-		else:
-			bldr.append("I couldn't find a reminder id to remove.")
+		bldr.append("I couldn't find a reminder id to remove.")
 	else:
 		reminder = database.get_reminder(ids[0])
-		if reminder is None or reminder.user != message.author.name:
+		if reminder is None or reminder.user.name != message.author.name:
 			bldr.append("It looks like you don't own this reminder or it doesn't exist.")
 		else:
-			if database.delete_reminder(reminder):
-				bldr.append("Reminder deleted.")
-			else:
-				bldr.append("Something went wrong, reminder not deleted.")
+			database.delete_reminder(reminder)
+			bldr.append("Reminder deleted.")
 
 	bldr.append("\n\n")
 	bldr.append("*****")
@@ -159,11 +143,6 @@ def process_remove_all_reminders(message, database):
 		bldr.append("Deleted **")
 		bldr.append(str(reminders_deleted))
 		bldr.append("** reminders.\n\n")
-
-	cakeday = database.get_cakeday(message.author.name)
-	if cakeday is not None:
-		database.delete_cakeday(cakeday)
-		bldr.append("Deleted cakeday reminder.\n\n")
 
 	bldr.append("\n\n")
 	bldr.append("*****")
@@ -192,10 +171,11 @@ def process_delete_comment(message, reddit, database):
 		if db_comment is not None:
 			if db_comment.user == message.author.name:
 				comment = reddit.get_comment(db_comment.comment_id)
-				if not reddit.delete_comment(comment) or not database.delete_comment(db_comment):
+				if not reddit.delete_comment(comment):
 					log.debug(f"Unable to delete comment: {db_comment.comment_id}")
 					bldr.append("Something went wrong deleting the comment")
 				else:
+					database.delete_comment(db_comment)
 					log.debug(f"Deleted comment: {db_comment.comment_id}")
 					bldr.append("Comment deleted.")
 			else:
@@ -208,25 +188,30 @@ def process_delete_comment(message, reddit, database):
 	return bldr
 
 
-def process_cakeday_message(message, database):
+def process_cakeday_message(message, reddit, database):
 	log.info("Processing cakeday")
 
-	if database.get_cakeday(message.author.name) is not None:
+	if database.user_has_cakeday_reminder(message.author.name):
 		log.info("Cakeday already exists")
 		return ["It looks like you already have a cakeday reminder set."]
 
-	account_created = utils.datetime_from_timestamp(message.author.created_utc)
-	next_anniversary = utils.add_years(account_created, utils.datetime_now().year - account_created.year)
-	if next_anniversary < utils.datetime_now():
-		next_anniversary = utils.add_years(next_anniversary, 1)
-	log.debug(
-		f"u/{message.author.name} created {utils.get_datetime_string(account_created)}, "
-		f"anniversary {utils.get_datetime_string(next_anniversary)}")
+	next_anniversary = utils.get_next_anniversary(message.author.created_utc)
 
-	cakeday = Cakeday(message.author.name, next_anniversary)
-	database.add_cakeday(cakeday)
+	reminder = Reminder(
+		source=utils.message_link(message.id),
+		message=static.CAKEDAY_MESSAGE,
+		user=database.get_or_add_user(message.author.name),
+		requested_date=utils.datetime_from_timestamp(message.created_utc),
+		target_date=next_anniversary,
+		recurrence="1 year",
+		defaulted=False
+	)
 
-	return cakeday.render_confirmation(database.get_settings(message.author.name).timezone)
+	database.add_reminder(reminder)
+
+	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
+
+	return reminder.render_message_confirmation(None, pushshift_minutes=reddit.pushshift_lag)
 
 
 def process_timezone_message(message, database):
@@ -234,7 +219,7 @@ def process_timezone_message(message, database):
 	bldr = utils.str_bldr()
 
 	timezones = re.findall(r'(?:timezone!? )([\w/]{1,50})', message.body, flags=re.IGNORECASE)
-	if len(timezones) == 0:
+	if not len(timezones):
 		log.debug("Couldn't find a timezone in your message")
 		bldr.append("I couldn't find a timezone in your message.")
 
@@ -243,16 +228,42 @@ def process_timezone_message(message, database):
 		bldr.append(f"{timezones[0]} is not a valid timezone.")
 
 	else:
-		user_settings = database.get_settings(message.author.name)
+		user = database.get_or_add_user(message.author.name)
 		if timezones[0] == "UTC":
-			user_settings.timezone = None
+			user.timezone = None
 			bldr.append(f"Reset your timezone to the default")
 		else:
-			user_settings.timezone = timezones[0]
+			user.timezone = timezones[0]
 			bldr.append(f"Updated your timezone to {timezones[0]}")
-		database.save_settings(user_settings)
 
 		log.info(f"u/{message.author.name} timezone updated to {timezones[0]}")
+
+	return bldr
+
+
+def process_clock_message(message, database):
+	log.info("Processing clock")
+	bldr = utils.str_bldr()
+
+	clocks = re.findall(r'(?:clock!? +)([\d]{2})', message.body, flags=re.IGNORECASE)
+	if not len(clocks):
+		log.debug("Couldn't find a clock type in your message")
+		bldr.append("I couldn't find a clock type in your message.")
+
+	else:
+		user = database.get_or_add_user(message.author.name)
+		if clocks[0] == "24":
+			user.time_format = None
+			bldr.append(f"Reset your clock type to the default 24 hour clock")
+		elif clocks[0] == "12":
+			user.time_format = "12"
+			bldr.append(f"Updated your clock type to a 12 hour clock")
+		else:
+			log.debug(f"Invalid clock type: {clocks[0]}")
+			bldr.append(f"{clocks[0]} is not a valid clock type.")
+			return bldr
+
+		log.info(f"u/{message.author.name} clock type updated to {clocks[0]}")
 
 	return bldr
 
@@ -262,11 +273,15 @@ def process_message(message, reddit, database, count_string=""):
 		log.info(f"Subreddit message, skipping : {message.id}")
 		return
 	log.info(f"{count_string}: Message u/{message.author.name} : {message.id}")
+	user = database.get_or_add_user(message.author.name)
+	user.recurring_sent = 0
 	body = message.body.lower()
 
 	bldr = None
-	if static.TRIGGER_LOWER in body:
-		bldr = process_remind_me(message, database)
+	if static.TRIGGER_RECURRING_LOWER in body:
+		bldr = process_remind_me(message, reddit, database, True)
+	elif static.TRIGGER_LOWER in body:
+		bldr = process_remind_me(message, reddit, database, False)
 	elif "myreminders!" in body:
 		bldr = process_get_reminders(message, database)
 	elif "remove!" in body:
@@ -276,9 +291,11 @@ def process_message(message, reddit, database, count_string=""):
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
 	elif "cakeday!" in body:
-		bldr = process_cakeday_message(message, database)
+		bldr = process_cakeday_message(message, reddit, database)
 	elif "timezone!" in body:
 		bldr = process_timezone_message(message, database)
+	elif "clock!" in body:
+		bldr = process_clock_message(message, database)
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]
@@ -290,6 +307,8 @@ def process_message(message, reddit, database, count_string=""):
 			log.info("User banned before reply could be sent")
 		else:
 			raise ValueError(f"Error sending message: {result.name}")
+
+	database.commit()
 
 
 def process_messages(reddit, database):
@@ -310,6 +329,8 @@ def process_messages(reddit, database):
 				except Exception:
 					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 					log.warning(traceback.format_exc())
+				finally:
+					database.commit()
 		else:
 			log.info(f"Object not message, skipping: {message.id}")
 

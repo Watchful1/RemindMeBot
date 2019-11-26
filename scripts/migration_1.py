@@ -7,7 +7,7 @@ log = discord_logging.init_logging()
 
 from classes.reminder import Reminder
 import utils
-from database import Database
+from database_old import DatabaseOld
 
 
 old_database = "databaseOld.db"

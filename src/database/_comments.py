@@ -1,210 +1,64 @@
-import sqlite3
 import discord_logging
+from sqlalchemy.orm import aliased
+from sqlalchemy.sql import func
 
 from classes.comment import DbComment
 from classes.reminder import Reminder
-import utils
-
 
 log = discord_logging.get_logger()
 
 
 class _DatabaseComments:
 	def __init__(self):
-		self.dbConn = self.dbConn  # for pycharm linting
+		self.session = self.session  # for pycharm linting
 
 	def save_comment(self, db_comment):
-		if not isinstance(db_comment, DbComment):
-			return False
-
-		c = self.dbConn.cursor()
-		if db_comment.db_id is not None:
-			log.debug(f"Updating comment: {db_comment.db_id}")
-			try:
-				c.execute('''
-					UPDATE comments
-					SET ThreadID = ?,
-						CommentID = ?,
-						ReminderId = ?,
-						CurrentCount = ?,
-						User=?,
-						Source = ?
-					WHERE ID = ?
-				''', (
-					db_comment.thread_id,
-					db_comment.comment_id,
-					db_comment.reminder_id,
-					db_comment.current_count,
-					db_comment.user,
-					db_comment.source,
-					db_comment.db_id))
-			except sqlite3.IntegrityError as err:
-				log.warning(f"Failed to update reminder: {err}")
-				return False
-		else:
-			log.debug("Saving new comment")
-			try:
-				c.execute('''
-					INSERT INTO comments
-					(ThreadID, CommentID, ReminderId, CurrentCount, User, Source)
-					VALUES (?, ?, ?, ?, ?, ?)
-				''', (
-					db_comment.thread_id,
-					db_comment.comment_id,
-					db_comment.reminder_id,
-					db_comment.current_count,
-					db_comment.user,
-					db_comment.source))
-			except sqlite3.IntegrityError as err:
-				log.warning(f"Failed to save comment: {err}")
-				return False
-
-			if c.lastrowid is not None:
-				db_comment.db_id = c.lastrowid
-				log.debug(f"Saved to: {db_comment.db_id}")
-
-		self.dbConn.commit()
-
-		return True
+		log.debug("Saving new comment")
+		self.session.add(db_comment)
 
 	def get_comment_by_thread(self, thread_id):
 		log.debug(f"Fetching comment for thread: {thread_id}")
-		c = self.dbConn.cursor()
-		c.execute('''
-			SELECT ID, ThreadID, CommentID, ReminderId, CurrentCount, User, Source
-			FROM comments
-			WHERE ThreadID = ?
-			''', (thread_id,))
 
-		result = c.fetchone()
-		if result is None or len(result) == 0:
-			log.debug("No comment found")
-			return None
-
-		db_comment = DbComment(
-			thread_id=result[1],
-			comment_id=result[2],
-			reminder_id=result[3],
-			user=result[5],
-			source=result[6],
-			current_count=result[4],
-			db_id=result[0]
-		)
-
-		return db_comment
+		return self.session.query(DbComment).filter_by(thread_id=thread_id).first()
 
 	def delete_comment(self, db_comment):
-		log.debug(f"Deleting comment by id: {db_comment.db_id}")
-		if db_comment.db_id is None:
-			return False
-
-		c = self.dbConn.cursor()
-		c.execute('''
-			DELETE FROM comments
-			WHERE ID = ?
-		''', (db_comment.db_id,))
-		self.dbConn.commit()
-
-		if c.rowcount == 1:
-			log.debug("Comment deleted")
-			return True
-		else:
-			log.debug("Comment not deleted")
-			return False
+		log.debug(f"Deleting comment by id: {db_comment.id}")
+		self.session.delete(db_comment)
 
 	def get_pending_incorrect_comments(self):
 		log.debug("Fetching count of incorrect comments")
-		c = self.dbConn.cursor()
-		c.execute('''
-			SELECT count(*)
-			FROM comments cm
-			LEFT JOIN
-				(
-					SELECT rm1.ID,
-						   count(*) as NewCount
-					FROM reminders rm1
-						INNER JOIN reminders rm2
-							ON rm1.Source = rm2.Message
-					GROUP BY rm1.ID
-				) AS rm
-					ON cm.ReminderId = rm.ID
-			WHERE rm.NewCount != cm.CurrentCount
-			''')
 
-		result = c.fetchone()
-		if result is None or len(result) == 0:
-			log.debug("No incorrect comments")
-			return 0
-
-		log.debug(f"Incorrect comments: {result[0]}")
-		return result[0]
+		Reminder1 = aliased(Reminder)
+		Reminder2 = aliased(Reminder)
+		subquery = self.session.query(Reminder1.id, func.count('*').label("new_count"))\
+			.join(Reminder2, Reminder1.source == Reminder2.message)\
+			.group_by(Reminder1.id)\
+			.subquery()
+		count = self.session.query(DbComment)\
+			.join(subquery, DbComment.reminder_id == subquery.c.id)\
+			.filter(subquery.c.new_count != DbComment.current_count)\
+			.count()
+		log.debug(f"Incorrect comments: {count}")
+		return count
 
 	def get_incorrect_comments(self, count):
 		log.debug(f"Fetching incorrect comments")
-		c = self.dbConn.cursor()
-		results = []
-		for row in c.execute('''
-			SELECT cm.ID,
-				cm.ThreadID,
-				cm.CommentID,
-				cm.ReminderId,
-				cm.CurrentCount,
-				cm.User,
-				cm.Source,
-				rm.ID,
-				rm.Source,
-				rm.RequestedDate,
-				rm.TargetDate,
-				rm.Message,
-				rm.User,
-				rm.Defaulted,
-				rm.TimeZone,
-				rm.NewCount
-			FROM comments cm
-			LEFT JOIN
-				(
-					SELECT rm1.ID,
-						rm1.Source,
-						rm1.RequestedDate,
-						rm1.TargetDate,
-						rm1.Message,
-						rm1.User,
-						rm1.Defaulted,
-						us.TimeZone,
-						count(*) as NewCount
-					FROM reminders rm1
-						INNER JOIN reminders rm2
-							ON rm1.Source = rm2.Message
-						LEFT JOIN user_settings us
-							ON us.User = rm1.User
-					GROUP BY rm1.ID
-				) AS rm
-					ON cm.ReminderId = rm.ID
-			WHERE rm.NewCount != cm.CurrentCount
-			LIMIT ?
-			''', (count,)):
-			db_comment = DbComment(
-				thread_id=row[1],
-				comment_id=row[2],
-				reminder_id=row[3],
-				user=row[5],
-				source=row[6],
-				current_count=row[4],
-				db_id=row[0]
-			)
-			reminder = Reminder(
-				source=row[8],
-				target_date=utils.parse_datetime_string(row[10]),
-				message=row[11],
-				user=row[12],
-				db_id=row[7],
-				requested_date=utils.parse_datetime_string(row[9]),
-				count_duplicates=row[15],
-				thread_id=row[1],
-				timezone=row[14],
-				defaulted=row[13] == 1
-			)
-			results.append((db_comment, reminder))
+
+		Reminder1 = aliased(Reminder)
+		Reminder2 = aliased(Reminder)
+
+		subquery = self.session.query(Reminder1, func.count('*').label("new_count"))\
+			.join(Reminder2, Reminder1.source == Reminder2.message)\
+			.group_by(Reminder1.id)\
+			.subquery()
+
+		Reminder3 = aliased(Reminder, subquery)
+
+		results = self.session.query(DbComment, Reminder3, subquery.c.new_count)\
+			.join(subquery, DbComment.reminder_id == subquery.c.id)\
+			.filter(subquery.c.new_count != DbComment.current_count)\
+			.limit(count)\
+			.all()
 
 		log.debug(f"Found incorrect comments: {len(results)}")
 		return results

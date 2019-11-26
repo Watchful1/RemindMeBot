@@ -5,7 +5,6 @@ import utils
 import reddit_test
 import static
 from classes.reminder import Reminder
-from classes.user_settings import UserSettings
 
 
 def test_process_comment(database, reddit):
@@ -30,23 +29,20 @@ def test_process_comment(database, reddit):
 
 	assert "CLICK THIS LINK" in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
-	assert reminders[0].user == username
+	assert reminders[0].user.name == username
 	assert reminders[0].message is None
 	assert reminders[0].source == utils.reddit_link(comment.permalink)
 	assert reminders[0].requested_date == created
 	assert reminders[0].target_date == created + timedelta(hours=24)
-	assert reminders[0].db_id is not None
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
 
 
 def test_process_comment_timezone(database, reddit):
-	database.save_settings(
-		UserSettings(
-			user="Watchful1",
-			timezone="America/Los_Angeles"
-		)
-	)
+	user = database.get_or_add_user(user_name="Watchful1")
+	user.timezone = "America/Los_Angeles"
 
 	username = "Watchful1"
 	comment_id = utils.random_id()
@@ -68,7 +64,7 @@ def test_process_comment_timezone(database, reddit):
 
 	assert "Your default time zone is set to `America/Los_Angeles`" in result
 
-	reminders = database.get_user_reminders(username)
+	reminders = database.get_all_user_reminders(username)
 	assert reminders[0].target_date == created + timedelta(hours=24)
 
 
@@ -154,41 +150,41 @@ def test_update_incorrect_comments(database, reddit):
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-05 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-06 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment1.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-07 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment2.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-08 05:00:00")
 		),
 		Reminder(
 			source="https://www.reddit.com/message/messages/XXXXX",
 			message=utils.reddit_link(comment2.permalink),
-			user="Watchful1",
+			user=database.get_or_add_user("Watchful1"),
 			requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
 			target_date=utils.parse_datetime_string("2019-01-09 05:00:00")
 		)
 	]
 	for reminder in reminders:
-		database.save_reminder(reminder)
+		database.add_reminder(reminder)
 
 	comments.update_comments(reddit, database)
 
@@ -259,3 +255,73 @@ def test_commenting_deleted(database, reddit):
 	assert len(comment.children) == 0
 	assert len(reddit.sent_messages) == 1
 	assert "it was deleted before I could get to it" in reddit.sent_messages[0].body
+
+
+def test_process_recurring_comment(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_RECURRING}! 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+	assert "and then every `1 day`" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence == "1 day"
+
+
+def test_process_cakeday_comment(database, reddit):
+	username = "Watchful1"
+	user = reddit_test.User(username, utils.parse_datetime_string("2015-05-05 15:25:17").timestamp())
+	reddit.add_user(user)
+	created = utils.parse_datetime_string("2019-01-05 11:00:00")
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_CAKEDAY}!",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "to remind you of your cakeday" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == utils.parse_datetime_string("2019-05-05 15:25:17")
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence == "1 year"
+	assert reminders[0].message == "Happy Cakeday!"

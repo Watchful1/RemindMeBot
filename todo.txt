@@ -40,10 +40,35 @@ specify time zone
     time zone list
     link to time zone list in comment replies that use it
 -database backup downloading
+-recurring reminders
+    -message parsing
+    -comment parsing
+    -cakeday parsing
+    -cakeday comment parsing
+    -reminder list
+    -sending reminders
+    -user level timeouts
+    -tests
+-show context on comment links
+-search_dates
+    -update library
+    -force english
+    changes
+        times like "tomorrow" and "next tuesday" return 0 utc rather than 9:00 utc
+        edge cases like "2 hours after noon" don't work anymore. Use "2 pm" instead
+-12/24 hour setting
+-apologize when late responding to comments because pushshift is behind
+-migration script
+-say how long from now in confirmations
+-info pages for recurring reminders, cakedays, timezones and 12 hour clock
+-change test triggers back
 
 
+trigger on "remind me!" "remind me !"
+don't log stack traces on known errors
+delete comment objects after either 6 months or when the associated reminder is sent
 delete reminders if the related user comes back as deleted
 track events in database
 apologize for being late in reminders and in message/comment parsing
-recurring reminders
 log warnings when behind
+get message from remaining string after date was parsed

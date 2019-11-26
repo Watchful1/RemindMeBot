@@ -1,14 +1,61 @@
 import discord_logging
-import parsedatetime.parsedatetime as pdt
+import parsedatetime
 from datetime import datetime
 from datetime import timedelta
-import time
-import requests
+import static
 import re
+import requests
+import pytz
+import dateparser
 
 log = discord_logging.init_logging()
 
 import utils
+
+cal = parsedatetime.Calendar()
+
+
+def parse_time_old(time_string, base_time, timezone_string):
+	base_time = utils.datetime_as_timezone(base_time, timezone_string)
+
+	try:
+		date_time = dateparser.parse(
+			time_string,
+			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+	except Exception:
+		date_time = None
+
+	if date_time is None:
+		try:
+			date_time, result_code = cal.parseDT(time_string, base_time)
+			if result_code == 0:
+				date_time = None
+		except Exception:
+			date_time = None
+
+	if date_time is None:
+		return None
+
+	if date_time.tzinfo is None:
+		if timezone_string is not None:
+			date_time = pytz.timezone(timezone_string).localize(date_time)
+		else:
+			date_time = utils.datetime_force_utc(date_time)
+
+	date_time = utils.datetime_as_utc(date_time)
+
+	return date_time
+
+
+def find_reminder_time_old(body, recurring):
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|$)'.format(
+		trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER)
+	times = re.findall(regex_string, body, flags=re.IGNORECASE)
+	if len(times) > 0 and times[0] != "":
+		return times[0]
+	else:
+		return None
+
 
 url = "https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=remindme&before="
 
@@ -16,8 +63,7 @@ previousEpoch = int(datetime.utcnow().timestamp())
 count = 0
 breakOut = False
 current = utils.datetime_now()
-current_hour = current.replace(year=1, month=1, day=1)
-zero_hour = current.replace(year=1, month=1, day=1, hour=0, minute=0, second=0)
+log.info(f"Current time: {utils.get_datetime_string(current)}")
 while True:
 	newUrl = url+str(previousEpoch)
 	json = requests.get(newUrl, headers={'User-Agent': "Remindme tester by /u/Watchful1"})
@@ -25,77 +71,24 @@ while True:
 	if len(objects) == 0:
 		break
 	for comment in objects:
+		if comment['author'] == "RemindMeBot":
+			continue
 		previousEpoch = comment['created_utc'] - 1
-		regex_string = r'(?:remindme.? )(.*?)(?:\[|\n|\"|$)'
-		times = re.findall(regex_string, comment['body'], flags=re.IGNORECASE)
-		if len(times) > 0:
-			time_string = times[0]
+		time_string_old = utils.find_reminder_time(comment['body'].lower(), False)#find_reminder_time_old(comment['body'].lower(), False)
+		time_string_new = utils.find_reminder_time(comment['body'].lower(), False)
+		if time_string_old is not None:
+			date_time_old = parse_time_old(time_string_old, current, None)
+			date_time_new = utils.parse_time(time_string_new, current, None)
 
-			try:
-				cal = pdt.Calendar()
-				holdTime = cal.parse(time_string, current)
-				old_date = time.strftime('%Y-%m-%d %H:%M:%S', holdTime[0])
-			except Exception:
-				old_date = "None"
-
-			try:
-				new_date = utils.get_datetime_string(utils.parse_time(time_string, current, None), format_string='%Y-%m-%d %H:%M:%S')
-			except Exception:
-				new_date = "None"
-
-			if old_date != new_date and old_date != utils.get_datetime_string(current, format_string='%Y-%m-%d %H:%M:%S'):
-				old_date_time = utils.parse_datetime_string(old_date)
-				new_date_time = utils.parse_datetime_string(new_date)
-				if old_date_time is None or new_date_time is None or \
-						not (old_date_time.replace(year=1, month=1, day=1) == current_hour and
-						new_date_time.replace(year=1, month=1, day=1) == zero_hour):
-					log.info(f"{old_date.ljust(19)} | {new_date.ljust(19)} | {time_string}")
-#{utils.reddit_link(comment['permalink']).ljust(120)} |
+			if date_time_old != date_time_new:
+				log.info(f"{utils.get_datetime_string(date_time_old, False, '%Y-%m-%d %H:%M:%S %Z').ljust(23)} "
+						 f"| {utils.get_datetime_string(date_time_new, False, '%Y-%m-%d %H:%M:%S %Z').ljust(23)} "
+						 f"| {time_string_old[:60].ljust(60)} "
+						 f"| {time_string_new.ljust(60)} "
+						 f"| https://www.reddit.com{comment['permalink']} ")
 		count += 1
-		# if count % 1000 == 0:
-		# 	log.info("comments: {}, {}".format(count, datetime.fromtimestamp(previousEpoch).strftime("%Y-%m-%d")))
-		if count > 2000:
+		if count > 10000:
 			breakOut = True
 			break
 	if breakOut:
 		break
-
-
-
-# current = utils.datetime_now()
-# times = [
-#     "One Year",
-#     "3 Months",
-#     "One Week",
-#     "1 Day",
-#     "33 Hours",
-#     "10 Minutes",
-#     "August 25th, 2014",
-#     "25 Aug 2014",
-#     "5pm August 25",
-#     "Next Saturday",
-#     "Tomorrow",
-#     "Next Thursday at 4pm",
-#     "Tonight",
-#     "at 4pm",
-#     "2 Hours After Noon",
-#     "eoy",
-#     "eom",
-#     "eod",
-# ]
-#
-# log.info(f"Base time: {current.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-# for time_string in times:
-# 	try:
-# 		cal = pdt.Calendar()
-# 		holdTime = cal.parse(time_string, current)
-# 		old_date = time.strftime('%Y-%m-%d %H:%M:%S', holdTime[0])
-# 	except Exception:
-# 		old_date = "failed"
-#
-# 	try:
-# 		new_date = utils.get_datetime_string(utils.parse_time(time_string, current), format_string='%Y-%m-%d %H:%M:%S %Z')
-# 	except Exception:
-# 		new_date = "failed"
-#
-# 	log.info(f"{time_string.ljust(20)} | {old_date.ljust(19)} | {new_date.ljust(19)}")
