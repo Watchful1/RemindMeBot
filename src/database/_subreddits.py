@@ -21,5 +21,5 @@ class _DatabaseSubreddit:
 		return self.session.query(Subreddit)\
 			.filter_by(subreddit=subreddit)\
 			.filter_by(banned=True)\
-			.filter(Subreddit.ban_checked < days_ago)\
-			.scalar()
+			.filter(Subreddit.ban_checked > days_ago)\
+			.scalar() is not None
