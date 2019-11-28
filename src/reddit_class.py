@@ -145,7 +145,7 @@ class Reddit:
 	def get_user_creation_date(self, user_name):
 		log.debug(f"Getting user creation date: {user_name}")
 		try:
-			return self.reddit.user(user_name).created_utc
+			return self.reddit.redditor(user_name).created_utc
 		except Exception:
 			return None
 
