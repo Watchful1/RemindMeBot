@@ -134,7 +134,7 @@ def process_comment(comment, reddit, database, count_string=""):
 				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
 
-			if comment_result != ReturnType.QUARANTINED:
+			if comment_result != ReturnType.QUARANTINED and comment['subreddit'] != "RemindMeBot":
 				db_comment = DbComment(
 					thread_id=thread_id,
 					comment_id=result_id,

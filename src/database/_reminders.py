@@ -30,6 +30,7 @@ class _DatabaseReminders:
 		reminders = self.session.query(Reminder)\
 			.options(joinedload(Reminder.user))\
 			.filter(Reminder.target_date < timestamp)\
+			.order_by(Reminder.target_date.asc())\
 			.limit(count)\
 			.all()
 

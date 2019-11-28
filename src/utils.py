@@ -133,6 +133,8 @@ def render_time(date_time, user=None, format_string=None):
 
 def render_time_diff(start_date, end_date):
 	delta = relativedelta(end_date, start_date)
+	if delta > relativedelta(hours=1):
+		delta = delta + relativedelta(minutes=5)
 	if delta.years > 0:
 		return f"{delta.years} year{('s' if delta.years > 1 else '')}"
 	elif delta.months > 0:
