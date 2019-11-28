@@ -62,7 +62,8 @@ def test_process_comment_timezone(database, reddit):
 	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
 	result = comment.get_first_child().body
 
-	assert "Your default time zone is set to `America/Los_Angeles`" in result
+	assert "default time zone" in result
+	assert "`America/Los_Angeles`" in result
 
 	reminders = database.get_all_user_reminders(username)
 	assert reminders[0].target_date == created + timedelta(hours=24)
@@ -278,7 +279,8 @@ def test_process_recurring_comment(database, reddit):
 	result = comment.get_first_child().body
 
 	assert "CLICK THIS LINK" in result
-	assert "and then every `1 day`" in result
+	assert "and then every" in result
+	assert "`1 day`" in result
 
 	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
