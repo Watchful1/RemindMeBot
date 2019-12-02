@@ -125,7 +125,7 @@ class Reminder(Base):
 
 	def render_message_confirmation(self, result_message, comment_return=None, pushshift_minutes=0):
 		bldr = utils.str_bldr()
-		if pushshift_minutes > 15:
+		if pushshift_minutes > 15 and comment_return is not None:
 			bldr.append("There is a ")
 			if pushshift_minutes > 60:
 				bldr.append(str(round(pushshift_minutes / 60, 1)))
