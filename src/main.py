@@ -8,7 +8,9 @@ import traceback
 import discord_logging
 import argparse
 
-log = discord_logging.init_logging()
+log = discord_logging.init_logging(
+	backup_count=20
+)
 
 from database import Database
 import reddit_class
