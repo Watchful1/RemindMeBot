@@ -57,7 +57,7 @@ def find_reminder_time(body, recurring):
 		trigger=static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
-		return times[0]
+		return times[0][:80]
 	else:
 		return None
 
@@ -134,7 +134,9 @@ def render_time(date_time, user=None, format_string=None):
 def render_time_diff(start_date, end_date):
 	seconds = int((end_date - start_date).total_seconds())
 	if seconds > 59:
-		delta = relativedelta(start_date + relativedelta(seconds=seconds * 1.02), start_date)
+		delta = relativedelta(
+			start_date + relativedelta(seconds=min(seconds * 1.02, seconds + 60 * 60 * 24)),
+			start_date)
 	else:
 		delta = relativedelta(end_date, start_date)
 	if delta.years > 0:
