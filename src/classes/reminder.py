@@ -141,7 +141,7 @@ class Reminder(Base):
 		if pushshift_minutes > 15 and comment_return is not None:
 			bldr.append("There is a ")
 			if pushshift_minutes > 60:
-				bldr.append(str(round(pushshift_minutes / 60, 1)))
+				bldr.append(str(int(round(pushshift_minutes / 60, 1))))
 				bldr.append(" hour")
 			else:
 				bldr.append(str(pushshift_minutes))
@@ -206,7 +206,7 @@ class Reminder(Base):
 		if pushshift_minutes > 15:
 			bldr.append("There is a ")
 			if pushshift_minutes > 60:
-				bldr.append(str(round(pushshift_minutes / 60, 1)))
+				bldr.append(str(int(round(pushshift_minutes / 60, 1))))
 				bldr.append(" hour")
 			else:
 				bldr.append(str(pushshift_minutes))
