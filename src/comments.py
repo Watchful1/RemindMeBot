@@ -11,16 +11,16 @@ from classes.enums import ReturnType
 log = discord_logging.get_logger()
 
 
-def database_set_seen(database, comment_seen, word):
-	database.save_keystore(f"{word}_comment", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
+def database_set_seen(database, comment_seen):
+	database.save_keystore("comment_timestamp", comment_seen.strftime("%Y-%m-%d %H:%M:%S"))
 
 
-def database_get_seen(database, word):
-	result = database.get_keystore(f"{word}_comment")
+def database_get_seen(database):
+	result = database.get_keystore("comment_timestamp")
 	if result is None:
 		log.warning("Comment time not in database, returning now")
 		now = utils.datetime_now()
-		database_set_seen(database, now, word)
+		database_set_seen(database, now)
 		return now
 	return utils.parse_datetime_string(result)
 
@@ -45,6 +45,7 @@ def parse_comment(comment, database, count_string, reddit):
 	body = comment['body'].lower().strip()
 	recurring = False
 	cakeday = False
+	allow_default = True
 	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
 		log.debug("Recurring reminder comment")
 		recurring = True
@@ -60,6 +61,7 @@ def parse_comment(comment, database, count_string, reddit):
 	elif trigger_start_of_text(body, static.TRIGGER_SPLIT_LOWER):
 		log.debug("Regular lowercase comment")
 		trigger = static.TRIGGER_SPLIT_LOWER
+		allow_default = False
 	else:
 		log.debug("Command not in comment")
 		return None, None
@@ -85,7 +87,8 @@ def parse_comment(comment, database, count_string, reddit):
 		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
 		time_string=time,
 		recurring=recurring,
-		target_date=target_date
+		target_date=target_date,
+		allow_default=allow_default
 	)
 	if reminder is None:
 		return None, None
@@ -162,7 +165,7 @@ def process_comment(comment, reddit, database, count_string=""):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database, static.TRIGGER_COMBINED))
+	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database))
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0
@@ -175,7 +178,7 @@ def process_comments(reddit, database):
 			log.warning(traceback.format_exc())
 
 		reddit.mark_keyword_comment_processed(comment['id'])
-		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']), static.TRIGGER_COMBINED)
+		database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
 
 	return len(comments)
 

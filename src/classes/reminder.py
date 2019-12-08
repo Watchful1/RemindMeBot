@@ -53,7 +53,8 @@ class Reminder(Base):
 		requested_date,
 		time_string,
 		recurring=False,
-		target_date=None
+		target_date=None,
+		allow_default=True
 	):
 		result_message = None
 		defaulted = False
@@ -64,10 +65,16 @@ class Reminder(Base):
 				log.debug(f"Target date: {utils.get_datetime_string(target_date)}")
 
 				if target_date is None:
-					result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
-					log.info(result_message)
-					defaulted = True
-					target_date = utils.parse_time("1 day", requested_date, None)
+					if allow_default:
+						result_message = f"Could not parse date: \"{time_string}\", defaulting to one day"
+						log.info(result_message)
+						defaulted = True
+						target_date = utils.parse_time("1 day", requested_date, None)
+
+					else:
+						result_message = f"Could not parse date: \"{time_string}\", defaulting not allowed"
+						log.info(result_message)
+						return None, result_message
 
 				elif target_date < requested_date:
 					result_message = f"This time, {time_string}, was interpreted as " \
@@ -76,10 +83,16 @@ class Reminder(Base):
 					return None, result_message
 
 			else:
-				result_message = "Could not find a time in message, defaulting to one day"
-				log.info(result_message)
-				defaulted = True
-				target_date = utils.parse_time("1 day", requested_date, None)
+				if allow_default:
+					result_message = "Could not find a time in message, defaulting to one day"
+					log.info(result_message)
+					defaulted = True
+					target_date = utils.parse_time("1 day", requested_date, None)
+
+				else:
+					result_message = f"Could not find a time in message, defaulting not allowed"
+					log.info(result_message)
+					return None, result_message
 
 		if recurring:
 			if defaulted:

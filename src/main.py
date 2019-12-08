@@ -57,7 +57,7 @@ if __name__ == "__main__":
 	database = Database(debug=args.debug_db)
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")
-		database.save_keystore(f"{static.TRIGGER_COMBINED}_comment", utils.get_datetime_string(utils.datetime_now()))
+		database.save_keystore("comment_timestamp", utils.get_datetime_string(utils.datetime_now()))
 
 	last_backup = None
 	last_comments = None
