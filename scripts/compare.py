@@ -74,8 +74,8 @@ while True:
 		if comment['author'] == "RemindMeBot":
 			continue
 		previousEpoch = comment['created_utc'] - 1
-		time_string_old = utils.find_reminder_time(comment['body'].lower(), False)#find_reminder_time_old(comment['body'].lower(), False)
-		time_string_new = utils.find_reminder_time(comment['body'].lower(), False)
+		time_string_old = utils.find_reminder_time(comment['body'].lower(), static.TRIGGER_LOWER)#find_reminder_time_old(comment['body'].lower(), False)
+		time_string_new = utils.find_reminder_time(comment['body'].lower(), static.TRIGGER_LOWER)
 		if time_string_old is not None:
 			date_time_old = parse_time_old(time_string_old, current, None)
 			date_time_new = utils.parse_time(time_string_new, current, None)

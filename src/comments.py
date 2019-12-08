@@ -42,18 +42,24 @@ def parse_comment(comment, database, count_string, reddit):
 		return None, None
 
 	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
-	body = comment['body'].lower()
+	body = comment['body'].lower().strip()
 	recurring = False
 	cakeday = False
 	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
 		log.debug("Recurring reminder comment")
 		recurring = True
+		trigger = static.TRIGGER_RECURRING_LOWER
 	elif trigger_in_text(body, static.TRIGGER_LOWER):
 		log.debug("Regular comment")
+		trigger = static.TRIGGER_LOWER
 	elif trigger_start_of_text(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
 		cakeday = True
 		recurring = True
+		trigger = static.TRIGGER_CAKEDAY_LOWER
+	elif trigger_start_of_text(body, static.TRIGGER_SPLIT_LOWER):
+		log.debug("Regular lowercase comment")
+		trigger = static.TRIGGER_SPLIT_LOWER
 	else:
 		log.debug("Command not in comment")
 		return None, None
@@ -69,8 +75,8 @@ def parse_comment(comment, database, count_string, reddit):
 		time = "1 year"
 
 	else:
-		time = utils.find_reminder_time(comment['body'], recurring)
-		message_text = utils.find_reminder_message(comment['body'], recurring)
+		time = utils.find_reminder_time(comment['body'], trigger)
+		message_text = utils.find_reminder_message(comment['body'], trigger)
 
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.reddit_link(comment['permalink']),

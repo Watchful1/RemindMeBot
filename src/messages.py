@@ -83,9 +83,10 @@ def get_reminders_string(user_name, database, previous=False):
 
 def process_remind_me(message, reddit, database, recurring):
 	log.info("Processing RemindMe message")
-	time = utils.find_reminder_time(message.body, recurring)
+	trigger = static.TRIGGER_RECURRING_LOWER if recurring else static.TRIGGER_LOWER
+	time = utils.find_reminder_time(message.body, trigger)
 
-	message_text = utils.find_reminder_message(message.body, recurring)
+	message_text = utils.find_reminder_message(message.body, trigger)
 
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),
