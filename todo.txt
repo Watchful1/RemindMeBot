@@ -73,3 +73,5 @@ apologize for being late in reminders and in message/comment parsing
 log warnings when behind
 get message from remaining string after date was parsed
 reply to reminder creation messages if they don't set a message
+add prometheus tracking
+when updating comments, don't use the current time

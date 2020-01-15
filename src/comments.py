@@ -139,6 +139,7 @@ def process_comment(comment, reddit, database, count_string=""):
 				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
 				reddit.quarantine_opt_in(comment['subreddit'])
 
+			log.info(f"{comment_result}")
 			log.info(
 				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
