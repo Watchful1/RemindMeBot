@@ -139,21 +139,25 @@ def process_comment(comment, reddit, database, count_string=""):
 				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
 				reddit.quarantine_opt_in(comment['subreddit'])
 
-			log.info(f"{comment_result}")
-			log.info(
-				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
-				f"replied as comment: {result_id}")
+			if result_id is None:
+				log.warning(f"Got comment ID of None when replying to {comment['id']}")
+				comment_result = ReturnType.FORBIDDEN
 
-			if comment_result != ReturnType.QUARANTINED and comment['subreddit'] != "RemindMeBot":
-				db_comment = DbComment(
-					thread_id=thread_id,
-					comment_id=result_id,
-					reminder_id=reminder.id,
-					user=reminder.user.name,
-					source=reminder.source
-				)
-				database.save_comment(db_comment)
-			commented = True
+			else:
+				log.info(
+					f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
+					f"replied as comment: {result_id}")
+
+				if comment_result != ReturnType.QUARANTINED and comment['subreddit'] != "RemindMeBot":
+					db_comment = DbComment(
+						thread_id=thread_id,
+						comment_id=result_id,
+						reminder_id=reminder.id,
+						user=reminder.user.name,
+						source=reminder.source
+					)
+					database.save_comment(db_comment)
+				commented = True
 
 	if not commented:
 		log.info(
