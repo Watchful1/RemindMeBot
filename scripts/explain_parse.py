@@ -12,9 +12,11 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = 'RemindMe! 31 dec 9999'
-base_time_string = "2020-01-07 18:05:37 -0800"
-timezone_string = None
+input_string = '''[https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/fftduut/]
+
+RemindMe! 2021-01-25 15:08:44 UTC'''
+base_time_string = "2020-01-28 05:23:23 -0800"
+timezone_string = "Asia/Kolkata"
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
@@ -24,7 +26,7 @@ else:
 format_string = '%Y-%m-%d %H:%M:%S %Z'
 
 log.info(f"Input string: {input_string}")
-times = re.findall(r'(?:remindme.? *)(.*?)(?:\[|\n|\"|“|$)', input_string.lower(), flags=re.IGNORECASE)
+times = re.findall(r'(?:remindme.? +)(.*?)(?:\[|\n|\"|“|$)', input_string.lower(), flags=re.IGNORECASE)
 if len(times) > 0 and times[0] != "":
 	log.info(f"Result: {times[0]}")
 	time_string = times[0][:50]
