@@ -1,4 +1,5 @@
 Welcome to the newly redesigned RemindMeBot!
+====================================
 
 u/RemindMeBotWrangler agreed to let me take over the bot since he didn't have time to keep it up anymore. I have fully rewritten the code to be more stable, faster and with a couple extra features.
 
