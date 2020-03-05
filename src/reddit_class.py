@@ -90,7 +90,10 @@ class Reddit:
 			if output is not None:
 				return output.id, result
 			else:
-				return None, result
+				if result == ReturnType.SUCCESS:
+					return None, ReturnType.NOTHING_RETURNED
+				else:
+					return None, result
 
 	def send_message(self, user_name, subject, body):
 		log.debug(f"Sending message to u/{user_name}")

@@ -12,7 +12,7 @@ from classes.enums import ReturnType
 log = discord_logging.get_logger()
 
 
-def get_reminders_string(user_name, database, previous=False):
+def get_reminders_string(user_name, database, previous=False, include_all=False):
 	bldr = utils.str_bldr()
 
 	regular_reminders, recurring_reminders = database.get_user_reminders(user_name)
@@ -68,7 +68,7 @@ def get_reminders_string(user_name, database, previous=False):
 					bldr.append(")")
 					bldr.append("|\n")
 
-					if utils.bldr_length(bldr) > 9000:
+					if not include_all and utils.bldr_length(bldr) > 9000:
 						log.warning(f"Too many reminders for u/{user_name}: {len(regular_reminders)} : {len(recurring_reminders)}")
 						bldr.append("\nToo many reminders to display.")
 						break

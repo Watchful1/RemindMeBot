@@ -134,7 +134,7 @@ def process_comment(comment, reddit, database, count_string=""):
 			database.ban_subreddit(comment['subreddit'])
 
 		else:
-			if comment_result == ReturnType.QUARANTINED:
+			if comment_result == ReturnType.NOTHING_RETURNED:
 				result_id = "QUARANTINED"
 				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
 				reddit.quarantine_opt_in(comment['subreddit'])
