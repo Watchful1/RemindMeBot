@@ -22,8 +22,10 @@ def send_reminders(reddit, database):
 				f"{reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 			bldr = utils.get_footer(reminder.render_notification())
 			result = reddit.send_message(reminder.user.name, "RemindMeBot Here!", ''.join(bldr))
-			if result in (ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST):
+			if result in [ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST]:
 				log.info(f"User doesn't exist: u/{reminder.user.name}")
+			if result in [ReturnType.NOT_WHITELISTED_BY_USER_MESSAGE]:
+				log.warning(f"User blocked notification message: u/{reminder.user.name}")
 
 			if reminder.recurrence is not None:
 				if reminder.user.recurring_sent > static.RECURRING_LIMIT:

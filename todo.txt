@@ -77,3 +77,6 @@ add prometheus tracking
 when updating comments, don't use the current time
 remindmerepeat comment trigger
 check on deleting comments after the associated reminder has been deleted
+don't delete comments from database when the reminder is sent
+port over better pushshift error logging
+pushshift why? page

@@ -12,11 +12,9 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''[https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/fftduut/]
-
-RemindMe! 2021-01-25 15:08:44 UTC'''
-base_time_string = "2020-01-28 05:23:23 -0800"
-timezone_string = "Asia/Kolkata"
+input_string = '''RemindMe! one year and 200 days'''
+base_time_string = "2020-04-10 20:00:00 -0800"
+timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
