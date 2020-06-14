@@ -65,6 +65,7 @@ specify time zone
 
 
 trigger on "remind me!" "remind me !"
+	tests
 don't log stack traces on known errors
 delete comment objects after either 6 months or when the associated reminder is sent
 delete reminders if the related user comes back as deleted

@@ -25,8 +25,11 @@ def database_get_seen(database):
 	return utils.parse_datetime_string(result)
 
 
-def trigger_start_of_text(body, trigger):
-	return body.startswith(f"{trigger}!") or body.startswith(f"!{trigger}")
+def trigger_start_of_line(body, trigger):
+	for line in body.splitlines():
+		if line.startswith(f"{trigger}!") or line.startswith(f"!{trigger}"):
+			return True
+	return False
 
 
 def trigger_in_text(body, trigger):
@@ -53,12 +56,12 @@ def parse_comment(comment, database, count_string, reddit):
 	elif trigger_in_text(body, static.TRIGGER_LOWER):
 		log.debug("Regular comment")
 		trigger = static.TRIGGER_LOWER
-	elif trigger_start_of_text(body, static.TRIGGER_CAKEDAY_LOWER):
+	elif trigger_start_of_line(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
 		cakeday = True
 		recurring = True
 		trigger = static.TRIGGER_CAKEDAY_LOWER
-	elif trigger_start_of_text(body, static.TRIGGER_SPLIT_LOWER):
+	elif trigger_start_of_line(body, static.TRIGGER_SPLIT_LOWER):
 		log.debug("Regular lowercase comment")
 		trigger = static.TRIGGER_SPLIT_LOWER
 		allow_default = False

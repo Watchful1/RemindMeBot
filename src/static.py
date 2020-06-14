@@ -5,7 +5,7 @@ DATABASE_NAME = "database.db"
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "Watchful1BotTest"
 BACKUP_FOLDER_NAME = "backup"
-BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot', 'AutoModerator']
+BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot', 'AutoModerator', 'remindditbot']
 RECURRING_LIMIT = 30
 
 TRIGGER = "RemindMe"
@@ -16,7 +16,7 @@ TRIGGER_RECURRING = "RemindMeRepeat"
 TRIGGER_RECURRING_LOWER = TRIGGER_RECURRING.lower()
 TRIGGER_CAKEDAY = "Cakeday"
 TRIGGER_CAKEDAY_LOWER = TRIGGER_CAKEDAY.lower()
-TRIGGER_COMBINED = f"{TRIGGER_LOWER}|{TRIGGER_CAKEDAY_LOWER}"#|{TRIGGER_SPLIT_LOWER}"
+TRIGGER_COMBINED = f"{TRIGGER_LOWER}|{TRIGGER_CAKEDAY_LOWER}|{TRIGGER_SPLIT_LOWER}"
 
 CAKEDAY_MESSAGE = "Happy Cakeday!"
 
