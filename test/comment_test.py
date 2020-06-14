@@ -40,6 +40,87 @@ def test_process_comment(database, reddit):
 	assert reminders[0].recurrence is None
 
 
+def test_process_comment_split(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_SPLIT}! 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
+
+
+def test_process_comment_split_no_date(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_SPLIT}! test",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	assert len(comment.children) == 0
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 0
+
+
+def test_process_comment_split_not_start(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = utils.random_id()
+	thread_id = utils.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"this is a test {static.TRIGGER_SPLIT}! 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	assert len(comment.children) == 0
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 0
+
+
 def test_process_comment_timezone(database, reddit):
 	user = database.get_or_add_user(user_name="Watchful1")
 	user.timezone = "America/Los_Angeles"
