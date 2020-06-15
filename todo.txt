@@ -68,8 +68,8 @@ specify time zone
 	-tests
 delete comment objects after either 6 months or when the associated reminder is sent
 delete reminders if the related user comes back as deleted
-when updating comments, don't use the current time
-remindmerepeat comment trigger
+-when updating comments, don't use the current time
+-remindmerepeat comment trigger
 don't delete comments from database when the reminder is sent
 port over better pushshift error logging
 don't log stack traces on known errors
