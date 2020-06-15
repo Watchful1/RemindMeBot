@@ -144,7 +144,7 @@ class Reminder(Base):
 				bldr.append(str(int(round(pushshift_minutes / 60, 1))))
 				bldr.append(" hour")
 			else:
-				bldr.append(str(pushshift_minutes))
+				bldr.append(str(int(pushshift_minutes)))
 				bldr.append(" minute")
 			bldr.append(" delay fetching comments.")
 			bldr.append("\n\n")
@@ -236,7 +236,7 @@ class Reminder(Base):
 				bldr.append("I will be messaging you on ")
 			else:
 				bldr.append("I will be messaging you in ")
-				bldr.append(utils.render_time_diff(utils.datetime_now(), self.target_date))
+				bldr.append(utils.render_time_diff(self.requested_date, self.target_date))
 				bldr.append(" on ")
 			bldr.append(utils.render_time(self.target_date, self.user))
 			if self.recurrence is not None:

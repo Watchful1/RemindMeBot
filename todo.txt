@@ -64,20 +64,13 @@ specify time zone
 -change test triggers back
 
 
-trigger on "remind me!" "remind me !"
-	tests
-don't log stack traces on known errors
+-trigger on "remind me!" "remind me !"
+	-tests
 delete comment objects after either 6 months or when the associated reminder is sent
 delete reminders if the related user comes back as deleted
-track events in database
-apologize for being late in reminders and in message/comment parsing
-log warnings when behind
-get message from remaining string after date was parsed
-reply to reminder creation messages if they don't set a message
-add prometheus tracking
 when updating comments, don't use the current time
 remindmerepeat comment trigger
-check on deleting comments after the associated reminder has been deleted
 don't delete comments from database when the reminder is sent
 port over better pushshift error logging
-pushshift why? page
+don't log stack traces on known errors
+add prometheus tracking
