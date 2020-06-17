@@ -2,7 +2,7 @@ from datetime import timedelta
 
 import comments
 import utils
-import reddit_test
+from praw_wrapper import reddit_test
 import static
 from classes.reminder import Reminder
 
@@ -10,8 +10,8 @@ from classes.reminder import Reminder
 def test_process_comment(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author=username,
@@ -43,8 +43,8 @@ def test_process_comment(database, reddit):
 def test_process_comment_split(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER_SPLIT}! 1 day",
 		author=username,
@@ -76,8 +76,8 @@ def test_process_comment_split(database, reddit):
 def test_process_comment_split_no_date(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER_SPLIT}! test",
 		author=username,
@@ -100,8 +100,8 @@ def test_process_comment_split_no_date(database, reddit):
 def test_process_comment_split_not_start(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"this is a test {static.TRIGGER_SPLIT}! 1 day",
 		author=username,
@@ -126,8 +126,8 @@ def test_process_comment_timezone(database, reddit):
 	user.timezone = "America/Los_Angeles"
 
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	created = utils.datetime_now()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
@@ -151,8 +151,8 @@ def test_process_comment_timezone(database, reddit):
 
 
 def test_comment_in_thread(database, reddit):
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -166,14 +166,15 @@ def test_comment_in_thread(database, reddit):
 
 	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
 
-	comment_id_2 = utils.random_id()
+	comment_id_2 = reddit_test.random_id()
 	comment_2 = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
 		created=utils.datetime_now(),
 		id=comment_id_2,
 		link_id="t3_"+thread_id,
-		permalink=f"/r/test/{thread_id}/_/{comment_id_2}/"
+		permalink=f"/r/test/{thread_id}/_/{comment_id_2}/",
+		subreddit="test"
 	)
 	reddit.add_comment(comment_2)
 
@@ -186,8 +187,8 @@ def test_comment_in_thread(database, reddit):
 
 
 def test_update_incorrect_comments(database, reddit):
-	comment_id1 = utils.random_id()
-	thread_id1 = utils.random_id()
+	comment_id1 = reddit_test.random_id()
+	thread_id1 = reddit_test.random_id()
 	comment1 = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -200,8 +201,8 @@ def test_update_incorrect_comments(database, reddit):
 	reddit.add_comment(comment1)
 	comments.process_comment(comment1.get_pushshift_dict(), reddit, database)
 
-	comment_id2 = utils.random_id()
-	thread_id2 = utils.random_id()
+	comment_id2 = reddit_test.random_id()
+	thread_id2 = reddit_test.random_id()
 	comment2 = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -214,8 +215,8 @@ def test_update_incorrect_comments(database, reddit):
 	reddit.add_comment(comment2)
 	comments.process_comment(comment2.get_pushshift_dict(), reddit, database)
 
-	comment_id3 = utils.random_id()
-	thread_id3 = utils.random_id()
+	comment_id3 = reddit_test.random_id()
+	thread_id3 = reddit_test.random_id()
 	comment3 = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -278,8 +279,8 @@ def test_update_incorrect_comments(database, reddit):
 def test_commenting_banned(database, reddit):
 	reddit.ban_subreddit("test")
 
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -287,7 +288,7 @@ def test_commenting_banned(database, reddit):
 		id=comment_id,
 		link_id="t3_"+thread_id,
 		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
-		subreddit="test"
+		subreddit=reddit.subreddits["test"]
 	)
 	reddit.add_comment(comment)
 	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
@@ -298,11 +299,11 @@ def test_commenting_banned(database, reddit):
 
 
 def test_commenting_locked(database, reddit):
-	thread_id = utils.random_id()
+	thread_id = reddit_test.random_id()
 
 	reddit.lock_thread(thread_id)
 
-	comment_id = utils.random_id()
+	comment_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -321,8 +322,8 @@ def test_commenting_locked(database, reddit):
 
 
 def test_commenting_deleted(database, reddit):
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author="Watchful1",
@@ -342,8 +343,8 @@ def test_commenting_deleted(database, reddit):
 def test_process_recurring_comment(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER_RECURRING}! 1 day",
 		author=username,
@@ -379,8 +380,8 @@ def test_process_cakeday_comment(database, reddit):
 	user = reddit_test.User(username, utils.parse_datetime_string("2015-05-05 15:25:17").timestamp())
 	reddit.add_user(user)
 	created = utils.parse_datetime_string("2019-01-05 11:00:00")
-	comment_id = utils.random_id()
-	thread_id = utils.random_id()
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
 	comment = reddit_test.RedditObject(
 		body=f"{static.TRIGGER_CAKEDAY}!",
 		author=username,

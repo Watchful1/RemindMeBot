@@ -5,7 +5,7 @@ import utils
 import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
-from classes.enums import ReturnType
+from praw_wrapper import ReturnType
 
 
 log = discord_logging.get_logger()

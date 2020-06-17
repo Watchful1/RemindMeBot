@@ -13,7 +13,7 @@ log = discord_logging.init_logging(
 )
 
 from database import Database
-import reddit_class
+import praw_wrapper
 import messages
 import comments
 import notifications
@@ -53,7 +53,8 @@ if __name__ == "__main__":
 		discord_logging.set_level(logging.DEBUG)
 
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
-	reddit = reddit_class.Reddit(args.user, args.no_post)
+	reddit = praw_wrapper.Reddit(args.user, args.no_post)
+	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")

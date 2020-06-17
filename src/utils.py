@@ -10,27 +10,10 @@ from datetime import timedelta
 import urllib.parse
 
 import static
-import random
 
 log = discord_logging.get_logger()
 debug_time = None
 cal = parsedatetime.Calendar()
-
-
-def random_id():
-	values = list(map(chr, range(97, 123)))
-	for num in range(1, 10):
-		values.append(str(num))
-	return ''.join(random.choices(values, k=6))
-
-
-def fullname_type(fullname):
-	if fullname.startswith("t1"):
-		return "comment"
-	elif fullname.startswith("t4"):
-		return "message"
-	else:
-		return None
 
 
 def find_reminder_message(body, trigger):

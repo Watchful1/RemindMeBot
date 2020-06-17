@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 import static
-from classes.enums import ReturnType
+from praw_wrapper import ReturnType
 from database import Base
 from database.UtcDateTime import UtcDateTime
 

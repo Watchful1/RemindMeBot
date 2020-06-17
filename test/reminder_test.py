@@ -1,7 +1,7 @@
 import utils
 import notifications
 import static
-import reddit_test
+from praw_wrapper import reddit_test
 import messages
 from datetime import timedelta
 from classes.reminder import Reminder

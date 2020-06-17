@@ -6,7 +6,7 @@ log = discord_logging.get_logger(init=True)
 
 import messages
 import utils
-import reddit_test
+from praw_wrapper import reddit_test
 import static
 from classes.reminder import Reminder
 from classes.comment import DbComment
@@ -20,7 +20,7 @@ def test_add_reminder(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
-	id = utils.random_id()
+	id = reddit_test.random_id()
 	message = reddit_test.RedditObject(
 		body=f"[{keyword}]\n{static.TRIGGER}! 1 day",
 		author=username,
@@ -96,7 +96,7 @@ def test_add_cakeday_exists(database, reddit):
 def test_add_reminder_no_message(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	id = utils.random_id()
+	id = reddit_test.random_id()
 	message = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! 1 day",
 		author=username,
@@ -124,7 +124,7 @@ def test_add_reminder_no_message(database, reddit):
 def test_add_reminder_no_date(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
-	id = utils.random_id()
+	id = reddit_test.random_id()
 	message = reddit_test.RedditObject(
 		body=f"{static.TRIGGER}! \"error test\"",
 		author=username,
@@ -409,7 +409,7 @@ def test_add_recurring_reminder(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	keyword = "reminderstring"
-	id = utils.random_id()
+	id = reddit_test.random_id()
 	message = reddit_test.RedditObject(
 		body=f"[{keyword}]\n{static.TRIGGER_RECURRING}! 1 day",
 		author=username,
