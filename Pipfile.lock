@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "121daebb2e9adcf22b598e00e79d6ed75f22429c6aa16525ab4d5468d8714c63"
+            "sha256": "93e8b481291ff348703c40ad624743e1af81e0c710c7337573e85957f28ae6fb"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -60,12 +60,12 @@
                 "sha256:74e4b6c3f206342d05272ce1770ac7b9c48207c9a7ffea3d5251460b70f18188",
                 "sha256:dcdcf13b7f7ae2393afd914644bf16b254eaf5230c81adf2feafe1ec514307ca"
             ],
-            "index": "pypi",
             "version": "==7.0.0"
         },
         "praw-wrapper": {
+            "editable": true,
             "git": "https://github.com/Watchful1/PrawWrapper.git",
-            "ref": "93454886c07ca6f41a4c48f6d681f7fb80f73b7e"
+            "ref": "1e5c868f2cc8b90f774499f24a838765c394f0f3"
         },
         "prawcore": {
             "hashes": [

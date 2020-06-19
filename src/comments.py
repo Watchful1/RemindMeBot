@@ -173,7 +173,7 @@ def process_comment(comment, reddit, database, count_string=""):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database))
+	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0

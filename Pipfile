@@ -7,14 +7,13 @@ verify_ssl = true
 pytest = "*"
 
 [packages]
-praw = "*"
 pytz = "*"
 discord-logging = {git = "https://github.com/Watchful1/DiscordLogging.git"}
 parsedatetime = "*"
 python-dateutil = "*"
 sqlalchemy = "*"
-praw-wrapper = {git = "https://github.com/Watchful1/PrawWrapper.git"}
 dateparser = {editable = true,git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
+praw-wrapper = {editable = true,git = "https://github.com/Watchful1/PrawWrapper.git"}
 
 [requires]
 python_version = "3.7"
