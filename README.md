@@ -1,0 +1,5 @@
+This is the repository for u/RemindMeBot on reddit. You can find instructions on how to use the bot [here](https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/).
+
+I took over running u/RemindMeBot from u/RemindMeBotWrangler in early 2019 and fully rewrote the code.
+
+I use both [dateparser](https://github.com/scrapinghub/dateparser) and [parsedatetime](https://github.com/bear/parsedatetime) to parse date strings, though I use a [custom branch of dateparser](https://github.com/Watchful1/dateparser) with a few small modifications. I use [sqlalchemy](https://www.sqlalchemy.org/) backed by sqlite for storing data. I use a custom python logging library [DiscordLogging](https://github.com/Watchful1/DiscordLogging) to log error messages to a discord channel. Lastly I use praw via another custom library [PrawWrapper](https://github.com/Watchful1/PrawWrapper) that allows me to set up a mock reddit instance for unit testing.
