@@ -1,4 +1,4 @@
-This is the repository for u/RemindMeBot on reddit. You can find instructions on how to use the bot [here](https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/).
+This is the repository for u/RemindMeBot on reddit. It's a reminder bot that you can trigger with a comment or message and it will send you a reminder message the specified time period later. You can find instructions on how to use the bot [here](https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_info_v21/).
 
 I took over running u/RemindMeBot from u/RemindMeBotWrangler in early 2019 and fully rewrote the code.
 
