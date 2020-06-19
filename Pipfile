@@ -11,10 +11,10 @@ praw = "*"
 pytz = "*"
 discord-logging = {git = "https://github.com/Watchful1/DiscordLogging.git"}
 parsedatetime = "*"
-dateparser = {git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
 python-dateutil = "*"
 sqlalchemy = "*"
 praw-wrapper = {git = "https://github.com/Watchful1/PrawWrapper.git"}
+dateparser = {editable = true,git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
 
 [requires]
 python_version = "3.7"
