@@ -1,5 +1,5 @@
 import discord_logging
-from datetime import datetime
+from datetime import datetime, timedelta
 import static
 import requests
 import re
@@ -8,12 +8,15 @@ log = discord_logging.init_logging(debug=True)
 
 import utils
 
-trigger = "remindme"
+trigger_single = "remindme"
 trigger_split = "remind me"
+endEpoch = int((datetime.utcnow() - timedelta(days=3)).timestamp())
 
-url = f"https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=" \
-	  f"{'|'.join([trigger, trigger_split.replace(' ', '%20')])}" \
-	  f"&before="
+# url = f"https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=" \
+# 	  f"{'|'.join([trigger, trigger_split.replace(' ', '%20')])}" \
+# 	  f"&before="
+
+base_url = "https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q={}&before="
 
 
 def trigger_start_of_text(body, trigger):
@@ -40,66 +43,68 @@ def parse_comment(body, trigger, comment_created):
 	return time_string, target_date
 
 
+def process_comment(comment, trigger, is_start):
+	body = comment['body'].lower().strip()
 
-previousEpoch = int(datetime.utcnow().timestamp())
-count = 0
-breakOut = False
-trigger_count = 0
-trigger_split_start_count = 0
-trigger_split_start_string_count = 0
-trigger_split_start_date_count = 0
-trigger_split_count = 0
-trigger_split_string_count = 0
-trigger_split_date_count = 0
-count_none = 0
-while True:
-	newUrl = url+str(previousEpoch)
-	json = requests.get(newUrl, headers={'User-Agent': "Remindme tester by /u/Watchful1"})
-	objects = json.json()['data']
-	if len(objects) == 0:
-		break
-	for comment in objects:
-		previousEpoch = comment['created_utc'] - 1
-		if comment['author'] not in static.BLACKLISTED_ACCOUNTS and comment['subreddit'] != "RemindMeBot":
-			body = comment['body'].lower().strip()
-			trigger = None
-			if trigger_in_text(body, trigger):
-				#log.debug(f"Trigger: https://reddit.com{comment['permalink']}")
-				trigger_count += 1
-			elif trigger_start_of_line(body, trigger_split):
-				time_string, target_date = parse_comment(comment['body'], trigger_split, utils.datetime_from_timestamp(comment['created_utc']))
-				trigger_split_start_count += 1
-				if time_string is not None:
-					trigger_split_start_string_count += 1
-				if target_date is not None:
-					trigger_split_start_date_count += 1
-				if time_string is None:
-					log.debug(f"Start no string: https://reddit.com{comment['permalink']}")
-				elif target_date is None:
-					log.debug(f"Start no date  : https://reddit.com{comment['permalink']}")
-			elif trigger_in_text(body, trigger_split):
-				time_string, target_date = parse_comment(comment['body'], trigger_split, utils.datetime_from_timestamp(comment['created_utc']))
-				trigger_split_count += 1
-				if time_string is not None:
-					trigger_split_string_count += 1
-				if target_date is not None:
-					trigger_split_date_count += 1
-				# if time_string is None:
-				# 	log.debug(f"Split no string: https://reddit.com{comment['permalink']}")
-				# elif target_date is None:
-				# 	log.debug(f"Split no date  : https://reddit.com{comment['permalink']}")
-			else:
-				count_none += 1
+	trigger_found = False
+	string_found = False
+	date_found = False
+	if is_start:
+		if trigger_start_of_line(body, trigger):
+			trigger_found = True
 
-		count += 1
-		if count % 1000 == 0:
-			log.info(f"{count} | {utils.get_datetime_string(utils.datetime_from_timestamp(comment['created_utc']))}")
-		if count >= 5000:
-			breakOut = True
+	elif trigger_in_text(body, trigger):
+		trigger_found = True
+
+	if trigger_found:
+		time_string, target_date = parse_comment(comment['body'], trigger, utils.datetime_from_timestamp(comment['created_utc']))
+		if time_string is not None:
+			string_found = True
+		if target_date is not None:
+			date_found = True
+
+	return trigger_found, string_found, date_found
+
+
+def process_comments(trigger, is_start):
+	previousEpoch = int(datetime.utcnow().timestamp())
+	breakOut = False
+	url = base_url.format(trigger)
+	count = 0
+	trigger_count = 0
+	trigger_string_count = 0
+	trigger_date_count = 0
+	count_none = 0
+	while True:
+		newUrl = url+str(previousEpoch)
+		json = requests.get(newUrl, headers={'User-Agent': "Remindme tester by /u/Watchful1"})
+		objects = json.json()['data']
+		if len(objects) == 0:
 			break
-	if breakOut:
-		break
+		for comment in objects:
+			previousEpoch = comment['created_utc'] - 1
+			if comment['author'] not in static.BLACKLISTED_ACCOUNTS and comment['subreddit'] != "RemindMeBot":
+				trigger_found, string_found, date_found = process_comment(comment, trigger, is_start)
+				if trigger_found:
+					trigger_count += 1
+				if string_found:
+					trigger_string_count += 1
+				if date_found:
+					trigger_date_count += 1
+				if not trigger_found and not string_found and not date_found:
+					count_none += 1
 
-log.info(f"trigger {trigger_count}")
-log.info(f"trigger split {trigger_split_count} : string {trigger_split_string_count} : date {trigger_split_date_count}")
-log.info(f"trigger split start {trigger_split_start_count} : string {trigger_split_start_string_count} : date {trigger_split_start_date_count}")
+			count += 1
+			if count % 1000 == 0:
+				log.info(f"{count} | {utils.get_datetime_string(utils.datetime_from_timestamp(comment['created_utc']))}")
+			if previousEpoch < endEpoch:
+				breakOut = True
+				break
+		if breakOut:
+			break
+
+	log.info(f"{trigger} {trigger_count} : string {trigger_string_count} : date {trigger_date_count}")
+
+
+process_comments(trigger_single, False)
+process_comments(trigger_split, True)

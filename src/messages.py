@@ -272,9 +272,6 @@ def process_clock_message(message, database):
 
 
 def process_message(message, reddit, database, count_string=""):
-	if message.author is None:
-		log.info(f"Subreddit message, skipping : {message.id}")
-		return
 	log.info(f"{count_string}: Message u/{message.author.name} : {message.id}")
 	user = database.get_or_add_user(message.author.name)
 	user.recurring_sent = 0
@@ -314,7 +311,7 @@ def process_message(message, reddit, database, count_string=""):
 	database.commit()
 
 
-def process_messages(reddit, database):
+def process_messages(reddit, database, counters):
 	messages = reddit.get_messages()
 	if len(messages):
 		log.debug(f"Processing {len(messages)} messages")
@@ -329,6 +326,7 @@ def process_messages(reddit, database):
 			else:
 				try:
 					process_message(message, reddit, database, f"{i}/{len(messages)}")
+					counters.messages_replied.inc()
 				except Exception:
 					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 					log.warning(traceback.format_exc())

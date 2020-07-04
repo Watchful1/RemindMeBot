@@ -8,15 +8,20 @@ from praw_wrapper import ReturnType
 log = discord_logging.get_logger()
 
 
-def send_reminders(reddit, database):
+def send_reminders(reddit, database, counters=None):
 	timestamp = utils.datetime_now()
 	count_reminders = database.get_count_pending_reminders(timestamp)
+	if counters is not None:
+		counters.queue_size.set(count_reminders)
 
 	reminders_sent = 0
 	if count_reminders > 0:
 		reminders = database.get_pending_reminders(utils.requests_available(count_reminders), timestamp)
 		for reminder in reminders:
 			reminders_sent += 1
+			if counters is not None:
+				counters.notifications_sent.inc()
+				counters.queue_size.dec()
 			log.info(
 				f"{reminders_sent}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user.name} : "
 				f"{reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
