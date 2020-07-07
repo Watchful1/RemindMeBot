@@ -30,7 +30,7 @@ def send_reminders(reddit, database, counters=None):
 			if result in [ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST]:
 				log.info(f"User doesn't exist: u/{reminder.user.name}")
 			if result in [ReturnType.NOT_WHITELISTED_BY_USER_MESSAGE]:
-				log.warning(f"User blocked notification message: u/{reminder.user.name}")
+				log.info(f"User blocked notification message: u/{reminder.user.name}")
 
 			if reminder.recurrence is not None:
 				if reminder.user.recurring_sent > static.RECURRING_LIMIT:

@@ -36,7 +36,7 @@ def trigger_in_text(body, trigger):
 	return f"{trigger}!" in body or f"!{trigger}" in body
 
 
-def parse_comment(comment, database, count_string, reddit):
+def parse_comment(comment, database, count_string, reddit, counters=None):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None, None
@@ -51,18 +51,26 @@ def parse_comment(comment, database, count_string, reddit):
 	allow_default = True
 	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
 		log.debug("Recurring reminder comment")
+		if counters is not None:
+			counters.trigger_comment_repeat.inc()
 		recurring = True
 		trigger = static.TRIGGER_RECURRING_LOWER
 	elif trigger_in_text(body, static.TRIGGER_LOWER):
 		log.debug("Regular comment")
+		if counters is not None:
+			counters.trigger_comment_single.inc()
 		trigger = static.TRIGGER_LOWER
 	elif trigger_start_of_line(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
+		if counters is not None:
+			counters.trigger_comment_cake.inc()
 		cakeday = True
 		recurring = True
 		trigger = static.TRIGGER_CAKEDAY_LOWER
 	elif trigger_start_of_line(body, static.TRIGGER_SPLIT_LOWER):
-		log.debug("Regular lowercase comment")
+		log.debug("Regular split comment")
+		if counters is not None:
+			counters.trigger_comment_split.inc()
 		trigger = static.TRIGGER_SPLIT_LOWER
 		allow_default = False
 	else:
@@ -104,7 +112,7 @@ def parse_comment(comment, database, count_string, reddit):
 
 
 def process_comment(comment, reddit, database, count_string="", counters=None):
-	reminder, result_message = parse_comment(comment, database, count_string, reddit)
+	reminder, result_message = parse_comment(comment, database, count_string, reddit, counters)
 
 	if reminder is None:
 		log.debug("Not replying")

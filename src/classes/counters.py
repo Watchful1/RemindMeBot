@@ -8,6 +8,11 @@ class Counters:
 		self.notifications_sent = prometheus_client.Counter('notifications_sent', "Count of notifications sent")
 		self.queue_size = prometheus_client.Gauge('queue_size', "Current queue size")
 
+		self.trigger_comment_single = prometheus_client.Counter('trigger_comment_single', "Count of remindme comments")
+		self.trigger_comment_split = prometheus_client.Counter('trigger_comment_split', "Count of remind me comments")
+		self.trigger_comment_cake = prometheus_client.Counter('trigger_comment_cake', "Count of cakeday comments")
+		self.trigger_comment_repeat = prometheus_client.Counter('trigger_comment_repeat', "Count of remindmerepeat comments")
+
 	@staticmethod
 	def start_server(port):
 		prometheus_client.start_http_server(port)
