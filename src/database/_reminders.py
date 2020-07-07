@@ -114,3 +114,11 @@ class _DatabaseReminders:
 
 		log.debug(f"Found reminders: {len(reminders)}")
 		return reminders
+
+	def get_count_all_reminders(self):
+		log.debug("Fetching count of all reminders")
+
+		count = self.session.query(Reminder).count()
+
+		log.debug(f"Count reminders: {count}")
+		return count

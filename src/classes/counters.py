@@ -13,6 +13,9 @@ class Counters:
 		self.trigger_comment_cake = prometheus_client.Counter('trigger_comment_cake', "Count of cakeday comments")
 		self.trigger_comment_repeat = prometheus_client.Counter('trigger_comment_repeat', "Count of remindmerepeat comments")
 
+		self.count_total = prometheus_client.Gauge('count_total', "Current total number of reminders")
+		self.pushshift_age = prometheus_client.Gauge('pushshift_age', "Current pushshift delay in minutes")
+
 	@staticmethod
 	def start_server(port):
 		prometheus_client.start_http_server(port)

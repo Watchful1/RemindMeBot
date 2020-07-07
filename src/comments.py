@@ -185,6 +185,7 @@ def process_comment(comment, reddit, database, count_string="", counters=None):
 
 def process_comments(reddit, database, counters):
 	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
+	counters.pushshift_age.set(reddit.pushshift_lag)
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0
