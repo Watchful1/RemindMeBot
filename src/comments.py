@@ -51,26 +51,18 @@ def parse_comment(comment, database, count_string, reddit, counters=None):
 	allow_default = True
 	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
 		log.debug("Recurring reminder comment")
-		if counters is not None:
-			counters.trigger_comment_repeat.inc()
 		recurring = True
 		trigger = static.TRIGGER_RECURRING_LOWER
 	elif trigger_in_text(body, static.TRIGGER_LOWER):
 		log.debug("Regular comment")
-		if counters is not None:
-			counters.trigger_comment_single.inc()
 		trigger = static.TRIGGER_LOWER
 	elif trigger_start_of_line(body, static.TRIGGER_CAKEDAY_LOWER):
 		log.debug("Cakeday comment")
-		if counters is not None:
-			counters.trigger_comment_cake.inc()
 		cakeday = True
 		recurring = True
 		trigger = static.TRIGGER_CAKEDAY_LOWER
 	elif trigger_start_of_line(body, static.TRIGGER_SPLIT_LOWER):
 		log.debug("Regular split comment")
-		if counters is not None:
-			counters.trigger_comment_split.inc()
 		trigger = static.TRIGGER_SPLIT_LOWER
 		allow_default = False
 	else:
@@ -103,6 +95,16 @@ def parse_comment(comment, database, count_string, reddit, counters=None):
 	)
 	if reminder is None:
 		return None, None
+
+	if counters is not None:
+		if cakeday:
+			counters.trigger_comment_cake.inc()
+		elif recurring:
+			counters.trigger_comment_repeat.inc()
+		elif not allow_default:
+			counters.trigger_comment_split.inc()
+		else:
+			counters.trigger_comment_single.inc()
 
 	database.add_reminder(reminder)
 
