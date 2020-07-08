@@ -73,7 +73,7 @@ if __name__ == "__main__":
 		actions = 0
 		errors = 0
 
-		counters.count_total.set(database.get_count_all_reminders())
+		counters.count_objects.set(database.get_count_all_reminders())
 
 		try:
 			actions += messages.process_messages(reddit, database, counters)
