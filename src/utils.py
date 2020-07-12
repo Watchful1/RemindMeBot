@@ -20,12 +20,11 @@ cal = parsedatetime.Calendar()
 
 def process_error(message, exception, traceback):
 	is_transient = isinstance(exception, prawcore.exceptions.ServerError)
+	log.warning(f"{message}: {exception}")
 	if is_transient:
-		log.warning(f"{message}: {exception}")
 		log.info(traceback)
 		counters.errors.labels(type='api').inc()
 	else:
-		log.warning(f"{message}: {exception}")
 		log.warning(traceback)
 		counters.errors.labels(type='other').inc()
 
