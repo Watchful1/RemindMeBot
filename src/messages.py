@@ -5,6 +5,7 @@ import pytz
 
 import utils
 import static
+import counters
 from classes.reminder import Reminder
 from praw_wrapper import ReturnType
 
@@ -98,14 +99,14 @@ def process_remind_me(message, reddit, database, recurring):
 	)
 	if reminder is None:
 		log.debug("Reminder not valid, returning")
-		return [result_message]
+		return [result_message], False
 
 	database.add_reminder(reminder)
 	database.commit()
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.pushshift_lag)
+	return reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.pushshift_lag), True
 
 
 def process_remove_reminder(message, database):
@@ -195,7 +196,7 @@ def process_cakeday_message(message, reddit, database):
 
 	if database.user_has_cakeday_reminder(message.author.name):
 		log.info("Cakeday already exists")
-		return ["It looks like you already have a cakeday reminder set."]
+		return ["It looks like you already have a cakeday reminder set."], False
 
 	next_anniversary = utils.get_next_anniversary(message.author.created_utc)
 
@@ -214,7 +215,7 @@ def process_cakeday_message(message, reddit, database):
 
 	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	return reminder.render_message_confirmation(None, pushshift_minutes=reddit.pushshift_lag)
+	return reminder.render_message_confirmation(None, pushshift_minutes=reddit.pushshift_lag), True
 
 
 def process_timezone_message(message, database):
@@ -278,10 +279,15 @@ def process_message(message, reddit, database, count_string=""):
 	body = message.body.lower()
 
 	bldr = None
+	created = False
 	if static.TRIGGER_RECURRING_LOWER in body:
-		bldr = process_remind_me(message, reddit, database, True)
+		bldr, created = process_remind_me(message, reddit, database, True)
+		if created:
+			counters.replies.labels(source='message', type='repeat').inc()
 	elif static.TRIGGER_LOWER in body:
-		bldr = process_remind_me(message, reddit, database, False)
+		bldr, created = process_remind_me(message, reddit, database, False)
+		if created:
+			counters.replies.labels(source='message', type='single').inc()
 	elif "myreminders!" in body:
 		bldr = process_get_reminders(message, database)
 	elif "remove!" in body:
@@ -291,11 +297,16 @@ def process_message(message, reddit, database, count_string=""):
 	elif "delete!" in body:
 		bldr = process_delete_comment(message, reddit, database)
 	elif "cakeday!" in body:
-		bldr = process_cakeday_message(message, reddit, database)
+		bldr, created = process_cakeday_message(message, reddit, database)
+		if created:
+			counters.replies.labels(source='message', type='cake').inc()
 	elif "timezone!" in body:
 		bldr = process_timezone_message(message, database)
 	elif "clock!" in body:
 		bldr = process_clock_message(message, database)
+
+	if not created:
+		counters.replies.labels(source='message', type='other').inc()
 
 	if bldr is None:
 		bldr = ["I couldn't find anything in your message."]
@@ -311,7 +322,7 @@ def process_message(message, reddit, database, count_string=""):
 	database.commit()
 
 
-def process_messages(reddit, database, counters):
+def process_messages(reddit, database):
 	messages = reddit.get_messages()
 	if len(messages):
 		log.debug(f"Processing {len(messages)} messages")
@@ -326,7 +337,6 @@ def process_messages(reddit, database, counters):
 			else:
 				try:
 					process_message(message, reddit, database, f"{i}/{len(messages)}")
-					counters.messages_replied.inc()
 				except Exception:
 					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
 					log.warning(traceback.format_exc())

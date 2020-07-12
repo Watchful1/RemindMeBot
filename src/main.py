@@ -12,8 +12,8 @@ log = discord_logging.init_logging(
 	backup_count=20
 )
 
+import counters
 from database import Database
-from classes.counters import Counters
 import praw_wrapper
 import messages
 import comments
@@ -50,8 +50,7 @@ if __name__ == "__main__":
 	parser.add_argument("--debug", help="Set the log level to debug", action='store_const', const=True, default=False)
 	args = parser.parse_args()
 
-	Counters.start_server(8001)
-	counters = Counters()
+	counters.init(8001)
 
 	if args.debug:
 		discord_logging.set_level(logging.DEBUG)
@@ -73,24 +72,24 @@ if __name__ == "__main__":
 		actions = 0
 		errors = 0
 
-		counters.count_objects.set(database.get_count_all_reminders())
+		counters.objects.set(database.get_count_all_reminders())
 
 		try:
-			actions += messages.process_messages(reddit, database, counters)
+			actions += messages.process_messages(reddit, database)
 		except Exception as err:
 			log.warning(f"Error processing messages: {err}")
 			log.warning(traceback.format_exc())
 			errors += 1
 
 		try:
-			actions += comments.process_comments(reddit, database, counters)
+			actions += comments.process_comments(reddit, database)
 		except Exception as err:
 			log.warning(f"Error processing comments: {err}")
 			log.warning(traceback.format_exc())
 			errors += 1
 
 		try:
-			actions += notifications.send_reminders(reddit, database, counters)
+			actions += notifications.send_reminders(reddit, database)
 		except Exception as err:
 			log.warning(f"Error sending notifications: {err}")
 			log.warning(traceback.format_exc())

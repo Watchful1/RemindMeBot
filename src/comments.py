@@ -3,6 +3,7 @@ import traceback
 
 import utils
 import static
+import counters
 from classes.reminder import Reminder
 from classes.comment import DbComment
 from praw_wrapper import ReturnType
@@ -36,7 +37,7 @@ def trigger_in_text(body, trigger):
 	return f"{trigger}!" in body or f"!{trigger}" in body
 
 
-def parse_comment(comment, database, count_string, reddit, counters=None):
+def parse_comment(comment, database, count_string, reddit):
 	if comment['author'] == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None, None
@@ -96,15 +97,14 @@ def parse_comment(comment, database, count_string, reddit, counters=None):
 	if reminder is None:
 		return None, None
 
-	if counters is not None:
-		if cakeday:
-			counters.trigger_comment_cake.inc()
-		elif recurring:
-			counters.trigger_comment_repeat.inc()
-		elif not allow_default:
-			counters.trigger_comment_split.inc()
-		else:
-			counters.trigger_comment_single.inc()
+	if cakeday:
+		counters.replies.labels(source='comment', type='cake').inc()
+	elif recurring:
+		counters.replies.labels(source='comment', type='repeat').inc()
+	elif not allow_default:
+		counters.replies.labels(source='comment', type='split').inc()
+	else:
+		counters.replies.labels(source='comment', type='single').inc()
 
 	database.add_reminder(reminder)
 
@@ -113,15 +113,13 @@ def parse_comment(comment, database, count_string, reddit, counters=None):
 	return reminder, result_message
 
 
-def process_comment(comment, reddit, database, count_string="", counters=None):
-	reminder, result_message = parse_comment(comment, database, count_string, reddit, counters)
+def process_comment(comment, reddit, database, count_string=""):
+	reminder, result_message = parse_comment(comment, database, count_string, reddit)
 
 	if reminder is None:
+		counters.replies.labels(source='comment', type='other').inc()
 		log.debug("Not replying")
 		return
-
-	if counters is not None:
-		counters.comments_replied.inc()
 
 	commented = False
 	thread_id = utils.id_from_fullname(comment['link_id'])
@@ -185,16 +183,16 @@ def process_comment(comment, reddit, database, count_string="", counters=None):
 			log.info(f"Unable to send message: {result.name}")
 
 
-def process_comments(reddit, database, counters):
+def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
-	counters.pushshift_age.set(reddit.pushshift_lag)
+	counters.pushshift.set(reddit.pushshift_lag)
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0
 	for comment in comments[::-1]:
 		i += 1
 		try:
-			process_comment(comment, reddit, database, f"{i}/{len(comments)}", counters)
+			process_comment(comment, reddit, database, f"{i}/{len(comments)}")
 		except Exception:
 			log.warning(f"Error processing comment: {comment['id']} : {comment['author']}")
 			log.warning(traceback.format_exc())

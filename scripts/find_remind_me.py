@@ -1,5 +1,5 @@
 import discord_logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import static
 import requests
 import re
@@ -10,7 +10,7 @@ import utils
 
 trigger_single = "remindme"
 trigger_split = "remind me"
-endEpoch = int((datetime.utcnow() - timedelta(days=1)).timestamp())
+endEpoch = int((datetime.utcnow().replace(tzinfo=timezone.utc) - timedelta(hours=4)).timestamp())
 
 # url = f"https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=" \
 # 	  f"{'|'.join([trigger, trigger_split.replace(' ', '%20')])}" \
@@ -120,7 +120,7 @@ def process_comments(url):
 		if breakOut:
 			break
 
-	log.info(f"{single_trigger_count}|{single_trigger_string_count}|{single_trigger_date_count} - {split_trigger_count}|{split_trigger_string_count}|{split_trigger_date_count}")
+	log.info(f"{single_trigger_count}|{single_trigger_string_count}|{single_trigger_date_count} - {split_trigger_count}|{split_trigger_string_count}|{split_trigger_date_count} {count_none}")
 
 
 process_comments("https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=remindme&before=")
