@@ -203,6 +203,8 @@ def process_comments(reddit, database):
 		if mark_read:
 			reddit.mark_keyword_comment_processed(comment['id'])
 			database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
+		else:
+			return i
 
 	return len(comments)
 
