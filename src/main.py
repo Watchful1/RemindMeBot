@@ -51,6 +51,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	counters.init(8001)
+	counters.errors.inc(0)
 
 	if args.debug:
 		discord_logging.set_level(logging.DEBUG)
