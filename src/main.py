@@ -77,22 +77,19 @@ if __name__ == "__main__":
 		try:
 			actions += messages.process_messages(reddit, database)
 		except Exception as err:
-			log.warning(f"Error processing messages: {err}")
-			log.warning(traceback.format_exc())
+			utils.process_error(f"Error processing messages", err, traceback.format_exc())
 			errors += 1
 
 		try:
 			actions += comments.process_comments(reddit, database)
 		except Exception as err:
-			log.warning(f"Error processing comments: {err}")
-			log.warning(traceback.format_exc())
+			utils.process_error(f"Error processing comments", err, traceback.format_exc())
 			errors += 1
 
 		try:
 			actions += notifications.send_reminders(reddit, database)
 		except Exception as err:
-			log.warning(f"Error sending notifications: {err}")
-			log.warning(traceback.format_exc())
+			utils.process_error(f"Error sending notifications", err, traceback.format_exc())
 			errors += 1
 
 		if utils.time_offset(last_comments, minutes=30):
@@ -100,8 +97,7 @@ if __name__ == "__main__":
 				comments.update_comments(reddit, database)
 				last_comments = utils.datetime_now()
 			except Exception as err:
-				log.warning(f"Error updating comments: {err}")
-				log.warning(traceback.format_exc())
+				utils.process_error(f"Error updating comments", err, traceback.format_exc())
 				errors += 1
 
 		if not args.no_backup and utils.time_offset(last_backup, hours=24):
@@ -109,8 +105,7 @@ if __name__ == "__main__":
 				database.backup()
 				last_backup = utils.datetime_now()
 			except Exception as err:
-				log.warning(f"Error backing up database: {err}")
-				log.warning(traceback.format_exc())
+				utils.process_error(f"Error backing up database", err, traceback.format_exc())
 				errors += 1
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))

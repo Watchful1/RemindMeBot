@@ -8,12 +8,28 @@ import pytz
 from datetime import datetime
 from datetime import timedelta
 import urllib.parse
+import prawcore
 
+import counters
 import static
 
 log = discord_logging.get_logger()
 debug_time = None
 cal = parsedatetime.Calendar()
+
+
+def process_error(message, exception, traceback):
+	is_transient = isinstance(exception, prawcore.exceptions.ServerError)
+	if is_transient:
+		log.warning(f"{message}: {exception}")
+		log.info(traceback)
+		counters.errors.labels(type='api').inc()
+	else:
+		log.warning(f"{message}: {exception}")
+		log.warning(traceback)
+		counters.errors.labels(type='other').inc()
+
+	return is_transient
 
 
 def find_reminder_message(body, trigger):

@@ -329,6 +329,7 @@ def process_messages(reddit, database):
 	i = 0
 	for message in messages[::-1]:
 		i += 1
+		mark_read = True
 		if reddit.is_message(message):
 			if message.author is None:
 				log.info(f"Message {message.id} is a system notification")
@@ -337,18 +338,23 @@ def process_messages(reddit, database):
 			else:
 				try:
 					process_message(message, reddit, database, f"{i}/{len(messages)}")
-				except Exception:
-					log.warning(f"Error processing message: {message.id} : u/{message.author.name}")
-					log.warning(traceback.format_exc())
+				except Exception as err:
+					mark_read = not utils.process_error(
+						f"Error processing message: {message.id} : u/{message.author.name}",
+						err, traceback.format_exc()
+					)
 				finally:
 					database.commit()
 		else:
 			log.info(f"Object not message, skipping: {message.id}")
 
-		try:
-			reddit.mark_read(message)
-		except Exception:
-			log.warning(f"Error marking message read: {message.id} : {message.author.name}")
-			log.warning(traceback.format_exc())
+		if mark_read:
+			try:
+				reddit.mark_read(message)
+			except Exception as err:
+				utils.process_error(
+					f"Error marking message read: {message.id} : {message.author.name}",
+					err, traceback.format_exc()
+				)
 
 	return len(messages)
