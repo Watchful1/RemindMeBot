@@ -136,9 +136,12 @@ def render_time(date_time, user=None, format_string=None):
 def render_time_diff(start_date, end_date):
 	seconds = int((end_date - start_date).total_seconds())
 	if seconds > 59:
-		delta = relativedelta(
-			start_date + relativedelta(seconds=min(seconds * 1.02, seconds + 60 * 60 * 24)),
-			start_date)
+		try:
+			adjusted_end_date = start_date + relativedelta(seconds=int(min(seconds * 1.02, seconds + 60 * 60 * 24)))
+		except OverflowError:
+			adjusted_end_date = datetime_force_utc(datetime(year=9999, month=12, day=31))
+
+		delta = relativedelta(adjusted_end_date, start_date)
 	else:
 		delta = relativedelta(end_date, start_date)
 	if delta.years > 0:
