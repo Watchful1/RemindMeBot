@@ -65,4 +65,5 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		self.session.commit()
 
 	def close(self):
+		self.session.commit()
 		self.engine.dispose()
