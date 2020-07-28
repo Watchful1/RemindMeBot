@@ -74,3 +74,4 @@ don't delete comments from database when the reminder is sent
 port over better pushshift error logging
 don't log stack traces on known errors
 add prometheus tracking
+if the first trigger word doesn't have a valid date after it, check the second one

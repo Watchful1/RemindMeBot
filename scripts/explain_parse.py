@@ -12,8 +12,12 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''!remind me 2 weeks'''
-base_time_string = "2020-06-14 20:00:00 -0800"
+input_string = '''Cool. I think the RemindMe bot works in this sub. If it replies to this message, you can click the link to also receive a reminder.
+
+&#x200B;
+
+RemindMe! Two Weeks'''
+base_time_string = "2020-07-25 20:00:00 -0800"
 timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
@@ -24,7 +28,7 @@ else:
 format_string = '%Y-%m-%d %H:%M:%S %Z'
 
 log.info(f"Input string: {input_string}")
-times = re.findall(r'(?:remind me.? +)(.*?)(?:\[|\n|\"|“|$)', input_string.lower(), flags=re.IGNORECASE)
+times = re.findall(r'(?:remindme.? +)(.*?)(?:\[|\n|\"|“|$)', input_string.lower(), flags=re.IGNORECASE)
 if len(times) > 0 and times[0] != "":
 	log.info(f"Result: {times[0]}")
 	time_string = times[0][:50]
