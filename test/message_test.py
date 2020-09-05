@@ -215,6 +215,39 @@ def test_get_reminders(database, reddit):
 	assert "02-04 23" in result
 
 
+def test_get_long_reminders(database, reddit):
+	utils.debug_time = utils.parse_datetime_string("2019-01-01 12:00:00")
+	user = database.get_or_add_user("Watchful1")
+	requested_date = utils.parse_datetime_string("2019-01-01 04:00:00")
+	target_date = utils.parse_datetime_string("2019-01-01 04:00:00")
+	for i in range(60):
+		database.add_reminder(
+			Reminder(
+				source=f"https://www.reddit.com/message/messages/XXX{i}",
+				message=f"{i}" * 50,
+				user=user,
+				requested_date=requested_date,
+				target_date=target_date + timedelta(days=1)
+			)
+		)
+
+	message = reddit_test.RedditObject(
+		body="MyReminders!",
+		author="Watchful1"
+	)
+	messages.process_message(message, reddit, database)
+	assert len(message.children) == 3
+	assert "Click here to delete all your reminders" in message.children[0].body
+	assert "Click here to delete all your reminders" not in message.children[1].body
+	assert "Click here to delete all your reminders" not in message.children[2].body
+	assert "|Source|Message|Date|In|Remove|" in message.children[0].body
+	assert "|Source|Message|Date|In|Remove|" in message.children[1].body
+	assert "|Source|Message|Date|In|Remove|" in message.children[2].body
+	assert "[^(Info)]" not in message.children[0].body
+	assert "[^(Info)]" not in message.children[1].body
+	assert "[^(Info)]" in message.children[2].body
+
+
 def test_remove_reminder(database, reddit):
 	reminder1 = Reminder(
 		source="https://www.reddit.com/message/messages/XXXXX",
