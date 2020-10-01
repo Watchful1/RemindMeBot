@@ -9,6 +9,7 @@ from datetime import datetime
 from datetime import timedelta
 import urllib.parse
 import prawcore
+import requests
 
 import counters
 import static
@@ -19,7 +20,9 @@ cal = parsedatetime.Calendar()
 
 
 def process_error(message, exception, traceback):
-	is_transient = isinstance(exception, prawcore.exceptions.ServerError)
+	is_transient = \
+		isinstance(exception, prawcore.exceptions.ServerError) or \
+		isinstance(exception, requests.exceptions.Timeout)
 	log.warning(f"{message}: {exception}")
 	if is_transient:
 		log.info(traceback)
