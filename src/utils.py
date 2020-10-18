@@ -73,6 +73,7 @@ def parse_time(time_string, base_time, timezone_string):
 	try:
 		date_time = dateparser.parse(
 			time_string,
+			languages=['en'],
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	except Exception:
 		date_time = None

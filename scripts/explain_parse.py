@@ -12,12 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''Cool. I think the RemindMe bot works in this sub. If it replies to this message, you can click the link to also receive a reminder.
-
-&#x200B;
-
-RemindMe! Two Weeks'''
-base_time_string = "2020-07-25 20:00:00 -0800"
+input_string = '''!remindme 1d 10h 24m'''
+base_time_string = None#"2020-07-25 20:00:00 -0800"
 timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
@@ -40,7 +36,7 @@ else:
 log.info(f"Now: {base_time.strftime(format_string)}")
 
 try:
-	date_time = dateparser.parse(time_string, settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+	date_time = dateparser.parse(time_string, languages=['en'], settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	if date_time is not None:
 		log.info(f"dateparser.parse: {date_time.strftime(format_string)}")
 except Exception:

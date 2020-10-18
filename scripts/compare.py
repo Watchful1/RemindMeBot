@@ -67,12 +67,13 @@ def parse_time_old(time_string, base_time, timezone_string):
 
 
 def find_reminder_time_old(body, trigger):
-	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(trigger=trigger)
-	times = re.findall(regex_string, body, flags=re.IGNORECASE)
-	if len(times) > 0 and times[0] != "":
-		return times[0][:80]
-	else:
-		return None
+	return utils.find_reminder_time(body, trigger)
+	# regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(trigger=trigger)
+	# times = re.findall(regex_string, body, flags=re.IGNORECASE)
+	# if len(times) > 0 and times[0] != "":
+	# 	return times[0][:80]
+	# else:
+	# 	return None
 
 
 url = "https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=remindme&before="
