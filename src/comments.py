@@ -131,7 +131,7 @@ def process_comment(comment, reddit, database, count_string=""):
 	if comment_result is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment['id'])
-		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, pushshift_minutes=reddit.pushshift_lag))
+		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, pushshift_minutes=reddit.get_effective_pushshift_lag()))
 
 		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
@@ -177,7 +177,7 @@ def process_comment(comment, reddit, database, count_string=""):
 		log.info(
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
-		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, pushshift_minutes=reddit.pushshift_lag))
+		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, pushshift_minutes=reddit.get_effective_pushshift_lag()))
 		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")
@@ -186,19 +186,16 @@ def process_comment(comment, reddit, database, count_string=""):
 def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
 
-	prod_lag = int(reddit.pushshift_prod_client.lag_seconds() / 60)
-	beta_lag = int(reddit.pushshift_beta_client.lag_seconds() / 60)
-	counters.pushshift_delay.labels(client="prod").set(prod_lag)
-	counters.pushshift_delay.labels(client="beta").set(beta_lag)
+	counters.pushshift_delay.labels(client="prod").set(reddit.pushshift_prod_client.lag_minutes())
+	counters.pushshift_delay.labels(client="beta").set(reddit.pushshift_beta_client.lag_minutes())
+	counters.pushshift_delay.labels(client="auto").set(reddit.get_effective_pushshift_lag())
 
 	if reddit.recent_pushshift_client == PushshiftType.PROD:
 		counters.pushshift_client.labels(client="prod").set(1)
 		counters.pushshift_client.labels(client="beta").set(0)
-		counters.pushshift_delay.labels(client="auto").set(prod_lag)
 	elif reddit.recent_pushshift_client == PushshiftType.BETA:
 		counters.pushshift_client.labels(client="prod").set(0)
 		counters.pushshift_client.labels(client="beta").set(1)
-		counters.pushshift_delay.labels(client="auto").set(beta_lag)
 	else:
 		counters.pushshift_client.labels(client="prod").set(0)
 		counters.pushshift_client.labels(client="beta").set(0)

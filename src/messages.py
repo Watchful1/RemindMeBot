@@ -116,7 +116,7 @@ def process_remind_me(message, reddit, database, recurring):
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	bldr = reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.pushshift_lag)
+	bldr = reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.get_effective_pushshift_lag())
 	return [''.join(bldr)], True
 
 
@@ -226,7 +226,7 @@ def process_cakeday_message(message, reddit, database):
 
 	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	bldr = reminder.render_message_confirmation(None, pushshift_minutes=reddit.pushshift_lag)
+	bldr = reminder.render_message_confirmation(None, pushshift_minutes=reddit.get_effective_pushshift_lag())
 	return [''.join(bldr)], True
 
 
