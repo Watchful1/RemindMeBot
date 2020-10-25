@@ -73,7 +73,8 @@ if __name__ == "__main__":
 		log.warning(f"Invalid pushshift client: {args.pushshift}")
 		sys.exit(1)
 
-	reddit = praw_wrapper.Reddit(args.user, args.no_post, user_agent=static.USER_AGENT)
+	reddit = praw_wrapper.Reddit(
+		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client)
 	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
 	if args.reset_comment:
