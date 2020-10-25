@@ -6,7 +6,7 @@ import static
 import counters
 from classes.reminder import Reminder
 from classes.comment import DbComment
-from praw_wrapper import ReturnType
+from praw_wrapper import ReturnType, PushshiftType
 
 
 log = discord_logging.get_logger()
@@ -185,7 +185,27 @@ def process_comment(comment, reddit, database, count_string=""):
 
 def process_comments(reddit, database):
 	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
-	counters.pushshift.set(reddit.pushshift_lag)
+
+	prod_lag = int(reddit.pushshift_prod_client.lag_seconds() / 60)
+	beta_lag = int(reddit.pushshift_beta_client.lag_seconds() / 60)
+	counters.pushshift_delay.labels(client="prod").set(prod_lag)
+	counters.pushshift_delay.labels(client="beta").set(beta_lag)
+
+	if reddit.recent_pushshift_client == PushshiftType.PROD:
+		counters.pushshift_client.labels(client="prod").set(1)
+		counters.pushshift_client.labels(client="beta").set(0)
+		counters.pushshift_delay.labels(client="auto").set(prod_lag)
+	elif reddit.recent_pushshift_client == PushshiftType.BETA:
+		counters.pushshift_client.labels(client="prod").set(0)
+		counters.pushshift_client.labels(client="beta").set(1)
+		counters.pushshift_delay.labels(client="auto").set(beta_lag)
+	else:
+		counters.pushshift_client.labels(client="prod").set(0)
+		counters.pushshift_client.labels(client="beta").set(0)
+
+	counters.pushshift_failed.labels(client="prod").set(1 if reddit.pushshift_prod_client.failed else 0)
+	counters.pushshift_failed.labels(client="beta").set(1 if reddit.pushshift_beta_client.failed else 0)
+
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
 	i = 0

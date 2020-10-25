@@ -22,7 +22,8 @@ cal = parsedatetime.Calendar()
 def process_error(message, exception, traceback):
 	is_transient = \
 		isinstance(exception, prawcore.exceptions.ServerError) or \
-		isinstance(exception, requests.exceptions.Timeout)
+		isinstance(exception, requests.exceptions.Timeout) or \
+		isinstance(exception, requests.exceptions.ReadTimeout)
 	log.warning(f"{message}: {exception}")
 	if is_transient:
 		log.info(traceback)

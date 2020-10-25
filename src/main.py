@@ -20,6 +20,7 @@ import comments
 import notifications
 import utils
 import static
+from praw_wrapper import PushshiftType
 
 
 database = None
@@ -49,6 +50,8 @@ if __name__ == "__main__":
 		"--reset_comment", help="Reset the last comment read timestamp", action='store_const', const=True,
 		default=False)
 	parser.add_argument("--debug", help="Set the log level to debug", action='store_const', const=True, default=False)
+	parser.add_argument(
+		"--pushshift", help="Select the pushshift client to use", choices=["prod", "beta", "auto"], default="prod")
 	args = parser.parse_args()
 
 	counters.init(8001)
@@ -58,6 +61,17 @@ if __name__ == "__main__":
 		discord_logging.set_level(logging.DEBUG)
 
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
+
+	if args.pushshift == "prod":
+		pushshift_client = PushshiftType.PROD
+	elif args.pushshift == "beta":
+		pushshift_client = PushshiftType.BETA
+	elif args.pushshift == "auto":
+		pushshift_client = PushshiftType.AUTO
+	else:
+		log.warning(f"Invalid pushshift client: {args.pushshift}")
+		sys.exit(1)
+
 	reddit = praw_wrapper.Reddit(args.user, args.no_post, user_agent=static.USER_AGENT)
 	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
