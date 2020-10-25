@@ -51,7 +51,8 @@ if __name__ == "__main__":
 		default=False)
 	parser.add_argument("--debug", help="Set the log level to debug", action='store_const', const=True, default=False)
 	parser.add_argument(
-		"--pushshift", help="Select the pushshift client to use", choices=["prod", "beta", "auto"], default="prod")
+		"--pushshift", help="Select the pushshift client to use", action='store',
+		choices=["prod", "beta", "auto"], default="prod")
 	args = parser.parse_args()
 
 	counters.init(8001)
