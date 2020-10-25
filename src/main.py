@@ -73,7 +73,6 @@ if __name__ == "__main__":
 		log.warning(f"Invalid pushshift client: {args.pushshift}")
 		sys.exit(1)
 
-	pushshift_client = PushshiftType.BETA
 	reddit = praw_wrapper.Reddit(
 		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client)
 	static.ACCOUNT_NAME = reddit.username
@@ -93,11 +92,11 @@ if __name__ == "__main__":
 
 		counters.objects.set(database.get_count_all_reminders())
 
-		# try:
-		# 	actions += messages.process_messages(reddit, database)
-		# except Exception as err:
-		# 	utils.process_error(f"Error processing messages", err, traceback.format_exc())
-		# 	errors += 1
+		try:
+			actions += messages.process_messages(reddit, database)
+		except Exception as err:
+			utils.process_error(f"Error processing messages", err, traceback.format_exc())
+			errors += 1
 
 		try:
 			actions += comments.process_comments(reddit, database)
@@ -105,27 +104,27 @@ if __name__ == "__main__":
 			utils.process_error(f"Error processing comments", err, traceback.format_exc())
 			errors += 1
 
-		# try:
-		# 	actions += notifications.send_reminders(reddit, database)
-		# except Exception as err:
-		# 	utils.process_error(f"Error sending notifications", err, traceback.format_exc())
-		# 	errors += 1
-		#
-		# if utils.time_offset(last_comments, minutes=30):
-		# 	try:
-		# 		comments.update_comments(reddit, database)
-		# 		last_comments = utils.datetime_now()
-		# 	except Exception as err:
-		# 		utils.process_error(f"Error updating comments", err, traceback.format_exc())
-		# 		errors += 1
-		#
-		# if not args.no_backup and utils.time_offset(last_backup, hours=24):
-		# 	try:
-		# 		database.backup()
-		# 		last_backup = utils.datetime_now()
-		# 	except Exception as err:
-		# 		utils.process_error(f"Error backing up database", err, traceback.format_exc())
-		# 		errors += 1
+		try:
+			actions += notifications.send_reminders(reddit, database)
+		except Exception as err:
+			utils.process_error(f"Error sending notifications", err, traceback.format_exc())
+			errors += 1
+
+		if utils.time_offset(last_comments, minutes=30):
+			try:
+				comments.update_comments(reddit, database)
+				last_comments = utils.datetime_now()
+			except Exception as err:
+				utils.process_error(f"Error updating comments", err, traceback.format_exc())
+				errors += 1
+
+		if not args.no_backup and utils.time_offset(last_backup, hours=24):
+			try:
+				database.backup()
+				last_backup = utils.datetime_now()
+			except Exception as err:
+				utils.process_error(f"Error backing up database", err, traceback.format_exc())
+				errors += 1
 
 		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 
