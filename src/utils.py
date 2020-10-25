@@ -24,7 +24,7 @@ def process_error(message, exception, traceback):
 		isinstance(exception, prawcore.exceptions.ServerError) or \
 		isinstance(exception, requests.exceptions.Timeout) or \
 		isinstance(exception, requests.exceptions.ReadTimeout)
-	log.warning(f"{message}: {exception}")
+	log.warning(f"{message}: {type(exception).__name__} : {exception}")
 	if is_transient:
 		log.info(traceback)
 		counters.errors.labels(type='api').inc()
