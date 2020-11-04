@@ -23,7 +23,8 @@ def process_error(message, exception, traceback):
 	is_transient = \
 		isinstance(exception, prawcore.exceptions.ServerError) or \
 		isinstance(exception, requests.exceptions.Timeout) or \
-		isinstance(exception, requests.exceptions.ReadTimeout)
+		isinstance(exception, requests.exceptions.ReadTimeout) or \
+		isinstance(exception, requests.exceptions.RequestException)
 	log.warning(f"{message}: {type(exception).__name__} : {exception}")
 	if is_transient:
 		log.info(traceback)
