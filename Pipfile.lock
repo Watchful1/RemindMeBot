@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c122ed7f7c91aa285f26d6a4846753019f939fa671bccfa812cac4ea628782ce"
+            "sha256": "b5bb85162969a1621249eb76474feda69027b2e1deef0bc11c6e8f84ed7940c0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -31,7 +31,6 @@
             "version": "==3.0.4"
         },
         "dateparser": {
-            "editable": true,
             "git": "https://github.com/Watchful1/dateparser.git",
             "ref": "15c098b3cb0f5cc19145a3183c742a66db12f492"
         },
@@ -63,7 +62,6 @@
             "version": "==7.1.0"
         },
         "praw-wrapper": {
-            "editable": true,
             "git": "https://github.com/Watchful1/PrawWrapper.git",
             "ref": "20d59797ee8133fd3ad153e3d0711d43d5d0d0c1"
         },

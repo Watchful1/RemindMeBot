@@ -12,9 +12,9 @@ discord-logging = {git = "https://github.com/Watchful1/DiscordLogging.git"}
 parsedatetime = "*"
 python-dateutil = "*"
 sqlalchemy = "*"
-dateparser = {editable = true,git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
+dateparser = {git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
 prometheus-client = "*"
-praw-wrapper = {editable = true, git = "https://github.com/Watchful1/PrawWrapper.git"}
+praw-wrapper = {git = "https://github.com/Watchful1/PrawWrapper.git"}
 
 [requires]
 python_version = "3.7"
