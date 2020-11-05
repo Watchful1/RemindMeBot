@@ -8,6 +8,7 @@ import pytz
 from datetime import datetime
 from datetime import timedelta
 import urllib.parse
+import urllib3
 import prawcore
 import requests
 
@@ -24,7 +25,8 @@ def process_error(message, exception, traceback):
 		isinstance(exception, prawcore.exceptions.ServerError) or \
 		isinstance(exception, requests.exceptions.Timeout) or \
 		isinstance(exception, requests.exceptions.ReadTimeout) or \
-		isinstance(exception, requests.exceptions.RequestException)
+		isinstance(exception, requests.exceptions.RequestException) or \
+		isinstance(exception, urllib3.exceptions.ReadTimeoutError)
 	log.warning(f"{message}: {type(exception).__name__} : {exception}")
 	if is_transient:
 		log.info(traceback)

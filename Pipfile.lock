@@ -65,7 +65,7 @@
         "praw-wrapper": {
             "editable": true,
             "git": "https://github.com/Watchful1/PrawWrapper.git",
-            "ref": "1f75115f7c98595175ba5918549ff02f4f901641"
+            "ref": "20d59797ee8133fd3ad153e3d0711d43d5d0d0c1"
         },
         "prawcore": {
             "hashes": [
