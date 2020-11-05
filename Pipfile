@@ -13,8 +13,8 @@ parsedatetime = "*"
 python-dateutil = "*"
 sqlalchemy = "*"
 dateparser = {editable = true,git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
-praw-wrapper = {editable = true,git = "https://github.com/Watchful1/PrawWrapper.git"}
 prometheus-client = "*"
+praw-wrapper = {editable = true, git = "https://github.com/Watchful1/PrawWrapper.git"}
 
 [requires]
 python_version = "3.7"
