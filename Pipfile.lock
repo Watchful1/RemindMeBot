@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b5bb85162969a1621249eb76474feda69027b2e1deef0bc11c6e8f84ed7940c0"
+            "sha256": "48aa672f768c4c68293766c24830293f1c1b20756dcaf15381775c35e8ed9380"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.7"
+            "python_version": "3.8"
         },
         "sources": [
             {
@@ -36,7 +36,7 @@
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",
-            "ref": "4a3ccf85c6cb48562ef38718caa0d805df818c6e"
+            "ref": "6112079daca2c5c85586d25a8dc8df4ed2309ad1"
         },
         "idna": {
             "hashes": [
@@ -63,7 +63,7 @@
         },
         "praw-wrapper": {
             "git": "https://github.com/Watchful1/PrawWrapper.git",
-            "ref": "f744f28f2c0410440c0488793be2066d870491ac"
+            "ref": "5b71b6450e10ce92c7561c4e51af45263bac69aa"
         },
         "prawcore": {
             "hashes": [
@@ -260,14 +260,6 @@
             "markers": "sys_platform == 'win32'",
             "version": "==0.4.4"
         },
-        "importlib-metadata": {
-            "hashes": [
-                "sha256:77a540690e24b0305878c37ffd421785a6f7e53c8b5720d211b211de8d0e95da",
-                "sha256:cefa1a2f919b866c5beb7c9f7b0ebb4061f30a8a9bf16d609b000e2dfaceb9c3"
-            ],
-            "markers": "python_version < '3.8'",
-            "version": "==2.0.0"
-        },
         "iniconfig": {
             "hashes": [
                 "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3",
@@ -330,14 +322,6 @@
             ],
             "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==0.10.2"
-        },
-        "zipp": {
-            "hashes": [
-                "sha256:102c24ef8f171fd729d46599845e95c7ab894a4cf45f5de11a44cc7444fb1108",
-                "sha256:ed5eee1974372595f9e416cc7bbeeb12335201d8081ca8a0743c954d4446e5cb"
-            ],
-            "markers": "python_version >= '3.6'",
-            "version": "==3.4.0"
         }
     }
 }
