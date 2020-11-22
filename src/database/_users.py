@@ -18,3 +18,6 @@ class _DatabaseUsers:
 			self.session.add(user)
 
 		return user
+
+	def get_count_all_users(self):
+		return self.session.query(User).count()

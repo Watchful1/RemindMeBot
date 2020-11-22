@@ -23,3 +23,6 @@ class _DatabaseSubreddit:
 			.filter_by(banned=True)\
 			.filter(Subreddit.ban_checked > days_ago)\
 			.scalar() is not None
+
+	def get_count_all_subreddits(self):
+		return self.session.query(Subreddit).count()

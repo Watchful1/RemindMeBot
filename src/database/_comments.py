@@ -62,3 +62,6 @@ class _DatabaseComments:
 
 		log.debug(f"Found incorrect comments: {len(results)}")
 		return results
+
+	def get_count_all_comments(self):
+		return self.session.query(DbComment).count()
