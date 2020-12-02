@@ -200,8 +200,11 @@ def process_comments(reddit, database):
 		counters.pushshift_client.labels(client="prod").set(0)
 		counters.pushshift_client.labels(client="beta").set(0)
 
-	counters.pushshift_failed.labels(client="prod").set(1 if reddit.pushshift_prod_client.failed else 0)
-	counters.pushshift_failed.labels(client="beta").set(1 if reddit.pushshift_beta_client.failed else 0)
+	counters.pushshift_failed.labels(client="prod").set(1 if reddit.pushshift_prod_client.failed() else 0)
+	counters.pushshift_failed.labels(client="beta").set(1 if reddit.pushshift_beta_client.failed() else 0)
+
+	counters.pushshift_seconds.labels("prod").observe(reddit.pushshift_prod_client.request_seconds)
+	counters.pushshift_seconds.labels("beta").observe(reddit.pushshift_beta_client.request_seconds)
 
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")

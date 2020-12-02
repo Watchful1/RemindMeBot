@@ -121,7 +121,7 @@ if __name__ == "__main__":
 				utils.process_error(f"Error updating comments", err, traceback.format_exc())
 				errors += 1
 
-		if not args.no_backup and utils.time_offset(last_backup, hours=24):
+		if not args.no_backup and utils.time_offset(last_backup, hours=12):
 			try:
 				database.backup()
 				last_backup = utils.datetime_now()

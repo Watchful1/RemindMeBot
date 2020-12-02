@@ -8,6 +8,7 @@ pushshift_delay = prometheus_client.Gauge('bot_pushshift_minutes', "Pushshift de
 pushshift_failed = prometheus_client.Gauge('bot_pushshift_failed', "Pushshift timeout status", ['client'])
 pushshift_client = prometheus_client.Gauge('bot_pushshift_client', "Which pushshift client is being used", ['client'])
 errors = prometheus_client.Counter('bot_errors', "Count of errors", ['type'])
+pushshift_seconds = prometheus_client.Summary('bot_pushshift_scan_seconds', "How many seconds pushshift takes to respond", ['service'])
 
 
 def init(port):
