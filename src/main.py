@@ -9,7 +9,7 @@ import discord_logging
 import argparse
 
 log = discord_logging.init_logging(
-	backup_count=20
+	backup_count=80
 )
 
 import counters
