@@ -308,7 +308,7 @@ class Reminder(Base):
 				bldr.append(utils.build_message_link(
 					static.ACCOUNT_NAME,
 					"ReminderRepeat",
-					f"[{(self.message[:500] if self.message is not None else '')}]\n\n{static.TRIGGER_RECURRING}! {self.recurrence}"
+					f"[{(self.message[:500] if self.message is not None else self.source)}]\n\n{static.TRIGGER_RECURRING}! {self.recurrence}"
 				))
 				bldr.append(") to recreate it.")
 			else:
@@ -335,7 +335,7 @@ class Reminder(Base):
 			bldr.append(utils.build_message_link(
 				static.ACCOUNT_NAME,
 				"Reminder",
-				f"[{(self.message[:500] if self.message is not None else '')}]\n\n{static.TRIGGER}! "
+				f"[{(self.message[:500] if self.message is not None else self.source)}]\n\n{static.TRIGGER}! "
 			))
 			bldr.append(") and set the time after the ")
 			bldr.append(static.TRIGGER)
