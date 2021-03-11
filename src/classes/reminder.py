@@ -246,7 +246,7 @@ class Reminder(Base):
 				bldr.append(self.recurrence)
 				bldr.append("`")
 			bldr.append(" to remind you of [**this link**](")
-			bldr.append(utils.replace_np(utils.check_append_context_to_link(self.source)))
+			bldr.append(utils.check_append_context_to_link(self.source))
 			bldr.append(")")
 
 		bldr.append("\n\n")
