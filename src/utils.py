@@ -170,12 +170,12 @@ def render_time_diff(start_date, end_date):
 		return ""
 
 
-def message_link(message_id, np=False):
-	return f"https://{('np' if np else 'www')}.reddit.com/message/messages/{message_id}"
+def message_link(message_id):
+	return f"https://www.reddit.com/message/messages/{message_id}"
 
 
-def reddit_link(slug, np=False):
-	return f"https://{('np' if np else 'www')}.reddit.com{slug}"
+def reddit_link(slug):
+	return f"https://www.reddit.com{slug}"
 
 
 def id_from_fullname(fullname):
