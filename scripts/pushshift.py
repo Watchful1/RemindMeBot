@@ -37,8 +37,8 @@ def get_comments(date_time):
 	return None
 
 
-end_time = utils.parse_datetime_string("2021-01-15 00:00:00")
-start_time = utils.parse_datetime_string("2021-02-09 00:00:00")
+end_time = utils.parse_datetime_string("2021-01-01 00:00:00")
+start_time = utils.parse_datetime_string("2021-04-01 00:00:00")
 log.info(f"Counting comments from {utils.get_datetime_string(start_time, False)} to {utils.get_datetime_string(end_time, False)}, {int((start_time - end_time).total_seconds())} seconds")
 current_time = start_time
 
