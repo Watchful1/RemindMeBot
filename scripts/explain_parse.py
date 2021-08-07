@@ -12,7 +12,7 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe May 7, 2021 16:00 PM "Reminder, an AMA with Shane Mauss, Dr. Peter McGraw - Comedian Shane Mauss Dr. Peter McGraw behavioral economist to start in /r/IAmA right now!"'''
+input_string = '''RemindME! [5 years]'''
 base_time_string = None#"2020-07-25 20:00:00 -0800"
 timezone_string = None #"America/Los_Angeles"
 
