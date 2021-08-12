@@ -37,7 +37,7 @@
         },
         "discord-logging": {
             "git": "https://github.com/Watchful1/DiscordLogging.git",
-            "ref": "373649cca43539e9a83db30aa108605aa2ad640a"
+            "ref": "87561afbd6f66d7d03c411a3887378fcd3a03ec8"
         },
         "greenlet": {
             "hashes": [
@@ -121,7 +121,7 @@
         },
         "praw-wrapper": {
             "git": "https://github.com/Watchful1/PrawWrapper.git",
-            "ref": "346a667b4cd4e8e7bb11660be558ef1513bfce12"
+            "ref": "e6be1e0c5dea373c25ee8f6881ce2a16d3a8b9f7"
         },
         "prawcore": {
             "hashes": [
@@ -269,11 +269,11 @@
         },
         "websocket-client": {
             "hashes": [
-                "sha256:4cf754af7e3b3ba76589d49f9e09fd9a6c0aae9b799a89124d656009c01a261d",
-                "sha256:8d07f155f8ed14ae3ced97bd7582b08f280bb1bfd27945f023ba2aceff05ab52"
+                "sha256:7665ba6c645989b28b61670874ab753e6929179e9fc90565ace6ac090f59c559",
+                "sha256:d82a975bdd02216f7884cd18106a0d9896a9a9e8cc90f23fe8c81dc48da2f142"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==1.1.1"
+            "version": "==1.2.0"
         }
     },
     "develop": {
