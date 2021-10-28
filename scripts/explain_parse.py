@@ -12,7 +12,7 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindME! [5 years]'''
+input_string = '''!remind me 2 days 19 hours'''
 base_time_string = None#"2020-07-25 20:00:00 -0800"
 timezone_string = None #"America/Los_Angeles"
 
@@ -24,11 +24,10 @@ else:
 format_string = '%Y-%m-%d %H:%M:%S %Z'
 
 log.info(f"Input string: {input_string}")
-times = re.findall(r'(?:remindme.? +)(.*?)(?:\[|\n|\"|“|$)', input_string.lower(), flags=re.IGNORECASE)
-if len(times) > 0 and times[0] != "":
-	log.info(f"Result: {times[0]}")
-	time_string = times[0][:50]
-	log.info(f"Result truncated: {time_string}")
+time = utils.find_reminder_time(input_string, "remind me")
+if time is not None:
+	log.info(f"Result: {time}")
+	time_string = time
 else:
 	log.info(f"No string found")
 	sys.exit(0)

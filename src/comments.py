@@ -1,5 +1,6 @@
 import discord_logging
 import traceback
+import praw
 
 import utils
 import static
@@ -242,7 +243,10 @@ def update_comments(reddit, database):
 				f"{db_comment.comment_id} : {db_comment.current_count}/{new_count}")
 
 			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count))
-			reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
+			result = reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
+			if result != ReturnType.SUCCESS:
+				log.warning(f"Failed to edit comment {db_comment.comment_id}: {result}")
+
 			db_comment.current_count = new_count
 
 	else:
