@@ -155,7 +155,7 @@ def process_comment(comment, reddit, database, count_string=""):
 				reddit.quarantine_opt_in(comment['subreddit'])
 
 			if result_id is None:
-				log.warning(f"Got comment ID of None when replying to {comment['id']}")
+				log.warning(f"Got comment ID of None when replying to <https://www.reddit.com{comment['permalink']}>")
 				comment_result = ReturnType.FORBIDDEN
 
 			else:
