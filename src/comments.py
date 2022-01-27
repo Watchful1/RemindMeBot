@@ -141,7 +141,8 @@ def process_comment(comment, reddit, database, count_string=""):
 				ReturnType.USER_DOESNT_EXIST,
 				ReturnType.THREAD_LOCKED,
 				ReturnType.DELETED_COMMENT,
-				ReturnType.RATELIMIT):
+				ReturnType.RATELIMIT,
+				ReturnType.COMMENT_UNREPLIABLE):
 			log.info(f"Unable to reply as comment: {comment_result.name}")
 
 		elif comment_result == ReturnType.FORBIDDEN:

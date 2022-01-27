@@ -12,12 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''!I hope so. I'm curious how this statement will age.
-
-RemindMe! Three years and six months
-
-(Also, a message to myself, how am I doing in 3.5 years? Given my current place in life.)'''
-base_time_string = None#"2020-07-25 20:00:00 -0800"
+input_string = '''RemindMe! 24th of the month'''
+base_time_string = "2022-01-24 00:00:00 -0000"
 timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
