@@ -94,6 +94,7 @@ if __name__ == "__main__":
 		counters.objects.labels(type="comments").set(database.get_count_all_comments())
 		counters.objects.labels(type="users").set(database.get_count_all_users())
 		counters.objects.labels(type="subreddits").set(database.get_count_all_subreddits())
+		counters.objects.labels(type="subreddits_banned").set(database.get_count_banned_subreddits())
 
 		try:
 			actions += messages.process_messages(reddit, database)

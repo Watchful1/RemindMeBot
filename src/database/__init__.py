@@ -18,12 +18,17 @@ from ._users import _DatabaseUsers
 log = discord_logging.get_logger()
 
 
+def abort_ro(*args,**kwargs):
+	return
+
+
 class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUsers):
-	def __init__(self, debug=False, publish=False):
-		log.info(f"Initializing database class: debug={debug} publish={publish}")
+	def __init__(self, debug=False, publish=False, override_location=None, readonly=False, quiet=False):
+		if not quiet:
+			log.info(f"Initializing database class: debug={debug} publish={publish}")
 		self.debug = debug
 		self.engine = None
-		self.init(debug, publish)
+		self.init(debug, publish, override_location, readonly)
 
 		_DatabaseReminders.__init__(self)
 		_DatabaseComments.__init__(self)
@@ -31,14 +36,20 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		_DatabaseSubreddit.__init__(self)
 		_DatabaseUsers.__init__(self)
 
-	def init(self, debug, publish):
+	def init(self, debug, publish, override_location=None, readonly=False):
 		if debug:
 			self.engine = create_engine(f'sqlite:///:memory:')
 		else:
-			self.engine = create_engine(f'sqlite:///{static.DATABASE_NAME}')
+			if override_location:
+				self.engine = create_engine(f'sqlite:///{override_location}')
+			else:
+				self.engine = create_engine(f'sqlite:///{static.DATABASE_NAME}')
 
 		Session = sessionmaker(bind=self.engine)
 		self.session = Session()
+		if readonly:
+			self.session.flush = abort_ro
+			self.session._flush = abort_ro
 
 		if publish:
 			Base.metadata.drop_all(self.engine)

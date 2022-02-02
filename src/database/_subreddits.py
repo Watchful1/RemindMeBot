@@ -26,3 +26,6 @@ class _DatabaseSubreddit:
 
 	def get_count_all_subreddits(self):
 		return self.session.query(Subreddit).count()
+
+	def get_count_banned_subreddits(self):
+		return self.session.query(Subreddit).filter_by(banned=True).count()
