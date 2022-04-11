@@ -12,7 +12,7 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe! 24th of the month'''
+input_string = '''RemindMe! 2/22/22'''
 base_time_string = "2022-01-24 00:00:00 -0000"
 timezone_string = None #"America/Los_Angeles"
 
