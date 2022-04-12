@@ -12,8 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe! 2/22/22'''
-base_time_string = "2022-01-24 00:00:00 -0000"
+input_string = '''RemindMe! 12th of the month'''
+base_time_string = "2022-04-12 00:00:00 -0000"
 timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
@@ -33,13 +33,13 @@ else:
 	sys.exit(0)
 
 log.info(f"Now: {base_time.strftime(format_string)}")
-
-try:
-	date_time = dateparser.parse(time_string, languages=['en'], settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
-	if date_time is not None:
-		log.info(f"dateparser.parse: {date_time.strftime(format_string)}")
-except Exception:
-	date_time = None
+#
+# try:
+date_time = dateparser.parse(time_string, languages=['en'], settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
+if date_time is not None:
+	log.info(f"dateparser.parse: {date_time.strftime(format_string)}")
+# except Exception:
+# 	date_time = None
 
 try:
 	results = search_dates(time_string, languages=['en'], settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
