@@ -74,6 +74,8 @@ def find_reminder_time(body, trigger):
 
 
 def parse_time(time_string, base_time, timezone_string):
+	# urls can confuse the date parser, ref https://github.com/Watchful1/RemindMeBot/issues/9
+	time_string = re.split("http", time_string, 2, flags=re.IGNORECASE)[0]
 	base_time = datetime_as_timezone(base_time, timezone_string)
 
 	try:
