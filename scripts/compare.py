@@ -17,11 +17,13 @@ cal = parsedatetime.Calendar()
 
 
 def parse_time_old(time_string, base_time, timezone_string):
+	time_string = re.split("http", time_string, 2, flags=re.IGNORECASE)[0]
 	base_time = utils.datetime_as_timezone(base_time, timezone_string)
 
 	try:
 		date_time = dateparser.parse(
 			time_string,
+			languages=['en'],
 			settings={"PREFER_DATES_FROM": 'future', "RELATIVE_BASE": base_time.replace(tzinfo=None)})
 	except Exception:
 		date_time = None
@@ -67,13 +69,17 @@ def parse_time_old(time_string, base_time, timezone_string):
 
 
 def find_reminder_time_old(body, trigger):
-	return utils.find_reminder_time(body, trigger)
-	# regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(trigger=trigger)
-	# times = re.findall(regex_string, body, flags=re.IGNORECASE)
-	# if len(times) > 0 and times[0] != "":
-	# 	return times[0][:80]
-	# else:
-	# 	return None
+	regex_string = r'(?:{trigger}.? +)(.*?)(?:\[|\n|\"|“|$|http)'.format(trigger=trigger)
+	times = re.findall(regex_string, body, flags=re.IGNORECASE)
+	if len(times) > 0 and times[0] != "":
+		return times[0][:80]
+
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$|http)'.format(trigger=trigger)
+	times = re.findall(regex_string, body, flags=re.IGNORECASE)
+	if len(times) > 0 and times[0] != "":
+		return times[0][:80]
+	else:
+		return None
 
 
 url = "https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&q=remindme&before="

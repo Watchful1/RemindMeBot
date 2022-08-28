@@ -60,12 +60,12 @@ def find_reminder_message(body, trigger):
 
 
 def find_reminder_time(body, trigger):
-	regex_string = r'(?:{trigger}.? +)(.*?)(?:\[|\n|\"|“|$)'.format(trigger=trigger)
+	regex_string = r'(?:{trigger}.? +)(.*?)(?:\[|\n|\"|“|$|http)'.format(trigger=trigger)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
 		return times[0][:80]
 
-	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$)'.format(trigger=trigger)
+	regex_string = r'(?:{trigger}.? *)(.*?)(?:\[|\n|\"|“|$|http)'.format(trigger=trigger)
 	times = re.findall(regex_string, body, flags=re.IGNORECASE)
 	if len(times) > 0 and times[0] != "":
 		return times[0][:80]
