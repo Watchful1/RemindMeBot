@@ -1,5 +1,6 @@
 import utils
 import discord_logging
+from datetime import timedelta
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -101,7 +102,7 @@ class Reminder(Base):
 				return None, result_message + "\n\n" + second_result_message
 
 			else:
-				second_target_date = utils.parse_time(time_string, target_date, user.timezone)
+				second_target_date = utils.parse_time(time_string, target_date + timedelta(seconds=1), user.timezone)
 				log.debug(f"Second target date: {utils.get_datetime_string(second_target_date)}")
 				if second_target_date == target_date:
 					result_message = f"I've got {utils.get_datetime_string(target_date)} for your first date, but when" \

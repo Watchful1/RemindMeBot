@@ -3,6 +3,7 @@ import discord_logging
 import utils
 import static
 import counters
+from datetime import timedelta
 from praw_wrapper import ReturnType
 
 
@@ -36,7 +37,7 @@ def send_reminders(reddit, database):
 					log.info(f"User u/{reminder.user.name} hit their recurring limit, deleting reminder {reminder.id}")
 					database.delete_reminder(reminder)
 				else:
-					new_target_date = utils.parse_time(reminder.recurrence, reminder.target_date, reminder.user.timezone)
+					new_target_date = utils.parse_time(reminder.recurrence, reminder.target_date + timedelta(seconds=1), reminder.user.timezone)
 					log.info(f"{reminder.id} recurring from {utils.get_datetime_string(reminder.target_date)} to "
 							 f"{utils.get_datetime_string(new_target_date)}")
 					reminder.target_date = new_target_date

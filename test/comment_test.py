@@ -340,7 +340,7 @@ def test_commenting_deleted(database, reddit):
 	assert "it was deleted before I could get to it" in reddit.sent_messages[0].body
 
 
-def test_process_recurring_comment(database, reddit):
+def test_process_recurring_comment_period(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
 	comment_id = reddit_test.random_id()
@@ -373,6 +373,64 @@ def test_process_recurring_comment(database, reddit):
 	assert reminders[0].target_date == created + timedelta(hours=24)
 	assert reminders[0].id is not None
 	assert reminders[0].recurrence == "1 day"
+
+
+def test_process_recurring_comment_time(database, reddit):
+	created = utils.parse_datetime_string("2019-01-05 12:00:00")
+	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_RECURRING}! 9 pm",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+	assert "and then every" in result
+	assert "9 hours" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=9)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence == "9 pm"
+
+
+def test_fail_recurring_comment(database, reddit):
+	created = utils.parse_datetime_string("2019-01-04 12:00:00")
+	utils.debug_time = utils.parse_datetime_string("2019-01-04 12:00:00")
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER_RECURRING}! 2019-01-05",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	assert len(comment.children) == 0
 
 
 def test_process_cakeday_comment(database, reddit):

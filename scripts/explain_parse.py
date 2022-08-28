@@ -12,8 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe! 12th of the month'''
-base_time_string = "2022-04-12 00:00:00 -0000"
+input_string = '''RemindMe! 8 weeks'''
+base_time_string = "2022-05-14 15:15:41 -0700"
 timezone_string = None #"America/Los_Angeles"
 
 if base_time_string:
