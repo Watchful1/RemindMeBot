@@ -102,7 +102,7 @@ class Reminder(Base):
 				return None, result_message + "\n\n" + second_result_message
 
 			else:
-				second_target_date = utils.parse_time(time_string, target_date + timedelta(seconds=1), user.timezone)
+				second_target_date = utils.parse_time(time_string, target_date + timedelta(seconds=1), user.timezone) - timedelta(seconds=1)
 				log.debug(f"Second target date: {utils.get_datetime_string(second_target_date)}")
 				if second_target_date == target_date:
 					result_message = f"I've got {utils.get_datetime_string(target_date)} for your first date, but when" \
