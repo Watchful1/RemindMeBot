@@ -150,8 +150,7 @@ def process_comment(comment, reddit, database, count_string=""):
 			database.ban_subreddit(comment['subreddit'])
 
 		elif result_id is None:
-			log.info(f"Shadowban in subreddit, saving: {comment['subreddit']}")
-			database.ban_subreddit(comment['subreddit'])
+			log.info(f"Reply failed, no returned comment id")
 
 		else:
 			if comment_result == ReturnType.NOTHING_RETURNED:

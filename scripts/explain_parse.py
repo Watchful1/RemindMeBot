@@ -12,9 +12,9 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe! 8 weeks'''
-base_time_string = "2022-05-14 15:15:41 -0700"
-timezone_string = None #"America/Los_Angeles"
+input_string = '''RemindMe! 9 am'''
+base_time_string = "2022-09-12 14:32:27 -0700"
+timezone_string = None  # "America/New_York"
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
