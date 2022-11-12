@@ -53,6 +53,7 @@ if __name__ == "__main__":
 	parser.add_argument(
 		"--pushshift", help="Select the pushshift client to use", action='store',
 		choices=["prod", "beta", "auto"], default="prod")
+	parser.add_argument("--pushshift_debug", help="Debug log pushshift calls", action='store_const', const=True, default=False)
 	args = parser.parse_args()
 
 	counters.init(8001)
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 		sys.exit(1)
 
 	reddit = praw_wrapper.Reddit(
-		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client)
+		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client, debug=args.debug)
 	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
 	if args.reset_comment:
