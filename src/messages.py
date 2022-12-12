@@ -349,6 +349,8 @@ def process_messages(reddit, database):
 				log.info(f"Message {message.id} is a system notification")
 			elif message.author.name == "reddit":
 				log.info(f"Message {message.id} is from reddit, skipping")
+			elif message.author.name in static.BLACKLISTED_ACCOUNTS:
+				log.info(f"Message {message.id} from u/{message.author.name} is blacklisted, skipping")
 			else:
 				try:
 					process_message(message, reddit, database, f"{i}/{len(messages)}")
