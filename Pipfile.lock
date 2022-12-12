@@ -132,7 +132,7 @@
         },
         "praw-wrapper": {
             "git": "https://github.com/Watchful1/PrawWrapper.git",
-            "ref": "aaa6d150b0533deb47dc1119ceb328c2cc294339"
+            "ref": "6fe7167736156ace47f9bdbaa39dec28a501dee1"
         },
         "prawcore": {
             "hashes": [
