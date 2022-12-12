@@ -75,7 +75,7 @@ if __name__ == "__main__":
 		sys.exit(1)
 
 	reddit = praw_wrapper.Reddit(
-		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client, debug=args.debug)
+		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client, debug=args.pushshift_debug)
 	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
 	if args.reset_comment:
