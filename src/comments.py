@@ -184,7 +184,8 @@ def process_comment(comment, reddit, database, count_string=""):
 
 
 def process_comments(reddit, database):
-	comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
+	# comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
+	comments = []
 
 	counters.pushshift_delay.labels(client="prod").set(reddit.pushshift_prod_client.lag_minutes())
 	counters.pushshift_delay.labels(client="beta").set(reddit.pushshift_beta_client.lag_minutes())
