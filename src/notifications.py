@@ -4,7 +4,7 @@ import utils
 import static
 import counters
 from datetime import timedelta
-from praw_wrapper import ReturnType
+from praw_wrapper.reddit import ReturnType
 
 
 log = discord_logging.get_logger()

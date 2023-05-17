@@ -20,7 +20,6 @@ import comments
 import notifications
 import utils
 import static
-from praw_wrapper import PushshiftType
 
 
 database = None
@@ -50,10 +49,7 @@ if __name__ == "__main__":
 		"--reset_comment", help="Reset the last comment read timestamp", action='store_const', const=True,
 		default=False)
 	parser.add_argument("--debug", help="Set the log level to debug", action='store_const', const=True, default=False)
-	parser.add_argument(
-		"--pushshift", help="Select the pushshift client to use", action='store',
-		choices=["prod", "beta", "auto"], default="prod")
-	parser.add_argument("--pushshift_debug", help="Debug log pushshift calls", action='store_const', const=True, default=False)
+	parser.add_argument("--ingest_db", help="The location of the ingest database file", default=None)
 	args = parser.parse_args()
 
 	counters.init(8001)
@@ -64,20 +60,19 @@ if __name__ == "__main__":
 
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
 
-	if args.pushshift == "prod":
-		pushshift_client = PushshiftType.PROD
-	elif args.pushshift == "beta":
-		pushshift_client = PushshiftType.BETA
-	elif args.pushshift == "auto":
-		pushshift_client = PushshiftType.AUTO
-	else:
-		log.warning(f"Invalid pushshift client: {args.pushshift}")
-		sys.exit(1)
-
-	reddit = praw_wrapper.Reddit(
-		args.user, args.no_post, user_agent=static.USER_AGENT, pushshift_client=pushshift_client, debug=args.pushshift_debug)
+	reddit = praw_wrapper.Reddit(args.user, args.no_post, user_agent=static.USER_AGENT)
 	static.ACCOUNT_NAME = reddit.username
 	database = Database(debug=args.debug_db)
+
+	ingest_database = None
+	if args.ingest_db:
+		ingest_database = praw_wrapper.IngestDatabase(location=args.ingest_db)
+		ingest_database.set_default_client("remindme")
+		ingest_database.register_search(search_term="remindme")
+		ingest_database.register_search(search_term="remind me")
+		ingest_database.register_search(search_term="remindmerepeat")
+		ingest_database.register_search(search_term="cakeday")
+
 	if args.reset_comment:
 		log.info("Resetting comment processed timestamp")
 		database.save_keystore("comment_timestamp", utils.get_datetime_string(utils.datetime_now()))
@@ -104,7 +99,7 @@ if __name__ == "__main__":
 			errors += 1
 
 		try:
-			actions += comments.process_comments(reddit, database)
+			actions += comments.process_comments(reddit, database, ingest_database)
 		except Exception as err:
 			utils.process_error(f"Error processing comments", err, traceback.format_exc())
 			errors += 1

@@ -2,9 +2,60 @@ from datetime import timedelta
 
 import comments
 import utils
-from praw_wrapper import reddit_test
+from praw_wrapper import reddit_test, IngestDatabase, IngestComment
 import static
 from classes.reminder import Reminder
+
+
+def test_process_comments_ingest(database, reddit):
+	ingest_database = IngestDatabase(debug=True)
+	ingest_database.set_default_client("updateme")
+
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	ingest_database.add_comment(
+		IngestComment(
+			id=comment.id,
+			author=comment.author.name,
+			subreddit=comment.subreddit.display_name,
+			created_utc=comment.created_utc,
+			permalink=comment.permalink,
+			link_id=comment.link_id,
+			body=comment.body,
+			client_id=ingest_database.default_client_id,
+		)
+	)
+
+	comments.process_comments(reddit, database, ingest_database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
+
+	assert ingest_database.get_count_comments(None) == 0
 
 
 def test_process_comment(database, reddit):
@@ -24,7 +75,7 @@ def test_process_comment(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "CLICK THIS LINK" in result
@@ -57,7 +108,7 @@ def test_process_comment_split(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "CLICK THIS LINK" in result
@@ -90,7 +141,7 @@ def test_process_comment_split_no_date(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	assert len(comment.children) == 0
 
 	reminders = database.get_all_user_reminders(username)
@@ -114,7 +165,7 @@ def test_process_comment_split_not_start(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	assert len(comment.children) == 0
 
 	reminders = database.get_all_user_reminders(username)
@@ -140,7 +191,7 @@ def test_process_comment_timezone(database, reddit):
 	)
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "default time zone" in result
@@ -164,7 +215,7 @@ def test_comment_in_thread(database, reddit):
 	)
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 
 	comment_id_2 = reddit_test.random_id()
 	comment_2 = reddit_test.RedditObject(
@@ -178,7 +229,7 @@ def test_comment_in_thread(database, reddit):
 	)
 	reddit.add_comment(comment_2)
 
-	comments.process_comment(comment_2.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment_2.get_ingest_comment(), reddit, database)
 
 	assert len(comment_2.children) == 0
 	assert len(reddit.sent_messages) == 1
@@ -199,7 +250,7 @@ def test_update_incorrect_comments(database, reddit):
 		subreddit="test"
 	)
 	reddit.add_comment(comment1)
-	comments.process_comment(comment1.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment1.get_ingest_comment(), reddit, database)
 
 	comment_id2 = reddit_test.random_id()
 	thread_id2 = reddit_test.random_id()
@@ -213,7 +264,7 @@ def test_update_incorrect_comments(database, reddit):
 		subreddit="test"
 	)
 	reddit.add_comment(comment2)
-	comments.process_comment(comment2.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment2.get_ingest_comment(), reddit, database)
 
 	comment_id3 = reddit_test.random_id()
 	thread_id3 = reddit_test.random_id()
@@ -227,7 +278,7 @@ def test_update_incorrect_comments(database, reddit):
 		subreddit="test"
 	)
 	reddit.add_comment(comment3)
-	comments.process_comment(comment3.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment3.get_ingest_comment(), reddit, database)
 
 	reminders = [
 		Reminder(
@@ -291,7 +342,7 @@ def test_commenting_banned(database, reddit):
 		subreddit=reddit.subreddits["test"]
 	)
 	reddit.add_comment(comment)
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 
 	assert len(comment.children) == 0
 	assert len(reddit.sent_messages) == 1
@@ -314,7 +365,7 @@ def test_commenting_locked(database, reddit):
 		subreddit="test"
 	)
 	reddit.add_comment(comment)
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 
 	assert len(comment.children) == 0
 	assert len(reddit.sent_messages) == 1
@@ -333,7 +384,7 @@ def test_commenting_deleted(database, reddit):
 		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
 		subreddit="test"
 	)
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 
 	assert len(comment.children) == 0
 	assert len(reddit.sent_messages) == 1
@@ -357,7 +408,7 @@ def test_process_recurring_comment_period(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "CLICK THIS LINK" in result
@@ -393,7 +444,7 @@ def test_process_recurring_comment_time(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "CLICK THIS LINK" in result
@@ -429,7 +480,7 @@ def test_fail_recurring_comment(database, reddit):
 
 	reddit.add_comment(comment)
 
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	assert len(comment.children) == 0
 
 
@@ -453,7 +504,7 @@ def test_process_cakeday_comment(database, reddit):
 	reddit.add_comment(comment)
 
 	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
-	comments.process_comment(comment.get_pushshift_dict(), reddit, database)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
 	result = comment.get_first_child().body
 
 	assert "to remind you of your cakeday" in result

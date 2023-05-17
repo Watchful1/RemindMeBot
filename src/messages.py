@@ -7,7 +7,7 @@ import utils
 import static
 import counters
 from classes.reminder import Reminder
-from praw_wrapper import ReturnType
+from praw_wrapper.reddit import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -116,7 +116,7 @@ def process_remind_me(message, reddit, database, recurring):
 
 	log.info(f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	bldr = reminder.render_message_confirmation(result_message, pushshift_minutes=reddit.get_effective_pushshift_lag())
+	bldr = reminder.render_message_confirmation(result_message)
 	return [''.join(bldr)], True
 
 
@@ -226,7 +226,7 @@ def process_cakeday_message(message, reddit, database):
 
 	log.info(f"Cakeday reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 
-	bldr = reminder.render_message_confirmation(None, pushshift_minutes=reddit.get_effective_pushshift_lag())
+	bldr = reminder.render_message_confirmation(None)
 	return [''.join(bldr)], True
 
 

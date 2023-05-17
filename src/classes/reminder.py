@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 import static
-from praw_wrapper import ReturnType
+from praw_wrapper.reddit import ReturnType
 from database import Base
 from database.UtcDateTime import UtcDateTime
 
@@ -137,17 +137,12 @@ class Reminder(Base):
 		return self.message is not None and self.message == static.CAKEDAY_MESSAGE and \
 			self.recurrence is not None and self.recurrence == "1 year"
 
-	def render_message_confirmation(self, result_message, comment_return=None, pushshift_minutes=0):
+	def render_message_confirmation(self, result_message, comment_return=None, comment_age_seconds=0):
 		bldr = utils.str_bldr()
-		if pushshift_minutes > 15 and comment_return is not None:
-			bldr.append("There is a ")
-			if pushshift_minutes > 60:
-				bldr.append(str(int(round(pushshift_minutes / 60, 1))))
-				bldr.append(" hour")
-			else:
-				bldr.append(str(int(pushshift_minutes)))
-				bldr.append(" minute")
-			bldr.append(" delay fetching comments.")
+		if comment_age_seconds > (60 * 60):
+			bldr.append("I'm really sorry about replying to this so late. There's a [detailed post about why I did here](")
+			bldr.append("https://www.reddit.com/r/RemindMeBot/comments/13jostq/remindmebot_is_now_replying_to_comments_again/")
+			bldr.append(").")
 			bldr.append("\n\n")
 
 		if result_message is not None:
@@ -202,17 +197,12 @@ class Reminder(Base):
 
 		return bldr
 
-	def render_comment_confirmation(self, thread_id, count_duplicates=0, pushshift_minutes=0):
+	def render_comment_confirmation(self, thread_id, count_duplicates=0, comment_age_seconds=0):
 		bldr = utils.str_bldr()
-		if pushshift_minutes > 15:
-			bldr.append("There is a ")
-			if pushshift_minutes > 60:
-				bldr.append(str(int(round(pushshift_minutes / 60, 1))))
-				bldr.append(" hour")
-			else:
-				bldr.append(str(pushshift_minutes))
-				bldr.append(" minute")
-			bldr.append(" delay fetching comments.")
+		if comment_age_seconds > (60 * 60):
+			bldr.append("I'm really sorry about replying to this so late. There's a [detailed post about why I did here](")
+			bldr.append("https://www.reddit.com/r/RemindMeBot/comments/13jostq/remindmebot_is_now_replying_to_comments_again/")
+			bldr.append(").")
 			bldr.append("\n\n")
 
 		if self.defaulted:

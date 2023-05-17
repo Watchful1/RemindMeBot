@@ -7,7 +7,7 @@ import static
 import counters
 from classes.reminder import Reminder
 from classes.comment import DbComment
-from praw_wrapper import ReturnType, PushshiftType
+from praw_wrapper.reddit import ReturnType
 
 
 log = discord_logging.get_logger()
@@ -39,15 +39,15 @@ def trigger_in_text(body, trigger):
 
 
 def parse_comment(comment, database, count_string, reddit):
-	if comment['author'] == static.ACCOUNT_NAME:
+	if comment.author == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
 		return None, None
-	if comment['author'] in static.BLACKLISTED_ACCOUNTS:
+	if comment.author in static.BLACKLISTED_ACCOUNTS:
 		log.debug("Comment is from a blacklisted account")
 		return None, None
 
-	log.info(f"{count_string}: Processing comment {comment['id']} from u/{comment['author']}")
-	body = comment['body'].lower().strip()
+	log.info(f"{count_string}: Processing comment {comment.id} from u/{comment.author}")
+	body = comment.body.lower().strip()
 	recurring = False
 	cakeday = False
 	allow_default = True
@@ -73,23 +73,23 @@ def parse_comment(comment, database, count_string, reddit):
 
 	target_date = None
 	if cakeday:
-		if database.user_has_cakeday_reminder(comment['author']):
+		if database.user_has_cakeday_reminder(comment.author):
 			log.info("Cakeday already exists")
 			return None, None
 
-		target_date = utils.get_next_anniversary(reddit.get_user_creation_date(comment['author']))
+		target_date = utils.get_next_anniversary(reddit.get_user_creation_date(comment.author))
 		message_text = static.CAKEDAY_MESSAGE
 		time = "1 year"
 
 	else:
-		time = utils.find_reminder_time(comment['body'], trigger)
-		message_text = utils.find_reminder_message(comment['body'], trigger)
+		time = utils.find_reminder_time(comment.body, trigger)
+		message_text = utils.find_reminder_message(comment.body, trigger)
 
 	reminder, result_message = Reminder.build_reminder(
-		source=utils.reddit_link(comment['permalink']),
+		source=utils.reddit_link(comment.permalink),
 		message=message_text,
-		user=database.get_or_add_user(comment['author']),
-		requested_date=utils.datetime_from_timestamp(comment['created_utc']),
+		user=database.get_or_add_user(comment.author),
+		requested_date=utils.datetime_from_timestamp(comment.created_utc),
 		time_string=time,
 		recurring=recurring,
 		target_date=target_date,
@@ -123,16 +123,17 @@ def process_comment(comment, reddit, database, count_string=""):
 		return
 
 	commented = False
-	thread_id = utils.id_from_fullname(comment['link_id'])
+	thread_id = utils.id_from_fullname(comment.link_id)
 	comment_result = None
 	if database.get_comment_by_thread(thread_id) is not None:
 		comment_result = ReturnType.THREAD_REPLIED
-	if comment_result is None and database.get_subreddit_banned(comment['subreddit']):
+	if comment_result is None and database.get_subreddit_banned(comment.subreddit):
 		comment_result = ReturnType.FORBIDDEN
+	comment_age_seconds = (utils.datetime_now() - utils.datetime_from_timestamp(comment.created_utc)).total_seconds()
 	if comment_result is None:
 		reminder.thread_id = thread_id
-		reddit_comment = reddit.get_comment(comment['id'])
-		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, pushshift_minutes=reddit.get_effective_pushshift_lag()))
+		reddit_comment = reddit.get_comment(comment.id)
+		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, comment_age_seconds=comment_age_seconds))
 
 		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
@@ -146,8 +147,8 @@ def process_comment(comment, reddit, database, count_string=""):
 			log.info(f"Unable to reply as comment: {comment_result.name}")
 
 		elif comment_result == ReturnType.FORBIDDEN:
-			log.info(f"Banned in subreddit, saving: {comment['subreddit']}")
-			database.ban_subreddit(comment['subreddit'])
+			log.info(f"Banned in subreddit, saving: {comment.subreddit}")
+			database.ban_subreddit(comment.subreddit)
 
 		elif result_id is None:
 			log.info(f"Reply failed, no returned comment id")
@@ -155,14 +156,14 @@ def process_comment(comment, reddit, database, count_string=""):
 		else:
 			if comment_result == ReturnType.NOTHING_RETURNED:
 				result_id = "QUARANTINED"
-				log.warning(f"Opting in to quarantined subreddit: {comment['subreddit']}")
-				reddit.quarantine_opt_in(comment['subreddit'])
+				log.warning(f"Opting in to quarantined subreddit: {comment.subreddit}")
+				reddit.quarantine_opt_in(comment.subreddit)
 
 			log.info(
 				f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 				f"replied as comment: {result_id}")
 
-			if comment_result != ReturnType.QUARANTINED and comment['subreddit'] != "RemindMeBot":
+			if comment_result != ReturnType.QUARANTINED and comment.subreddit != "RemindMeBot":
 				db_comment = DbComment(
 					thread_id=thread_id,
 					comment_id=result_id,
@@ -177,35 +178,17 @@ def process_comment(comment, reddit, database, count_string=""):
 		log.info(
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
-		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, pushshift_minutes=reddit.get_effective_pushshift_lag()))
-		result = reddit.send_message(comment['author'], "RemindMeBot Confirmation", ''.join(bldr))
+		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, comment_age_seconds=comment_age_seconds))
+		result = reddit.send_message(comment.author, "RemindMeBot Confirmation", ''.join(bldr))
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")
 
 
-def process_comments(reddit, database):
-	# comments = reddit.get_keyword_comments(static.TRIGGER_COMBINED, database_get_seen(database).replace(tzinfo=None))
-	comments = []
-
-	counters.pushshift_delay.labels(client="prod").set(reddit.pushshift_prod_client.lag_minutes())
-	counters.pushshift_delay.labels(client="beta").set(reddit.pushshift_beta_client.lag_minutes())
-	counters.pushshift_delay.labels(client="auto").set(reddit.get_effective_pushshift_lag())
-
-	if reddit.recent_pushshift_client == PushshiftType.PROD:
-		counters.pushshift_client.labels(client="prod").set(1)
-		counters.pushshift_client.labels(client="beta").set(0)
-	elif reddit.recent_pushshift_client == PushshiftType.BETA:
-		counters.pushshift_client.labels(client="prod").set(0)
-		counters.pushshift_client.labels(client="beta").set(1)
-	else:
-		counters.pushshift_client.labels(client="prod").set(0)
-		counters.pushshift_client.labels(client="beta").set(0)
-
-	counters.pushshift_failed.labels(client="prod").set(1 if reddit.pushshift_prod_client.failed() else 0)
-	counters.pushshift_failed.labels(client="beta").set(1 if reddit.pushshift_beta_client.failed() else 0)
-
-	counters.pushshift_seconds.labels("prod").observe(reddit.pushshift_prod_client.request_seconds if reddit.pushshift_prod_client.request_seconds is not None else 0)
-	counters.pushshift_seconds.labels("beta").observe(reddit.pushshift_beta_client.request_seconds if reddit.pushshift_beta_client.request_seconds is not None else 0)
+def process_comments(reddit, database, ingest_database):
+	if ingest_database is None:
+		log.debug("No ingest database passed, skipping comment search")
+		return 0
+	comments = ingest_database.get_comments(limit=30)
 
 	if len(comments):
 		log.debug(f"Processing {len(comments)} comments")
@@ -217,13 +200,14 @@ def process_comments(reddit, database):
 			process_comment(comment, reddit, database, f"{i}/{len(comments)}")
 		except Exception as err:
 			mark_read = not utils.process_error(
-				f"Error processing comment: {comment['id']} : {comment['author']}",
+				f"Error processing comment: {comment.id} : {comment.author}",
 				err, traceback.format_exc()
 			)
 
 		if mark_read:
-			reddit.mark_keyword_comment_processed(comment['id'])
-			database_set_seen(database, utils.datetime_from_timestamp(comment['created_utc']))
+			ingest_database.delete_comment(comment)
+			ingest_database.commit()
+			database_set_seen(database, utils.datetime_from_timestamp(comment.created_utc))
 		else:
 			return i
 
