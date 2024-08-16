@@ -14,6 +14,7 @@ from ._reminders import _DatabaseReminders
 from ._comments import _DatabaseComments
 from ._subreddits import _DatabaseSubreddit
 from ._users import _DatabaseUsers
+from ._stats import _DatabaseStats
 
 log = discord_logging.get_logger()
 
@@ -22,7 +23,7 @@ def abort_ro(*args,**kwargs):
 	return
 
 
-class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUsers):
+class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _DatabaseSubreddit, _DatabaseUsers, _DatabaseStats):
 	def __init__(self, debug=False, publish=False, override_location=None, readonly=False, quiet=False):
 		if not quiet:
 			log.info(f"Initializing database class: debug={debug} publish={publish}")
@@ -35,6 +36,7 @@ class Database(_DatabaseReminders, _DatabaseComments, _DatabaseKeystore, _Databa
 		_DatabaseKeystore.__init__(self)
 		_DatabaseSubreddit.__init__(self)
 		_DatabaseUsers.__init__(self)
+		_DatabaseStats.__init__(self)
 
 	def init(self, debug, publish, override_location=None, readonly=False):
 		if debug:

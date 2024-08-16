@@ -3,11 +3,13 @@ import discord_logging
 from datetime import timedelta
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+import re
 
 import static
 from praw_wrapper.reddit import ReturnType
 from database import Base
 from database.UtcDateTime import UtcDateTime
+from classes.stat import DbStat
 
 
 log = discord_logging.get_logger()
@@ -136,6 +138,17 @@ class Reminder(Base):
 	def is_cakeday(self):
 		return self.message is not None and self.message == static.CAKEDAY_MESSAGE and \
 			self.recurrence is not None and self.recurrence == "1 year"
+
+	def get_target_ids(self):
+		if self.message is None:
+			return None, None, None
+		match = re.search(r"r/(\w+)/comments/(\w+)/\w*/?(\w+)?", self.message)
+		if match is None:
+			return None, None, None
+		subreddit = match.group(1)
+		thread_id = match.group(2)
+		comment_id = match.group(3)
+		return subreddit, thread_id, comment_id
 
 	def render_message_confirmation(self, result_message, comment_return=None, comment_age_seconds=0):
 		bldr = utils.str_bldr()

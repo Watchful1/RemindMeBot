@@ -16,6 +16,9 @@ class _DatabaseReminders:
 		log.debug("Saving new reminder")
 		self.session.add(reminder)
 
+		subreddit, thread_id, comment_id = reminder.get_target_ids()
+		self.add_increment_stat(subreddit, thread_id, comment_id)
+
 	def get_count_pending_reminders(self, timestamp):
 		log.debug("Fetching count of pending reminders")
 

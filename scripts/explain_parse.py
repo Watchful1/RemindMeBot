@@ -12,8 +12,8 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMe! 1 April 2033 /r/baseball/comments/111fdk1/rogers_breaking_mlbs_joint_competition_committee/j8g3jfu/'''
-base_time_string = "2023-02-14 03:40:19 -0000"
+input_string = '''!remindme 30th of February, 2024.'''
+base_time_string = "2023-04-27 02:45:19 -0700"
 timezone_string = None  # "America/New_York"
 
 if base_time_string:
