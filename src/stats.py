@@ -68,7 +68,7 @@ def update_ask_historians(reddit, database, min_reminders=10, days_back=7):
 		log.debug("Wiki content unchanged")
 	else:
 		log.info(f"Updated stats wiki in: {int(time.perf_counter() - startTime)}")
-		reddit.update_subreddit_wiki_page("AskHistorians", "remindme", new_wiki_content)
+		#reddit.update_subreddit_wiki_page("AskHistorians", "remindme", new_wiki_content)
 
 
 def update_stats(reddit, database):
