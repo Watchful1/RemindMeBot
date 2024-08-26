@@ -1,10 +1,10 @@
 import discord_logging
 from datetime import timedelta
-
-import utils
-
+import time
 
 log = discord_logging.get_logger()
+
+import utils
 
 
 def update_stat_dates(reddit, database):
@@ -33,6 +33,7 @@ def update_stat_dates(reddit, database):
 
 
 def update_ask_historians(reddit, database, min_reminders=10, days_back=7):
+	startTime = time.perf_counter()
 	earliest_date = utils.datetime_now() - timedelta(days=days_back)
 	stats = database.get_stats_for_subreddit("AskHistorians", earliest_date, min_reminders=min_reminders, thread_only=True)
 
@@ -60,13 +61,14 @@ def update_ask_historians(reddit, database, min_reminders=10, days_back=7):
 		bldr.append(f"{utils.surround_int_over_threshold(database.get_reminders_with_keyword(stat.thread_id, earliest_date), '**', 50)}")
 		bldr.append(f"\n")
 
-	old_wiki_content = reddit.get_subreddit_wiki_page("SubTestBot1", "remindme")
+	old_wiki_content = reddit.get_subreddit_wiki_page("AskHistorians", "remindme")
 	new_wiki_content = ''.join(bldr)
 	log.debug(new_wiki_content)
 	if old_wiki_content == new_wiki_content:
 		log.debug("Wiki content unchanged")
 	else:
-		reddit.update_subreddit_wiki_page("SubTestBot1", "remindme", new_wiki_content)
+		log.info(f"Updated stats wiki in: {int(time.perf_counter() - startTime)}")
+		reddit.update_subreddit_wiki_page("AskHistorians", "remindme", new_wiki_content)
 
 
 def update_stats(reddit, database):

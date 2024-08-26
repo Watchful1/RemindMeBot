@@ -95,7 +95,7 @@ RemindMe! 2 days""",
 
 	stat = database.get_stats_for_ids("AskHistorians", "1emshj8")
 	assert stat.count_reminders == 1
-	assert stat.initial_date == utils.debug_time
+	assert stat.initial_date is None
 
 	reminder = Reminder(
 		source="https://www.reddit.com/message/messages/YYYYY",
@@ -109,17 +109,7 @@ RemindMe! 2 days""",
 
 	stat = database.get_stats_for_ids("AskHistorians", "1emshj8")
 	assert stat.count_reminders == 2
-	assert stat.initial_date == utils.debug_time
-
-
-def test_add_stats(database, reddit):
-	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
-	add_sample_stats(database, reddit)
-
-	sub_stats = database.get_stats_for_subreddit("AskHistorians", utils.debug_time - timedelta(days=1))
-	assert len(sub_stats) == 2
-	assert sub_stats[0].count_reminders == 2
-	assert sub_stats[1].count_reminders == 3
+	assert stat.initial_date is None
 
 
 def test_update_dates(database, reddit):
@@ -133,6 +123,11 @@ def test_update_dates(database, reddit):
 
 	post_stat = database.get_stats_for_ids("AskHistorians", "1emshj8")
 	assert post_stat.initial_date == utils.parse_datetime_string("2019-01-01 04:00:00")
+
+	sub_stats = database.get_stats_for_subreddit("AskHistorians", utils.debug_time - timedelta(days=7))
+	assert len(sub_stats) == 2
+	assert sub_stats[0].count_reminders == 2
+	assert sub_stats[1].count_reminders == 3
 
 
 def test_update_stat_wiki(database, reddit):
@@ -151,7 +146,7 @@ def test_update_stat_wiki(database, reddit):
 	stats.update_stat_dates(reddit, database)
 	stats.update_ask_historians(reddit, database, min_reminders=0)
 
-	wiki_content = reddit.get_subreddit_wiki_page("SubTestBot1", "remindme")
+	wiki_content = reddit.get_subreddit_wiki_page("AskHistorians", "remindme")
 
 	assert wiki_content == """Thread | Thread date | Words in top answer | Total reminders | Pending reminders
 ---|---|----|----|----|----
