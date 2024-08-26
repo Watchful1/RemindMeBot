@@ -43,6 +43,7 @@ def update_ask_historians(reddit, database, min_reminders=10, days_back=7):
 
 	for stat in stats:
 		reddit_submission = reddit.get_submission(stat.thread_id)
+		reddit_submission.comment_sort = "top"
 		bldr.append(f"[{utils.truncate_string(reddit_submission.title, 60)}](https://www.reddit.com/{reddit_submission.permalink})|")
 		bldr.append(f"{utils.get_datetime_string(utils.datetime_from_timestamp(reddit_submission.created_utc), '%Y-%m-%d %H:%M %Z')}|")
 
