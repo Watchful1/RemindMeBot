@@ -146,7 +146,7 @@ def test_update_stat_wiki(database, reddit):
 	stats.update_stat_dates(reddit, database)
 	stats.update_ask_historians(reddit, database, min_reminders=0)
 
-	wiki_content = reddit.get_subreddit_wiki_page("AskHistorians", "remindme")
+	wiki_content = reddit.get_subreddit_wiki_page("SubTestBot1", "remindme")
 
 	assert wiki_content == """Thread | Thread date | Words in top answer | Total reminders | Pending reminders
 ---|---|----|----|----|----
