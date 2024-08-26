@@ -326,3 +326,19 @@ def check_append_context_to_link(link):
 		return link + "?context=3"
 	else:
 		return link
+
+
+def truncate_string(string, total_characters):
+	if string is not None and len(string) > total_characters:
+		return f"{string[:total_characters - 3]}..."
+	else:
+		return string
+
+
+def surround_int_over_threshold(val, surround, threshold):
+	if val >= threshold:
+		return f"{surround}{val}{surround}"
+	elif val == 0:
+		return ""
+	else:
+		return f"{val}"

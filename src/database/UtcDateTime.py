@@ -9,4 +9,7 @@ class UtcDateTime(types.TypeDecorator):
     cache_ok = True
 
     def process_result_value(self, value, dialect):
-        return utils.datetime_force_utc(value)
+        if value is not None:
+            return utils.datetime_force_utc(value)
+        else:
+            return None

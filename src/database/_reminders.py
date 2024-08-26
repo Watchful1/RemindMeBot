@@ -72,6 +72,17 @@ class _DatabaseReminders:
 		log.debug(f"Found reminders: {len(regular_reminders)} : {len(recurring_reminders)}")
 		return regular_reminders, recurring_reminders
 
+	def get_reminders_with_keyword(self, search_key, earliest_date):
+		log.debug(f"Searching for reminders with {search_key}")
+
+		count_reminders = self.session.query(Reminder)\
+			.filter(Reminder.target_date > earliest_date)\
+			.filter(Reminder.message.like(f"%{search_key}%"))\
+			.count()
+
+		log.debug(f"Found reminders with keyword: {count_reminders}")
+		return count_reminders
+
 	def get_reminder(self, reminder_id):
 		log.debug(f"Fetching reminder by id: {reminder_id}")
 

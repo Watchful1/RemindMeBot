@@ -20,6 +20,7 @@ import comments
 import notifications
 import utils
 import static
+import stats
 
 
 database = None
@@ -79,6 +80,7 @@ if __name__ == "__main__":
 
 	last_backup = None
 	last_comments = None
+	last_stats = None
 	while True:
 		startTime = time.perf_counter()
 		log.debug("Starting run")
@@ -118,6 +120,14 @@ if __name__ == "__main__":
 				utils.process_error(f"Error updating comments", err, traceback.format_exc())
 				errors += 1
 
+		if utils.time_offset(last_stats, minutes=60):
+			try:
+				stats.update_stats(reddit, database)
+				last_stats = utils.datetime_now()
+			except Exception as err:
+				utils.process_error(f"Error updating stats", err, traceback.format_exc())
+				errors += 1
+
 		if not args.no_backup and utils.time_offset(last_backup, hours=12):
 			try:
 				database.backup()
@@ -126,7 +136,11 @@ if __name__ == "__main__":
 				utils.process_error(f"Error backing up database", err, traceback.format_exc())
 				errors += 1
 
-		log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
+		database.commit()
+
+		run_time = time.perf_counter() - startTime
+		counters.run_time.observe(round(run_time, 2))
+		log.debug(f"Run complete after: {int(run_time)}")
 
 		discord_logging.flush_discord()
 

@@ -51,13 +51,33 @@ class _DatabaseStats:
 
 		return stat
 
-	def get_stats_for_subreddit(self, subreddit, earliest_date):
+	def get_stats_for_subreddit(self, subreddit, earliest_date, min_reminders=0, thread_only=False):
 		log.debug("Fetching stats for subreddit")
 
+		if thread_only:
+			stats = self.session.query(DbStat)\
+				.filter(DbStat.subreddit == subreddit)\
+				.filter(DbStat.comment_id == None)\
+				.filter(DbStat.initial_date > earliest_date)\
+				.filter(DbStat.count_reminders >= min_reminders)\
+				.order_by(DbStat.initial_date.desc())\
+				.all()
+		else:
+			stats = self.session.query(DbStat)\
+				.filter(DbStat.subreddit == subreddit)\
+				.filter(DbStat.initial_date > earliest_date)\
+				.filter(DbStat.count_reminders >= min_reminders)\
+				.order_by(DbStat.initial_date.desc())\
+				.all()
+
+		log.debug(f"{len(stats)} stats found")
+		return stats
+
+	def get_stats_without_date(self):
+		log.debug("Fetching stats without a date")
+
 		stats = self.session.query(DbStat)\
-			.filter(DbStat.subreddit == subreddit)\
-			.filter(DbStat.initial_date > earliest_date)\
-			.order_by(DbStat.initial_date.asc())\
+			.filter(DbStat.initial_date == None)\
 			.all()
 
 		log.debug(f"{len(stats)} stats found")

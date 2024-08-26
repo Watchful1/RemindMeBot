@@ -12,12 +12,15 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''!remindme 30th of February, 2024.'''
-base_time_string = "2023-04-27 02:45:19 -0700"
+input_string = '''!remindme December 24th :)'''
+base_time_string = None#"2024-04-27 02:45:19 -0700"
+created_utc = 1723766419
 timezone_string = None  # "America/New_York"
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
+elif created_utc:
+	base_time = utils.datetime_from_timestamp(created_utc)
 else:
 	base_time = utils.datetime_now()
 

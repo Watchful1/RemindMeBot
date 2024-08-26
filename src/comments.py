@@ -1,6 +1,5 @@
 import discord_logging
 import traceback
-import praw
 
 import utils
 import static
