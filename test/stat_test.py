@@ -148,7 +148,9 @@ def test_update_stat_wiki(database, reddit):
 
 	wiki_content = reddit.get_subreddit_wiki_page("AskHistorians", "remindme")
 
-	assert wiki_content == """Thread | Thread date | Words in top answer | Total reminders | Pending reminders
+	assert wiki_content == """This page shows the number of reminders requested for each thread in r/AskHistorians in the last 7 days. Only threads with at least 10 requested reminders are included. Please contact u/Watchful1 with any feedback or suggestions.
+
+Thread | Thread date | Words in top answer | Total reminders | Pending reminders
 ---|---|----|----|----|----
 [Title2](https://www.reddit.com//r/AskHistorians/comments/1emshj8/___/)|2019-01-01 04:00:00||2|2
 [Title3](https://www.reddit.com//r/AskHistorians/comments/1emshk6/___/)|2019-01-01 04:00:00||3|3
