@@ -38,6 +38,8 @@ def update_ask_historians(reddit, database, min_reminders=10, days_back=7):
 	stats = database.get_stats_for_subreddit("AskHistorians", earliest_date, min_reminders=min_reminders, thread_only=True)
 
 	bldr = utils.str_bldr()
+	bldr.append("This page shows the number of reminders requested for each thread in r/AskHistorians in the last 7 days. Only threads with at least 10 requested reminders are included. Please contact u/Watchful1 with any feedback or suggestions.")
+	bldr.append("\n\n")
 	bldr.append("Thread | Thread date | Words in top answer | Total reminders | Pending reminders\n")
 	bldr.append("---|---|----|----|----|----\n")
 
