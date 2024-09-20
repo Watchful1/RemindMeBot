@@ -325,7 +325,7 @@ class Reminder(Base):
 					bldr.append("This is a repeating reminder. I'll message you again in `")
 					bldr.append(self.recurrence)
 					bldr.append("`, which is ")
-					bldr.append(utils.render_time(utils.parse_time(self.recurrence, self.target_date, self.user.timezone), self.user))
+					bldr.append(utils.render_time(utils.new_recurring_time(self.recurrence, self.target_date, self.user.timezone), self.user))
 					bldr.append(".")
 
 			bldr.append("\n\n")
