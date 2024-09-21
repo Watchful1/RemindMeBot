@@ -342,3 +342,11 @@ def surround_int_over_threshold(val, surround, threshold):
 		return ""
 	else:
 		return f"{val}"
+
+def new_recurring_time(recurrence, target_date, timezone_string):
+	date_with_plus_1 = parse_time(recurrence, target_date + timedelta(seconds=1), timezone_string)
+	date_with_plus_4 = parse_time(recurrence, target_date + timedelta(seconds=4), timezone_string)
+	if date_with_plus_1 == date_with_plus_4: # if they are the same, the plus 1 isn't adding to the time, so we shouldn't subtract from the time in the response
+		return date_with_plus_1
+	else:
+		return date_with_plus_1  - timedelta(seconds=1)
