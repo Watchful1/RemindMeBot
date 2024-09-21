@@ -44,7 +44,7 @@ def send_reminders(reddit, database):
 						log.info(f"User u/{reminder.user.name} hit their recurring limit, deleting reminder {reminder.id}")
 						database.delete_reminder(reminder)
 					else:
-						new_target_date = utils.new_recurring_time(reminder.recurrence, reminder.target_date, reminder.user.timezone)
+						new_target_date = utils.next_recurring_time(reminder.recurrence, reminder.target_date, reminder.user.timezone)
 						log.info(f"{reminder.id} recurring from {utils.get_datetime_string(reminder.target_date)} to "
 								 f"{utils.get_datetime_string(new_target_date)}")
 						reminder.target_date = new_target_date

@@ -104,7 +104,7 @@ class Reminder(Base):
 				return None, result_message + "\n\n" + second_result_message
 
 			else:
-				second_target_date = utils.parse_time(time_string, target_date + timedelta(seconds=1), user.timezone) - timedelta(seconds=1)
+				second_target_date = utils.next_recurring_time(time_string, target_date, user.timezone)
 				log.debug(f"Second target date: {utils.get_datetime_string(second_target_date)}")
 				if second_target_date == target_date:
 					result_message = f"I've got {utils.get_datetime_string(target_date)} for your first date, but when" \
@@ -325,7 +325,7 @@ class Reminder(Base):
 					bldr.append("This is a repeating reminder. I'll message you again in `")
 					bldr.append(self.recurrence)
 					bldr.append("`, which is ")
-					bldr.append(utils.render_time(utils.new_recurring_time(self.recurrence, self.target_date, self.user.timezone), self.user))
+					bldr.append(utils.render_time(utils.next_recurring_time(self.recurrence, self.target_date, self.user.timezone), self.user))
 					bldr.append(".")
 
 			bldr.append("\n\n")

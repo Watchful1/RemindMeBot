@@ -4,6 +4,7 @@ import pytz
 import dateparser
 import re
 import sys
+from datetime import timedelta
 from dateparser.search import search_dates
 
 log = discord_logging.init_logging()
@@ -12,10 +13,11 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''!remindme December 24th :)'''
-base_time_string = None#"2024-04-27 02:45:19 -0700"
-created_utc = 1723766419
-timezone_string = None  # "America/New_York"
+input_string = '''RemindMeRepeat! 4:35pm'''
+base_time_string = None#"2024-09-18 16:34:41 -0700"
+created_utc = 1726702499
+timezone_string = "America/Los_Angeles"
+recurring = True
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
@@ -27,7 +29,7 @@ else:
 format_string = '%Y-%m-%d %H:%M:%S %Z'
 
 log.info(f"Input string: {input_string}")
-time = utils.find_reminder_time(input_string, "remindme")
+time = utils.find_reminder_time(input_string, "remindmerepeat")
 if time is not None:
 	log.info(f"Result: {time}")
 	time_string = time
@@ -86,3 +88,10 @@ if date_time.tzinfo is None:
 
 date_time = utils.datetime_as_utc(date_time)
 log.info(f"Forcing utc: {date_time.strftime(format_string)}")
+
+if recurring:
+	second_target_date = utils.next_recurring_time(time_string, date_time, timezone_string)
+	log.info(f"Recurring next at: {second_target_date.strftime(format_string)}")
+	third_target_date = utils.next_recurring_time(time_string, second_target_date, timezone_string)
+	log.info(f"Recurring next at: {third_target_date.strftime(format_string)}")
+
