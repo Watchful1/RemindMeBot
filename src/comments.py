@@ -145,7 +145,10 @@ def process_comment(comment, reddit, database, count_string=""):
 				ReturnType.COMMENT_UNREPLIABLE):
 			log.info(f"Unable to reply as comment: {comment_result.name}")
 
-		elif comment_result == ReturnType.FORBIDDEN:
+		elif comment_result in (
+				ReturnType.FORBIDDEN,
+				ReturnType.SUBREDDIT_OUTBOUND_LINKING_DISALLOWED,
+				ReturnType.COMMENT_GUIDANCE_VALIDATION_FAILED,):
 			log.info(f"Banned in subreddit, saving: {comment.subreddit}")
 			database.ban_subreddit(comment.subreddit)
 
