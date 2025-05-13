@@ -14,7 +14,7 @@ python-dateutil = "*"
 sqlalchemy = "*"
 dateparser = {git = "https://github.com/Watchful1/dateparser.git",ref = "features"}
 prometheus-client = "*"
-praw-wrapper = {git = "git+https://github.com/Watchful1/PrawWrapper.git#egg=praw-wrapper"}
+praw-wrapper = {editable = true, git = "https://github.com/Watchful1/PrawWrapper.git"}
 
 [requires]
 python_version = "3.9"

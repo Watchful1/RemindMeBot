@@ -325,7 +325,7 @@ def process_message(message, reddit, database, count_string=""):
 
 	result_messages[-1] = result_messages[-1] + ''.join(utils.get_footer())
 	for result_message in result_messages:
-		result = reddit.reply_message(message, result_message)
+		result = reddit.reply_message(message, result_message, retry_seconds=120)
 		if result != ReturnType.SUCCESS:
 			if result == ReturnType.INVALID_USER:
 				log.info("User banned before reply could be sent")
