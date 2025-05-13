@@ -181,7 +181,7 @@ def process_comment(comment, reddit, database, count_string=""):
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
 		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, comment_age_seconds=comment_age_seconds))
-		result = reddit.send_message(comment.author, "RemindMeBot Confirmation", ''.join(bldr), retry_seconds=120)
+		result = reddit.send_message(comment.author, "RemindMeBot Confirmation", ''.join(bldr), retry_seconds=600)
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")
 
