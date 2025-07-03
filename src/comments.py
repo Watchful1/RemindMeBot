@@ -229,9 +229,13 @@ def update_comments(reddit, database):
 				f"{db_comment.comment_id} : {db_comment.current_count}/{new_count}")
 
 			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count))
-			result = reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
-			if result != ReturnType.SUCCESS:
-				log.warning(f"Failed to edit comment {db_comment.comment_id}: {result}")
+			try:
+				result = reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
+				if result != ReturnType.SUCCESS:
+					log.warning(f"Failed to edit comment {db_comment.comment_id}: {result}")
+			except Exception as err:
+				utils.process_error(f"Error updating comment: {db_comment.comment_id}", err, traceback.format_exc())
+				continue
 
 			db_comment.current_count = new_count
 
