@@ -40,6 +40,7 @@ There's more details here: https://www.reddit.com/r/RemindMeBot/comments/1mdsjy1
 	reddit = praw.Reddit("RemindMeBot", user_agent="Manual message sender")
 
 	sent, success = 0, 0
+	messages_since_save = 0
 	for user in users:
 		if user["sent"]:
 			log.info(f"{sent}/{len(users)}: Already sent to u/{(user['name'])}")
@@ -56,4 +57,8 @@ There's more details here: https://www.reddit.com/r/RemindMeBot/comments/1mdsjy1
 
 		sent += 1
 		user["sent"] = True
-		save_users(users)
+		messages_since_save += 1
+		if messages_since_save > 100:
+			save_users(users)
+			log.info(f"Saved users")
+			messages_since_save = 0
