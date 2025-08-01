@@ -33,7 +33,7 @@ def send_reminders(reddit, database):
 					f"{reminders_sent}/{len(reminders)}/{count_reminders}: Sending reminder to u/{reminder.user.name} : "
 					f"{reminder.id} : {utils.get_datetime_string(reminder.target_date)}")
 				bldr = utils.get_footer(reminder.render_notification())
-				result = reddit.send_message(reminder.user.name, "RemindMeBot Here!", ''.join(bldr))
+				result = reddit.send_message(reminder.user.name, "RemindMeBot Here!", ''.join(bldr), retry_seconds=60)
 				if result in [ReturnType.INVALID_USER, ReturnType.USER_DOESNT_EXIST]:
 					log.info(f"User doesn't exist: u/{reminder.user.name}")
 				if result in [ReturnType.NOT_WHITELISTED_BY_USER_MESSAGE]:
