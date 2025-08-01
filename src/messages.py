@@ -317,7 +317,7 @@ def process_message(message, reddit, database, count_string=""):
 	elif "clock!" in body:
 		result_messages = process_clock_message(message, database)
 	elif body.startswith("hello"):
-		result_messages = "Hello back!"
+		result_messages = ["Hello back!"]
 
 	if not created:
 		counters.replies.labels(source='message', type='other').inc()
