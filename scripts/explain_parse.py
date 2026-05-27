@@ -13,11 +13,11 @@ import utils
 
 cal = parsedatetime.Calendar()
 
-input_string = '''RemindMeRepeat! 4:35pm'''
-base_time_string = None#"2024-09-18 16:34:41 -0700"
-created_utc = 1726702499
-timezone_string = "America/Los_Angeles"
-recurring = True
+input_string = '''!remindme 30/11/2026'''
+base_time_string = None#"2023-03-15 06:51:20 -0700"
+created_utc = None#1726702499
+timezone_string = None#"America/Los_Angeles"
+recurring = False
 
 if base_time_string:
 	base_time = utils.datetime_as_timezone(utils.parse_datetime_string(base_time_string, False, '%Y-%m-%d %H:%M:%S %z'), "UTC")
@@ -29,7 +29,7 @@ else:
 format_string = '%Y-%m-%d %H:%M:%S %Z'
 
 log.info(f"Input string: {input_string}")
-time = utils.find_reminder_time(input_string, "remindmerepeat")
+time = utils.find_reminder_time(input_string, "remindme")
 if time is not None:
 	log.info(f"Result: {time}")
 	time_string = time
