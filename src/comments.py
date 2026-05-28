@@ -37,19 +37,31 @@ def trigger_in_text(body, trigger):
 	return f"{trigger}!" in body or f"!{trigger}" in body
 
 
+def body_contains_command(body):
+	lower = body.lower().strip()
+	return (
+		trigger_in_text(lower, static.TRIGGER_RECURRING_LOWER)
+		or trigger_in_text(lower, static.TRIGGER_LOWER)
+		or trigger_start_of_line(lower, static.TRIGGER_CAKEDAY_LOWER)
+		or trigger_start_of_line(lower, static.TRIGGER_SPLIT_LOWER)
+	)
+
+
 def parse_comment(comment, database, count_string, reddit):
 	if comment.author == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
-		return None, None
+		return None, None, False
 	if comment.author in static.BLACKLISTED_ACCOUNTS:
 		log.debug("Comment is from a blacklisted account")
-		return None, None
+		return None, None, False
 
 	log.info(f"{count_string}: Processing comment {comment.id} from u/{comment.author}")
 	body = comment.body.lower().strip()
 	recurring = False
 	cakeday = False
+	mention = False
 	allow_default = True
+	mention_match = static.MENTION_PATTERN.search(body) if static.MENTION_REMINDERS_ENABLED else None
 	if trigger_in_text(body, static.TRIGGER_RECURRING_LOWER):
 		log.debug("Recurring reminder comment")
 		recurring = True
@@ -66,15 +78,28 @@ def parse_comment(comment, database, count_string, reddit):
 		log.debug("Regular split comment")
 		trigger = static.TRIGGER_SPLIT_LOWER
 		allow_default = False
+	elif mention_match is not None:
+		keyword = mention_match.group(1)
+		mention = True
+		trigger = mention_match.group(0)
+		if keyword == "repeat":
+			log.debug("Mention recurring reminder")
+			recurring = True
+		elif keyword == "cakeday":
+			log.debug("Mention cakeday")
+			cakeday = True
+			recurring = True
+		else:
+			log.debug("Mention single reminder")
 	else:
 		log.debug("Command not in comment")
-		return None, None
+		return None, None, False
 
 	target_date = None
 	if cakeday:
 		if database.user_has_cakeday_reminder(comment.author):
 			log.info("Cakeday already exists")
-			return None, None
+			return None, None, False
 
 		target_date = utils.get_next_anniversary(reddit.get_user_creation_date(comment.author))
 		message_text = static.CAKEDAY_MESSAGE
@@ -95,29 +120,30 @@ def parse_comment(comment, database, count_string, reddit):
 		allow_default=allow_default
 	)
 	if reminder is None:
-		return None, None
+		return None, None, False
 
+	trigger_label = 'mention' if mention else 'command'
 	if cakeday:
-		counters.replies.labels(source='comment', type='cake').inc()
+		counters.replies.labels(source='comment', type='cake', trigger=trigger_label).inc()
 	elif recurring:
-		counters.replies.labels(source='comment', type='repeat').inc()
+		counters.replies.labels(source='comment', type='repeat', trigger=trigger_label).inc()
 	elif not allow_default:
-		counters.replies.labels(source='comment', type='split').inc()
+		counters.replies.labels(source='comment', type='split', trigger=trigger_label).inc()
 	else:
-		counters.replies.labels(source='comment', type='single').inc()
+		counters.replies.labels(source='comment', type='single', trigger=trigger_label).inc()
 
 	database.add_reminder(reminder)
 
 	reminder.user.recurring_sent = 0
 
-	return reminder, result_message
+	return reminder, result_message, mention
 
 
 def process_comment(comment, reddit, database, count_string=""):
-	reminder, result_message = parse_comment(comment, database, count_string, reddit)
+	reminder, result_message, from_mention = parse_comment(comment, database, count_string, reddit)
 
 	if reminder is None:
-		counters.replies.labels(source='comment', type='other').inc()
+		counters.replies.labels(source='comment', type='other', trigger='command').inc()
 		log.debug("Not replying")
 		return
 
@@ -132,7 +158,7 @@ def process_comment(comment, reddit, database, count_string=""):
 	if comment_result is None:
 		reminder.thread_id = thread_id
 		reddit_comment = reddit.get_comment(comment.id)
-		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, comment_age_seconds=comment_age_seconds))
+		bldr = utils.get_footer(reminder.render_comment_confirmation(thread_id, comment_age_seconds=comment_age_seconds, suppress_mention_nudge=from_mention))
 
 		result_id, comment_result = reddit.reply_comment(reddit_comment, ''.join(bldr))
 
@@ -171,7 +197,8 @@ def process_comment(comment, reddit, database, count_string=""):
 					comment_id=result_id,
 					reminder_id=reminder.id,
 					user=reminder.user.name,
-					source=reminder.source
+					source=reminder.source,
+					from_mention=from_mention
 				)
 				database.save_comment(db_comment)
 			commented = True
@@ -180,7 +207,7 @@ def process_comment(comment, reddit, database, count_string=""):
 		log.info(
 			f"Reminder created: {reminder.id} : {utils.get_datetime_string(reminder.target_date)}, "
 			f"replying as message: {comment_result.name}")
-		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, comment_age_seconds=comment_age_seconds))
+		bldr = utils.get_footer(reminder.render_message_confirmation(result_message, comment_result, comment_age_seconds=comment_age_seconds, suppress_mention_nudge=from_mention))
 		result = reddit.send_message(comment.author, "RemindMeBot Confirmation", ''.join(bldr), retry_seconds=600)
 		if result != ReturnType.SUCCESS:
 			log.info(f"Unable to send message: {result.name}")
@@ -228,7 +255,7 @@ def update_comments(reddit, database):
 				f"{i}/{len(incorrect_items)}/{count_incorrect}: Updating comment : "
 				f"{db_comment.comment_id} : {db_comment.current_count}/{new_count}")
 
-			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count))
+			bldr = utils.get_footer(reminder.render_comment_confirmation(db_comment.thread_id, new_count, suppress_mention_nudge=db_comment.from_mention))
 			try:
 				result = reddit.edit_comment(''.join(bldr), comment_id=db_comment.comment_id)
 				if result != ReturnType.SUCCESS:

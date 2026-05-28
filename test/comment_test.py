@@ -518,3 +518,272 @@ def test_process_cakeday_comment(database, reddit):
 	assert reminders[0].id is not None
 	assert reminders[0].recurrence == "1 year"
 	assert reminders[0].message == "Happy Cakeday!"
+
+
+def test_process_mention_single(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].user.name == username
+	assert reminders[0].message is None
+	assert reminders[0].source == utils.reddit_link(comment.permalink)
+	assert reminders[0].requested_date == created
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].id is not None
+	assert reminders[0].recurrence is None
+
+
+def test_process_mention_single_slash_form(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"/u/{static.ACCOUNT_NAME} 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].recurrence is None
+
+
+def test_process_mention_repeat(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} repeat 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "CLICK THIS LINK" in result
+	assert "and then every" in result
+	assert "`1 day`" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(hours=24)
+	assert reminders[0].recurrence == "1 day"
+
+
+def test_process_mention_cakeday(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	username = "Watchful1"
+	user = reddit_test.User(username, utils.parse_datetime_string("2015-05-05 15:25:17").timestamp())
+	reddit.add_user(user)
+	created = utils.parse_datetime_string("2019-01-05 11:00:00")
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} cakeday",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	utils.debug_time = utils.parse_datetime_string("2019-01-05 12:00:00")
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "to remind you of your cakeday" in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == utils.parse_datetime_string("2019-05-05 15:25:17")
+	assert reminders[0].recurrence == "1 year"
+	assert reminders[0].message == "Happy Cakeday!"
+
+
+def test_process_mention_case_insensitive(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"U/{static.ACCOUNT_NAME.upper()} 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(hours=24)
+
+
+def test_process_mention_disabled(database, reddit):
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} 1 day",
+		author=username,
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	assert len(comment.children) == 0
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 0
+
+
+def test_process_mention_no_time_defaults(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME}",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(hours=24)
+
+
+def _make_dup_reminder(database, permalink, target_date):
+	return Reminder(
+		source="https://www.reddit.com/message/messages/XXXXX",
+		message=utils.reddit_link(permalink),
+		user=database.get_or_add_user("Watchful1"),
+		requested_date=utils.parse_datetime_string("2019-01-01 04:00:00"),
+		target_date=utils.parse_datetime_string(target_date)
+	)
+
+
+def test_update_comments_suppresses_nudge_for_mention(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	monkeypatch.setattr(static, "ENCOURAGE_MENTIONS_IN_REPLY", True)
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	reddit.add_comment(comment)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	# first reply should already suppress the nudge
+	first_body = comment.get_first_child().body
+	assert "is switching to username summons" not in first_body
+
+	# inflate the duplicate count and re-render
+	for target in ("2019-01-05 05:00:00", "2019-01-06 05:00:00"):
+		database.add_reminder(_make_dup_reminder(database, comment.permalink, target))
+	comments.update_comments(reddit, database)
+
+	edited_body = comment.get_first_child().body
+	assert "2 OTHERS CLICKED THIS LINK" in edited_body
+	assert "is switching to username summons" not in edited_body
+
+
+def test_update_comments_shows_nudge_for_command(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "ENCOURAGE_MENTIONS_IN_REPLY", True)
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"{static.TRIGGER}! 1 day",
+		author="Watchful1",
+		created=utils.datetime_now(),
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+	reddit.add_comment(comment)
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	first_body = comment.get_first_child().body
+	assert "is switching to username summons" in first_body
+
+	for target in ("2019-01-05 05:00:00", "2019-01-06 05:00:00"):
+		database.add_reminder(_make_dup_reminder(database, comment.permalink, target))
+	comments.update_comments(reddit, database)
+
+	edited_body = comment.get_first_child().body
+	assert "2 OTHERS CLICKED THIS LINK" in edited_body
+	assert "is switching to username summons" in edited_body

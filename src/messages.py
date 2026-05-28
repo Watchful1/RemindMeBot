@@ -3,6 +3,7 @@ import re
 import traceback
 import pytz
 
+import comments
 import utils
 import static
 import counters
@@ -102,7 +103,7 @@ def process_remind_me(message, reddit, database, recurring):
 	reminder, result_message = Reminder.build_reminder(
 		source=utils.message_link(message.id),
 		message=message_text,
-		user=database.get_or_add_user(message.author.name),
+		user=database.get_or_add_user(utils.author_name(message.author)),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		time_string=time,
 		recurring=recurring
@@ -129,7 +130,7 @@ def process_remove_reminder(message, database):
 		bldr.append("I couldn't find a reminder id to remove.")
 	else:
 		reminder = database.get_reminder(ids[0])
-		if reminder is None or reminder.user.name != message.author.name:
+		if reminder is None or reminder.user.name != utils.author_name(message.author):
 			bldr.append("It looks like you don't own this reminder or it doesn't exist.")
 		else:
 			database.delete_reminder(reminder)
@@ -139,7 +140,7 @@ def process_remove_reminder(message, database):
 	bldr.append("*****")
 	bldr.append("\n\n")
 
-	bldr.extend(get_reminders_string(message.author.name, database))
+	bldr.extend(get_reminders_string(utils.author_name(message.author), database))
 
 	return [''.join(bldr)]
 
@@ -147,9 +148,9 @@ def process_remove_reminder(message, database):
 def process_remove_all_reminders(message, database):
 	log.info("Processing remove all reminders message")
 
-	current_reminders = get_reminders_string(message.author.name, database, True)
+	current_reminders = get_reminders_string(utils.author_name(message.author), database, True)
 
-	reminders_deleted = database.delete_user_reminders(message.author.name)
+	reminders_deleted = database.delete_user_reminders(utils.author_name(message.author))
 	log.debug(f"Deleted {reminders_deleted} reminders")
 
 	bldr = utils.str_bldr()
@@ -169,7 +170,7 @@ def process_remove_all_reminders(message, database):
 
 def process_get_reminders(message, database):
 	log.info("Processing get reminders message")
-	return get_reminders_string(message.author.name, database, include_all=True)
+	return get_reminders_string(utils.author_name(message.author), database, include_all=True)
 
 
 def process_delete_comment(message, reddit, database):
@@ -183,7 +184,7 @@ def process_delete_comment(message, reddit, database):
 	else:
 		db_comment = database.get_comment_by_thread(ids[0])
 		if db_comment is not None:
-			if db_comment.user == message.author.name:
+			if db_comment.user == utils.author_name(message.author):
 				comment = reddit.get_comment(db_comment.comment_id)
 				if not reddit.delete_comment(comment):
 					log.debug(f"Unable to delete comment: {db_comment.comment_id}")
@@ -193,7 +194,7 @@ def process_delete_comment(message, reddit, database):
 					log.debug(f"Deleted comment: {db_comment.comment_id}")
 					bldr.append("Comment deleted.")
 			else:
-				log.debug(f"Bot wasn't replying to owner: {db_comment.user} : {message.author.name}")
+				log.debug(f"Bot wasn't replying to owner: {db_comment.user} : {utils.author_name(message.author)}")
 				bldr.append("It looks like the bot wasn't replying to you.")
 		else:
 			log.debug(f"Comment doesn't exist: {ids[0]}")
@@ -205,7 +206,7 @@ def process_delete_comment(message, reddit, database):
 def process_cakeday_message(message, reddit, database):
 	log.info("Processing cakeday")
 
-	if database.user_has_cakeday_reminder(message.author.name):
+	if database.user_has_cakeday_reminder(utils.author_name(message.author)):
 		log.info("Cakeday already exists")
 		return ["It looks like you already have a cakeday reminder set."], False
 
@@ -214,7 +215,7 @@ def process_cakeday_message(message, reddit, database):
 	reminder = Reminder(
 		source=utils.message_link(message.id),
 		message=static.CAKEDAY_MESSAGE,
-		user=database.get_or_add_user(message.author.name),
+		user=database.get_or_add_user(utils.author_name(message.author)),
 		requested_date=utils.datetime_from_timestamp(message.created_utc),
 		target_date=next_anniversary,
 		recurrence="1 year",
@@ -244,7 +245,7 @@ def process_timezone_message(message, database):
 		bldr.append(f"{timezones[0]} is not a valid timezone.")
 
 	else:
-		user = database.get_or_add_user(message.author.name)
+		user = database.get_or_add_user(utils.author_name(message.author))
 		if timezones[0] == "UTC":
 			user.timezone = None
 			bldr.append(f"Reset your timezone to the default")
@@ -252,7 +253,7 @@ def process_timezone_message(message, database):
 			user.timezone = timezones[0]
 			bldr.append(f"Updated your timezone to {timezones[0]}")
 
-		log.info(f"u/{message.author.name} timezone updated to {timezones[0]}")
+		log.info(f"u/{utils.author_name(message.author)} timezone updated to {timezones[0]}")
 
 	return [''.join(bldr)]
 
@@ -267,7 +268,7 @@ def process_clock_message(message, database):
 		bldr.append("I couldn't find a clock type in your message.")
 
 	else:
-		user = database.get_or_add_user(message.author.name)
+		user = database.get_or_add_user(utils.author_name(message.author))
 		if clocks[0] == "24":
 			user.time_format = None
 			bldr.append(f"Reset your clock type to the default 24 hour clock")
@@ -279,14 +280,14 @@ def process_clock_message(message, database):
 			bldr.append(f"{clocks[0]} is not a valid clock type.")
 			return bldr
 
-		log.info(f"u/{message.author.name} clock type updated to {clocks[0]}")
+		log.info(f"u/{utils.author_name(message.author)} clock type updated to {clocks[0]}")
 
 	return [''.join(bldr)]
 
 
 def process_message(message, reddit, database, count_string=""):
-	log.info(f"{count_string}: Message u/{message.author.name} : {message.id}")
-	user = database.get_or_add_user(message.author.name)
+	log.info(f"{count_string}: Message u/{utils.author_name(message.author)} : {message.id}")
+	user = database.get_or_add_user(utils.author_name(message.author))
 	user.recurring_sent = 0
 	body = message.body.lower()
 
@@ -295,11 +296,11 @@ def process_message(message, reddit, database, count_string=""):
 	if static.TRIGGER_RECURRING_LOWER in body:
 		result_messages, created = process_remind_me(message, reddit, database, True)
 		if created:
-			counters.replies.labels(source='message', type='repeat').inc()
+			counters.replies.labels(source='message', type='repeat', trigger='command').inc()
 	elif static.TRIGGER_LOWER in body:
 		result_messages, created = process_remind_me(message, reddit, database, False)
 		if created:
-			counters.replies.labels(source='message', type='single').inc()
+			counters.replies.labels(source='message', type='single', trigger='command').inc()
 	elif "myreminders!" in body:
 		result_messages = process_get_reminders(message, database)
 	elif "remove!" in body:
@@ -311,7 +312,7 @@ def process_message(message, reddit, database, count_string=""):
 	elif "cakeday!" in body:
 		result_messages, created = process_cakeday_message(message, reddit, database)
 		if created:
-			counters.replies.labels(source='message', type='cake').inc()
+			counters.replies.labels(source='message', type='cake', trigger='command').inc()
 	elif "timezone!" in body:
 		result_messages = process_timezone_message(message, database)
 	elif "clock!" in body:
@@ -320,7 +321,7 @@ def process_message(message, reddit, database, count_string=""):
 		result_messages = ["Hello back!"]
 
 	if not created:
-		counters.replies.labels(source='message', type='other').inc()
+		counters.replies.labels(source='message', type='other', trigger='command').inc()
 
 	if result_messages is None:
 		result_messages = ["I couldn't find anything in your message."]
@@ -349,29 +350,51 @@ def process_messages(reddit, database):
 		if reddit.is_message(message):
 			if message.author is None:
 				log.info(f"Message {message.id} is a system notification")
-			elif message.author.name == "reddit":
+			elif utils.author_name(message.author) == "reddit":
 				log.info(f"Message {message.id} is from reddit, skipping")
-			elif message.author.name in static.BLACKLISTED_ACCOUNTS:
-				log.info(f"Message {message.id} from u/{message.author.name} is blacklisted, skipping")
+			elif utils.author_name(message.author) in static.BLACKLISTED_ACCOUNTS:
+				log.info(f"Message {message.id} from u/{utils.author_name(message.author)} is blacklisted, skipping")
 			else:
 				try:
 					process_message(message, reddit, database, f"{i}/{len(messages)}")
 				except Exception as err:
 					mark_read = not utils.process_error(
-						f"Error processing message: {message.id} : u/{message.author.name}",
+						f"Error processing message: {message.id} : u/{utils.author_name(message.author)}",
 						err, traceback.format_exc()
 					)
 				finally:
 					database.commit()
 		else:
-			log.info(f"Object not message, skipping: {message.id}")
+			is_mention = message.subject == "username mention"
+			if is_mention and (static.MENTION_DETECTION_ENABLED or static.MENTION_REMINDERS_ENABLED):
+				has_command = comments.body_contains_command(message.body)
+				mention_type = 'with_command' if has_command else 'mention_only'
+				counters.mentions.labels(type=mention_type).inc()
+				permalink = utils.reddit_link(message.permalink)
+				if static.MENTION_DETECTION_WARN:
+					log.warning(f"Username mention from u/{utils.author_name(message.author)}: {message.id} : {permalink}")
+				else:
+					log.info(f"Username mention from u/{utils.author_name(message.author)}: {message.id} : {permalink}")
+
+				if static.MENTION_REMINDERS_ENABLED and not has_command:
+					try:
+						comments.process_comment(message, reddit, database, f"{i}/{len(messages)}")
+					except Exception as err:
+						mark_read = not utils.process_error(
+							f"Error processing mention: {message.id} : u/{utils.author_name(message.author)}",
+							err, traceback.format_exc()
+						)
+					finally:
+						database.commit()
+			else:
+				log.info(f"Object not message, skipping: {message.id}")
 
 		if mark_read:
 			try:
 				reddit.mark_read(message)
 			except Exception as err:
 				utils.process_error(
-					f"Error marking message read: {message.id} : {message.author.name}",
+					f"Error marking message read: {message.id} : {utils.author_name(message.author)}",
 					err, traceback.format_exc()
 				)
 

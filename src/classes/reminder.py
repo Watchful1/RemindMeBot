@@ -150,7 +150,7 @@ class Reminder(Base):
 		comment_id = match.group(3)
 		return subreddit, thread_id, comment_id
 
-	def render_message_confirmation(self, result_message, comment_return=None, comment_age_seconds=0):
+	def render_message_confirmation(self, result_message, comment_return=None, comment_age_seconds=0, suppress_mention_nudge=False):
 		bldr = utils.str_bldr()
 		if comment_age_seconds > (60 * 60):
 			bldr.append("I'm really sorry about replying to this so late. There's a [detailed post about why I did here](")
@@ -208,9 +208,15 @@ class Reminder(Base):
 			elif comment_return == ReturnType.THREAD_REPLIED:
 				bldr.append("I've already replied to another comment in this thread.")
 
+		if static.ENCOURAGE_MENTIONS_IN_REPLY and not suppress_mention_nudge:
+			bldr.append("\n\n")
+			bldr.append(f"**{static.ACCOUNT_NAME} is switching to username summons.** ")
+			bldr.append(f"Instead of `!{static.TRIGGER} 1 day`, use `u/{static.ACCOUNT_NAME} 1 day`. ")
+			bldr.append(f"[More info.]({static.INFO_POST_MENTION})")
+
 		return bldr
 
-	def render_comment_confirmation(self, thread_id, count_duplicates=0, comment_age_seconds=0):
+	def render_comment_confirmation(self, thread_id, count_duplicates=0, comment_age_seconds=0, suppress_mention_nudge=False):
 		bldr = utils.str_bldr()
 		if comment_age_seconds > (60 * 60):
 			bldr.append("I'm really sorry about replying to this so late. There's a [detailed post about why I did here](")
@@ -279,6 +285,12 @@ class Reminder(Base):
 				f"Delete! {thread_id}"
 			))
 			bldr.append(")")
+
+		if static.ENCOURAGE_MENTIONS_IN_REPLY and not suppress_mention_nudge:
+			bldr.append("\n\n")
+			bldr.append(f"**{static.ACCOUNT_NAME} is switching to username summons.** ")
+			bldr.append(f"Instead of `!{static.TRIGGER} 1 day`, use `u/{static.ACCOUNT_NAME} 1 day`. ")
+			bldr.append(f"[More info.]({static.INFO_POST_MENTION})")
 
 		return bldr
 

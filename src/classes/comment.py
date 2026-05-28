@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from database import Base
 
 
@@ -12,6 +12,7 @@ class DbComment(Base):
 	user = Column(String(80), nullable=False)
 	source = Column(String(400), nullable=False)
 	current_count = Column(Integer, nullable=False)
+	from_mention = Column(Boolean, nullable=False, default=False)
 
 	def __init__(
 		self,
@@ -20,7 +21,8 @@ class DbComment(Base):
 		reminder_id,
 		user,
 		source,
-		current_count=0
+		current_count=0,
+		from_mention=False
 	):
 		self.thread_id = thread_id
 		self.comment_id = comment_id
@@ -28,3 +30,4 @@ class DbComment(Base):
 		self.user = user
 		self.source = source
 		self.current_count = current_count
+		self.from_mention = from_mention

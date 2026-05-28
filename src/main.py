@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	discord_logging.init_discord_logging(args.user, logging.WARNING, 1)
 
 	reddit = praw_wrapper.Reddit(args.user, args.no_post, user_agent=static.USER_AGENT)
-	static.ACCOUNT_NAME = reddit.username
+	static.set_account_name(reddit.username)
 	database = Database(debug=args.debug_db)
 
 	ingest_database = None

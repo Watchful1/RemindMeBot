@@ -20,6 +20,12 @@ debug_time = None
 cal = parsedatetime.Calendar()
 
 
+def author_name(author, default="[unknown]"):
+	if author is None:
+		return default
+	return author.name
+
+
 def process_error(message, exception, traceback):
 	is_transient = \
 		isinstance(exception, prawcore.exceptions.ServerError) or \

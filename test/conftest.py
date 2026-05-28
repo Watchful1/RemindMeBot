@@ -19,5 +19,5 @@ def database():
 @pytest.fixture
 def reddit():
 	reddit = reddit_test.Reddit("Watchful1BotTest")
-	static.ACCOUNT_NAME = reddit.username
+	static.set_account_name(reddit.username)
 	return reddit
