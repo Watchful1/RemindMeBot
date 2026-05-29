@@ -28,8 +28,8 @@ INFO_POST_CAKEDAY = "https://www.reddit.com/r/RemindMeBot/comments/e0tgoj/cakeda
 INFO_POST_SETTINGS = "https://www.reddit.com/r/RemindMeBot/comments/e1asdu/timezone_and_clock_info_post/"
 INFO_POST_MENTION = ""
 
-MENTION_DETECTION_ENABLED = False
-MENTION_DETECTION_WARN = False
+MENTION_DETECTION_ENABLED = True
+MENTION_DETECTION_WARN = True
 MENTION_REMINDERS_ENABLED = False
 ENCOURAGE_MENTIONS_IN_REPLY = False
 
