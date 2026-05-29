@@ -370,7 +370,10 @@ def process_messages(reddit, database):
 				has_command = comments.body_contains_command(message.body)
 				mention_type = 'with_command' if has_command else 'mention_only'
 				counters.mentions.labels(type=mention_type).inc()
-				permalink = utils.reddit_link(message.permalink)
+				try:
+					permalink = utils.reddit_link(message.permalink)
+				except AttributeError:
+					permalink = f"comment {message.id}"
 				if static.MENTION_DETECTION_WARN:
 					log.warning(f"Username mention from u/{utils.author_name(message.author)}: {message.id} : {permalink}")
 				else:
