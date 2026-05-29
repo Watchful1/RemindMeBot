@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
+        python-version: '3.10'
     - name: Test with pytest
       run: |
         export PATH=/home/runner/.local/bin:$PATH
         pip install --user pipenv
-        pipenv install --dev
+        pipenv install --dev --python $(which python)
         pipenv run pytest
