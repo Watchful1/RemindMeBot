@@ -26,12 +26,12 @@ INFO_POST = "https://www.reddit.com/r/RemindMeBot/comments/e1bko7/remindmebot_in
 INFO_POST_REPEAT = "https://www.reddit.com/r/RemindMeBot/comments/e1a9rt/remindmerepeat_info_post/"
 INFO_POST_CAKEDAY = "https://www.reddit.com/r/RemindMeBot/comments/e0tgoj/cakeday_info_post/"
 INFO_POST_SETTINGS = "https://www.reddit.com/r/RemindMeBot/comments/e1asdu/timezone_and_clock_info_post/"
-INFO_POST_MENTION = ""
+INFO_POST_MENTION = "https://www.reddit.com/r/RemindMeBot/comments/1tskg07/remindmebot_is_switching_to_username_summons/"
 
 MENTION_DETECTION_ENABLED = True
 MENTION_DETECTION_WARN = True
-MENTION_REMINDERS_ENABLED = False
-ENCOURAGE_MENTIONS_IN_REPLY = False
+MENTION_REMINDERS_ENABLED = True
+ENCOURAGE_MENTIONS_IN_REPLY = True
 
 MENTION_PATTERN = None  # populated by set_account_name below
 
