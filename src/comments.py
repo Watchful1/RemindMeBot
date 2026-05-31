@@ -109,8 +109,13 @@ def parse_comment(comment, database, count_string, reddit):
 		time = utils.find_reminder_time(comment.body, trigger)
 		message_text = utils.find_reminder_message(comment.body, trigger)
 
+	try:
+		source_link = utils.reddit_link(comment.permalink)
+	except AttributeError:
+		source_link = utils.reddit_link(f"/comments/{utils.id_from_fullname(comment.link_id)}/_/{comment.id}/")
+
 	reminder, result_message = Reminder.build_reminder(
-		source=utils.reddit_link(comment.permalink),
+		source=source_link,
 		message=message_text,
 		user=database.get_or_add_user(comment.author),
 		requested_date=utils.datetime_from_timestamp(comment.created_utc),
