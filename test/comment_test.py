@@ -58,6 +58,50 @@ def test_process_comments_ingest(database, reddit):
 	assert ingest_database.get_count_comments(None) == 0
 
 
+def test_process_comments_skips_pure_mention(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
+	ingest_database = IngestDatabase(debug=True)
+	ingest_database.set_default_client("updateme")
+
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME} 1 day",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	ingest_database.add_comment(
+		IngestComment(
+			id=comment.id,
+			author=comment.author.name,
+			subreddit=comment.subreddit.display_name,
+			created_utc=comment.created_utc,
+			permalink=comment.permalink,
+			link_id=comment.link_id,
+			body=comment.body,
+			client_id=ingest_database.default_client_id,
+		)
+	)
+
+	comments.process_comments(reddit, database, ingest_database)
+
+	# ingest entry should be marked-read (deleted) so it doesn't reappear
+	assert ingest_database.get_count_comments(None) == 0
+	# no reminder created via ingest — the inbox dispatch is supposed to own this
+	assert len(database.get_all_user_reminders(username)) == 0
+	# no reply posted on the comment
+	assert len(comment.children) == 0
+
+
 def test_process_comment(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"

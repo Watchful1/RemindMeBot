@@ -47,6 +47,21 @@ def body_contains_command(body):
 	)
 
 
+def is_pure_mention(body):
+	"""True if the body is a username mention with no bang-command.
+
+	These are handled by the inbox dispatch path in messages.py and should be
+	skipped by the ingest pipeline to avoid duplicate reminders. Returns False
+	when MENTION_REMINDERS_ENABLED is off so the ingest path keeps its current
+	(do-nothing) handling instead of silently swallowing them.
+	"""
+	if not static.MENTION_REMINDERS_ENABLED:
+		return False
+	if static.MENTION_PATTERN.search(body.lower().strip()) is None:
+		return False
+	return not body_contains_command(body)
+
+
 def parse_comment(comment, database, count_string, reddit):
 	if comment.author == static.ACCOUNT_NAME:
 		log.debug("Comment is from remindmebot")
@@ -230,13 +245,16 @@ def process_comments(reddit, database, ingest_database):
 	for comment in comments[::-1]:
 		i += 1
 		mark_read = True
-		try:
-			process_comment(comment, reddit, database, f"{i}/{len(comments)}")
-		except Exception as err:
-			mark_read = not utils.process_error(
-				f"Error processing comment: {comment.id} : {comment.author}",
-				err, traceback.format_exc()
-			)
+		if is_pure_mention(comment.body):
+			log.debug(f"Skipping pure mention from ingest, owned by inbox dispatch: {comment.id}")
+		else:
+			try:
+				process_comment(comment, reddit, database, f"{i}/{len(comments)}")
+			except Exception as err:
+				mark_read = not utils.process_error(
+					f"Error processing comment: {comment.id} : {comment.author}",
+					err, traceback.format_exc()
+				)
 
 		if mark_read:
 			ingest_database.delete_comment(comment)
