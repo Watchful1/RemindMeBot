@@ -380,20 +380,23 @@ def process_messages(reddit, database):
 					log.info(f"Username mention from u/{utils.author_name(message.author)}: {message.id} : {permalink}")
 
 				if static.MENTION_REMINDERS_ENABLED and not has_command:
-					# PRAW's inbox payload omits permalink and link_id on these Comments,
-					# but `context` is reliably present. Populate the fields from it so
-					# downstream code can read them as normal attributes.
 					try:
+						# PRAW's inbox payload omits permalink and link_id, but `context`
+						# carries the full permalink URL — strip the query string and parse
+						# the post id out of the path. Build a MinimalComment so downstream
+						# code never sees the lazy PRAW object.
 						permalink_path = message.context.split('?', 1)[0]
-						message.permalink = permalink_path
-						match = re.match(r'/r/[^/]+/comments/([^/]+)/', permalink_path)
-						if match:
-							message.link_id = f"t3_{match.group(1)}"
-					except (AttributeError, TypeError):
-						pass
-
-					try:
-						comments.process_comment(message, reddit, database, f"{i}/{len(messages)}")
+						post_id_match = re.match(r'/r/[^/]+/comments/([^/]+)/', permalink_path)
+						minimal = comments.MinimalComment(
+							id=message.id,
+							author=message.author.name,
+							subreddit=str(message.subreddit),
+							created_utc=message.created_utc,
+							permalink=permalink_path,
+							link_id=f"t3_{post_id_match.group(1)}",
+							body=message.body,
+						)
+						comments.process_comment(minimal, reddit, database, f"{i}/{len(messages)}")
 					except Exception as err:
 						mark_read = not utils.process_error(
 							f"Error processing mention: {message.id} : u/{utils.author_name(message.author)}",

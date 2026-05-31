@@ -765,26 +765,10 @@ def test_process_mention_no_time_defaults(database, reddit, monkeypatch):
 	assert reminders[0].target_date == created + timedelta(hours=24)
 
 
-class _LazyMentionComment:
-	"""Mimics a PRAW inbox Comment whose lazy payload omits permalink.
-
-	Reddit's inbox JSON includes subreddit, author, body, link_id, etc. — those
-	are set directly. permalink is the one attribute PRAW lazy-fetches, and
-	the fetch is failing in production.
-	"""
-	def __init__(self, comment_id, author, body, link_id, subreddit, created):
-		self.id = comment_id
-		self.author = author
-		self.body = body
-		self.link_id = link_id
-		self.subreddit = subreddit
-		self.created_utc = created.timestamp()
-
-	def __getattr__(self, name):
-		raise AttributeError(f"'_LazyMentionComment' object has no attribute '{name}'")
-
-
-def test_process_mention_with_lazy_praw_comment(database, reddit, monkeypatch):
+def test_process_mention_via_minimal_comment(database, reddit, monkeypatch):
+	"""End-to-end shape test for the inbox-mention dispatch: process_comment
+	accepts a MinimalComment (the duck-type messages.py constructs from a PRAW
+	inbox message) and produces a reminder + reply identical to the ingest path."""
 	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", True)
 
 	username = "Watchful1"
@@ -792,8 +776,8 @@ def test_process_mention_with_lazy_praw_comment(database, reddit, monkeypatch):
 	comment_id = reddit_test.random_id()
 	thread_id = reddit_test.random_id()
 
-	# Register a normal comment so reddit.get_comment / reply_comment have something
-	# to operate on during the reply step (production hits this path via PRAW too).
+	# The reply step does reddit.get_comment(comment.id), so we need a real
+	# RedditObject registered for the reply machinery to find.
 	registered = reddit_test.RedditObject(
 		body=f"u/{static.ACCOUNT_NAME} 1 day",
 		author=username,
@@ -805,22 +789,20 @@ def test_process_mention_with_lazy_praw_comment(database, reddit, monkeypatch):
 	)
 	reddit.add_comment(registered)
 
-	# Dispatch with the lazy stand-in — what production actually hands process_comment.
-	lazy = _LazyMentionComment(
-		comment_id=comment_id,
+	minimal = comments.MinimalComment(
+		id=comment_id,
 		author=username,
-		body=f"u/{static.ACCOUNT_NAME} 1 day",
-		link_id="t3_"+thread_id,
 		subreddit="test",
-		created=created,
+		created_utc=int(created.timestamp()),
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		link_id="t3_"+thread_id,
+		body=f"u/{static.ACCOUNT_NAME} 1 day",
 	)
-	comments.process_comment(lazy, reddit, database)
+	comments.process_comment(minimal, reddit, database)
 
 	reminders = database.get_all_user_reminders(username)
 	assert len(reminders) == 1
-	# Source URL fell back to the constructed /comments/{post}/_/{comment}/ form.
-	assert reminders[0].source == utils.reddit_link(f"/comments/{thread_id}/_/{comment_id}/")
-	# Reply still posted despite the lazy attributes.
+	assert reminders[0].source == utils.reddit_link(minimal.permalink)
 	assert "CLICK THIS LINK" in registered.get_first_child().body
 
 

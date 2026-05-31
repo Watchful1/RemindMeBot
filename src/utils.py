@@ -23,6 +23,8 @@ cal = parsedatetime.Calendar()
 def author_name(author, default="[unknown]"):
 	if author is None:
 		return default
+	if isinstance(author, str):
+		return author
 	return author.name
 
 

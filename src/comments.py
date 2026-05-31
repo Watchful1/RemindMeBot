@@ -1,5 +1,6 @@
 import discord_logging
 import traceback
+from dataclasses import dataclass
 
 import utils
 import static
@@ -10,6 +11,21 @@ from praw_wrapper.reddit import ReturnType
 
 
 log = discord_logging.get_logger()
+
+
+@dataclass
+class MinimalComment:
+	"""The minimum set of fields parse_comment / process_comment consume. Used
+	by the inbox-mention dispatch path so we don't pass raw PRAW Comments
+	(whose lazy payload omits permalink and link_id) downstream.
+	"""
+	id: str
+	author: str
+	subreddit: str
+	created_utc: int
+	permalink: str
+	link_id: str
+	body: str
 
 
 def database_set_seen(database, comment_seen):
@@ -124,13 +140,8 @@ def parse_comment(comment, database, count_string, reddit):
 		time = utils.find_reminder_time(comment.body, trigger)
 		message_text = utils.find_reminder_message(comment.body, trigger)
 
-	try:
-		source_link = utils.reddit_link(comment.permalink)
-	except AttributeError:
-		source_link = utils.reddit_link(f"/comments/{utils.id_from_fullname(comment.link_id)}/_/{comment.id}/")
-
 	reminder, result_message = Reminder.build_reminder(
-		source=source_link,
+		source=utils.reddit_link(comment.permalink),
 		message=message_text,
 		user=database.get_or_add_user(comment.author),
 		requested_date=utils.datetime_from_timestamp(comment.created_utc),
