@@ -380,6 +380,18 @@ def process_messages(reddit, database):
 					log.info(f"Username mention from u/{utils.author_name(message.author)}: {message.id} : {permalink}")
 
 				if static.MENTION_REMINDERS_ENABLED and not has_command:
+					# PRAW's inbox payload omits permalink and link_id on these Comments,
+					# but `context` is reliably present. Populate the fields from it so
+					# downstream code can read them as normal attributes.
+					try:
+						permalink_path = message.context.split('?', 1)[0]
+						message.permalink = permalink_path
+						match = re.match(r'/r/[^/]+/comments/([^/]+)/', permalink_path)
+						if match:
+							message.link_id = f"t3_{match.group(1)}"
+					except (AttributeError, TypeError):
+						pass
+
 					try:
 						comments.process_comment(message, reddit, database, f"{i}/{len(messages)}")
 					except Exception as err:
