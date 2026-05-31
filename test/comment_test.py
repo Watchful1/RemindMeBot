@@ -672,7 +672,8 @@ def test_process_mention_case_insensitive(database, reddit, monkeypatch):
 	assert reminders[0].target_date == created + timedelta(hours=24)
 
 
-def test_process_mention_disabled(database, reddit):
+def test_process_mention_disabled(database, reddit, monkeypatch):
+	monkeypatch.setattr(static, "MENTION_REMINDERS_ENABLED", False)
 	username = "Watchful1"
 	comment_id = reddit_test.random_id()
 	thread_id = reddit_test.random_id()
