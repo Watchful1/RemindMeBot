@@ -15,3 +15,7 @@ Times go through `dateparser.parse`, then dateparser's `search_dates`, then pars
 ## Tech
 
 Python, SQLAlchemy on SQLite, and PRAW through [PrawWrapper](https://github.com/Watchful1/PrawWrapper), which also gives the pytest suite a fake Reddit to run against. Dates are parsed with a [fork of dateparser](https://github.com/Watchful1/dateparser) and [parsedatetime](https://github.com/bear/parsedatetime). Errors get posted to Discord with [DiscordLogging](https://github.com/Watchful1/DiscordLogging), and it exports Prometheus metrics.
+
+## License
+
+This code is published for reference. All rights reserved; please don't run your own copy of the bot.
