@@ -82,6 +82,22 @@ def find_reminder_time(body, trigger):
 		return None
 
 
+def find_reminder_time_next_line(body, trigger):
+	# Mentions are often written with the time on the line after the username,
+	# which reddit renders as a single line, eg "u/RemindMeBot\n 2 days"
+	trigger_match = re.search(re.escape(trigger), body, flags=re.IGNORECASE)
+	if trigger_match is None:
+		return None
+	lines = body[trigger_match.end():].split("\n")[1:]
+	for line in lines:
+		line = line.strip()
+		if line == "":
+			continue
+		time = re.match(r'(.*?)(?:\[|\"|“|$|http)', line).group(1).strip()
+		return time[:80] if time != "" else None
+	return None
+
+
 def parse_time(time_string, base_time, timezone_string):
 	base_time_original = base_time
 	base_time = datetime_as_timezone(base_time, timezone_string)

@@ -710,6 +710,58 @@ def test_process_mention_case_insensitive(database, reddit):
 	assert reminders[0].target_date == created + timedelta(hours=24)
 
 
+def test_process_mention_time_on_next_line(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME}\n 2 days",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+	result = comment.get_first_child().body
+
+	assert "Defaulted to one day" not in result
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(days=2)
+
+
+def test_process_mention_time_after_blank_line(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"u/{static.ACCOUNT_NAME}\n\n3 days [check this]",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(days=3)
+	assert reminders[0].message == "check this"
+
+
 def test_process_mention_no_time_defaults(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"

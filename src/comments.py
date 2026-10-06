@@ -188,6 +188,8 @@ def parse_comment(comment, database, count_string, reddit):
 
 	else:
 		time = utils.find_reminder_time(comment.body, trigger)
+		if time is None and mention:
+			time = utils.find_reminder_time_next_line(comment.body, trigger)
 		message_text = utils.find_reminder_message(comment.body, trigger)
 
 	reminder, result_message = Reminder.build_reminder(
