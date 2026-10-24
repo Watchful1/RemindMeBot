@@ -134,6 +134,30 @@ def test_process_comment(database, reddit):
 	assert reminders[0].recurrence is None
 
 
+def test_process_comment_no_space_after_trigger(database, reddit):
+	created = utils.datetime_now()
+	username = "Watchful1"
+	comment_id = reddit_test.random_id()
+	thread_id = reddit_test.random_id()
+	comment = reddit_test.RedditObject(
+		body=f"!{static.TRIGGER}210days",
+		author=username,
+		created=created,
+		id=comment_id,
+		link_id="t3_"+thread_id,
+		permalink=f"/r/test/{thread_id}/_/{comment_id}/",
+		subreddit="test"
+	)
+
+	reddit.add_comment(comment)
+
+	comments.process_comment(comment.get_ingest_comment(), reddit, database)
+
+	reminders = database.get_all_user_reminders(username)
+	assert len(reminders) == 1
+	assert reminders[0].target_date == created + timedelta(days=210)
+
+
 def test_process_comment_split(database, reddit):
 	created = utils.datetime_now()
 	username = "Watchful1"
