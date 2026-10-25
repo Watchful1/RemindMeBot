@@ -7,7 +7,7 @@ DATABASE_NAME = "database.db"
 MESSAGE_LINK = "https://www.reddit.com/message/messages/"
 ACCOUNT_NAME = "RemindMeBot"
 BACKUP_FOLDER_NAME = "backup"
-BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot', 'AutoModerator', 'remindditbot','chaintip']
+BLACKLISTED_ACCOUNTS = ['[deleted]', 'kzreminderbot', 'AutoModerator', 'remindditbot','chaintip', 'remindme-dev', 'remindme-relay']
 RECURRING_LIMIT = 30
 
 TRIGGER = "RemindMe"
